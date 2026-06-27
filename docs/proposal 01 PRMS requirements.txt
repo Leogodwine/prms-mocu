@@ -1,0 +1,140 @@
+FUNCTIONAL REQUIREMENTS
+A. User Authentication & Authorization management
+* The system shall allow users to log in using a username (Registration Number and staffID) and password
+* The system shall support role-based access (Coordinator, Supervisor, Project Student, Research Student, Normal Student)
+* The system shall prevent unauthorized access to restricted features
+* Account creation for students (temporary password via university email)
+* Password reset functionality
+* Verify student Registration Number against SIS
+* Confirm Enrollment Status = Active
+* Determine student role based on year of study:
+o Eligible years ? Project/Research Student
+o Other years ? Normal Student
+* Import required student records from SIS into local system (read-only)
+B. Project & Research Management
+Coordinator Requirements
+* The system shall allow the coordinator to create student accounts
+* The system shall allow the coordinator to create project groups (2 or more students)
+* The system shall allow the coordinator to register individual research students
+* The system shall allow the coordinator to assign supervisors to groups or students
+* The system shall allow the coordinator to view all groups and students
+* The system shall allow the coordinator to track progress of all projects and research
+* The system shall allow the coordinator to view approved groups ready for presentation
+* The system shall allow the coordinator to access archived projects and research
+* The system shall allow the coordinator to sees only students who are active, in eligible year for project/research, in the same department or programme
+Supervisor Requirements
+* The system shall allow supervisors to view assigned groups and students
+* The system shall display student details (name, registration number, phone, email)
+* The system shall allow supervisors to view submitted proposals, reports, demos, and source code
+* The system shall allow supervisors to add comments and feedback
+* The system shall allow supervisors to approve or reject project stages
+* The system shall allow supervisors to digitally approve final presentation forms
+* The system shall allow supervisors to track progress for each assigned project
+Student Requirements
+* The system shall allow students to log in using registration credentials
+* The system shall allow students to view assigned supervisor details
+* The system shall allow students to upload proposals, reports, demos, and source code
+* The system shall allow students to download submitted and approved files
+* The system shall allow students to view supervisor comments and feedback
+* The system shall allow students to track project status until final approval
+* The system shall allow students to view and download previous projects (read-only)
+Project & research requirements
+* The system shall support multiple project stages (proposal, development, demo, final)
+* The system shall store all documents and source code securely
+* The system shall archive completed projects for future reference
+D. Notifications
+* Notify students of:
+o Temporary password on first registration via email and phone number
+o Supervisor comments
+o Approval status changes
+o Notify supervisors of new submissions via email
+E. File Management
+* Upload and download functionality for project/research documents
+* Maintain version history of submissions
+* Support multiple file types (PDF, DOCX, ZIP for source code)
+F.  Reporting & Tracking management
+* Track project/research progress by group or individual
+* View previous project/research reports
+* Generate summary reports for coordinators and supervisors
+
+Functional Requirements Specification Table
+This table converts the defined use cases and functional requirements into a structured functional requirements format suitable for SRS and system design.
+
+FR-01: Student Account Registration
+FieldDescriptionRequirement No.FR-01Actor(s)Student, SystemPre-ConditionsStudent exists in SIS; Enrollment status = ActiveInputRegistration NumberNormal Flow1. Student enters registration number.
+2. System validates number against SIS.
+3. System retrieves student details.
+4. System creates account and assigns role.
+5. Temporary password is generated.OutputStudent account createdPost-ConditionsAccount exists with correct role; temporary password sent
+FR-02: First Login & Password Change
+FieldDescriptionRequirement No.FR-02Actor(s)StudentPre-ConditionsAccount created, temporary password issuedInput* Registration Number 
+* Temporary Password
+* New PasswordNormal Flow1. Student logs in with temporary password.
+2. System forces password change.
+3. Student sets a new password.
+4. System validates and saves password.OutputPassword updatedPost-ConditionsAccount activated with permanent password
+FR-03: Role Assignment Based on Eligibility
+FieldDescriptionRequirement No.FR-03Actor(s)SystemPre-ConditionsStudent record retrieved from SISInput* Year of Study
+* ProgramNormal Flow1. System checks year of study.
+2. System matches eligibility rules.
+3. System assigns Project/Research or Normal Student role.OutputRole assignedPost-ConditionsStudent has corrected system access level
+FR-04: View Eligible Students
+FieldDescriptionRequirement No.FR-04Actor(s)CoordinatorPre-ConditionsCoordinator logged inInput* Department 
+* Programme 
+* Year of Study filtersNormal Flow1. Coordinator selects filters.
+2. System retrieves active and eligible students.
+3. System displays filtered list.OutputEligible students listPost-ConditionsCoordinator can proceed with grouping/assignment
+FR-05: Create Project Groups
+FieldDescriptionRequirement No.FR-05Actor(s)CoordinatorPre-ConditionsEligible students availableInput* Selected student list
+* Group nameNormal Flow1. Coordinator selects students.
+2. Coordinator creates group.
+3. System validates group size.
+4. System saves group.OutputProject group createdPost-ConditionsStudents linked to a project group
+FR-06: Assign Supervisor
+FieldDescriptionRequirement No.FR-06Actor(s)CoordinatorPre-ConditionsSupervisor and students/groups must existInput* Supervisor ID
+* Student/Group IDNormal Flow1. Coordinator selects supervisor.
+2. Coordinator selects group/student.
+3. System records assignment.
+4. System sends notification.OutputSupervisor assignedPost-ConditionsSupervisor linked to project/research
+FR-07: Upload Project Documents
+FieldDescriptionRequirement No.FR-07Actor(s)Project/Research StudentPre-ConditionsStudent logged in, and eligible roleInputDocument file (PDF/DOCX/ZIP), StageNormal Flow1. Student selects project stage.
+2. Student uploads file.
+3. System validates file type and size.
+4. System stores file and version.OutputSubmission recordedPost-ConditionsDocument available for supervisor review
+FR-08: Review Submissions
+FieldDescriptionRequirement No.FR-08Actor(s)SupervisorPre-ConditionsSupervisor assigned to projectInputSelected submissionNormal Flow1. Supervisor opens submission.
+2. System displays uploaded files.
+3. Supervisor reviews content.OutputSubmission openedPost-ConditionsSubmission ready for feedback
+FR-09: Provide Feedback
+FieldDescriptionRequirement No.FR-09Actor(s)SupervisorPre-ConditionsSubmission reviewedInput* Comments
+* RecommendationsNormal Flow1. Supervisor enters feedback.
+2. System saves comments.
+3. System notifies student.OutputFeedback storedPost-ConditionsStudent can view supervisor feedback
+FR-10: Approve or Reject Project Stage
+FieldDescriptionRequirement No.FR-10Actor(s)SupervisorPre-ConditionsFeedback providedInputApproval decision (Approve/Reject)Normal Flow1. Supervisor selects decision.
+2. System updates project status.
+3. System sends notification.OutputUpdated project statusPost-ConditionsProject moves to next stage or requires revision
+FR-11: View Archived Projects
+FieldDescriptionRequirement No.FR-11Actor(s)Student, CoordinatorPre-ConditionsUser authenticatedInput* Search
+* filter criteriaNormal Flow1. User searches archived projects.
+2. System retrieves approved projects.
+3. System displays read-only files.OutputArchived project listPost-ConditionsNo modification to archived data
+FR-12: Send Notifications
+FieldDescriptionRequirement No.FR-12Actor(s)SystemPre-ConditionsTrigger event occursInputEvent type (submission, feedback, approval)Normal Flow1. System detects trigger.
+2. System prepares message.
+3. System sends email/SMS.OutputNotification deliveredPost-ConditionsRecipient informed of system event
+FR-13: Synchronize SIS Data
+FieldDescriptionRequirement No.FR-13Actor(s)SystemPre-ConditionsSecure SIS connection availableInputSIS student recordsNormal Flow1. System connects to SIS.
+2. System retrieves required fields.
+3. System updates local database.OutputUpdated student recordsPost-ConditionsLocal data matches SIS (read-only)
+Non functional requirements 
+1. Accessibility 
+2. Interoperability
+3. Maintainability
+4. Accuracy
+5. Response time
+6. Security
+7. Timelines
+8. Auditability
+9. Extensibility
+10. Robustness

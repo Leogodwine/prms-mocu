@@ -1,0 +1,338 @@
+10.1 Functional Requirements
+A. User Authentication & Authorization management
+* The system shall allow users to log in using a username and password
+* The system shall support role-based access (Coordinator, Supervisor, Student)
+* The system shall prevent unauthorized access to restricted features
+B. Coordinator Functional Requirements
+* The system shall allow the coordinator to create student accounts
+* The system shall allow the coordinator to create project groups (2 or more students)
+* The system shall allow the coordinator to register individual research students
+* The system shall allow the coordinator to assign supervisors to groups or students
+* The system shall allow the coordinator to view all groups and students
+* The system shall allow the coordinator to track progress of all projects and research
+* The system shall allow the coordinator to view approved groups ready for presentation
+* The system shall allow the coordinator to access archived projects and research
+* The system shall allow the coordinator to sees only students who are active, in eligible year for project/research, in the same department or programme
+C. Supervisor Functional Requirements
+* The system shall allow supervisors to view assigned groups and students
+* The system shall display student details (name, registration number, phone, email)
+* The system shall allow supervisors to view submitted proposals, reports, demos, and source code
+* The system shall allow supervisors to add comments and feedback
+* The system shall allow supervisors to approve or reject project stages
+* The system shall allow supervisors to digitally approve final presentation forms
+* The system shall allow supervisors to track progress for each assigned project
+D. Student Functional Requirements
+* The system shall allow students to log in using registration credentials
+* The system shall allow students to view assigned supervisor details
+* The system shall allow students to upload proposals, reports, demos, and source code
+* The system shall allow students to download submitted and approved files
+* The system shall allow students to view supervisor comments and feedback
+* The system shall allow students to track project status until final approval
+* The system shall allow students to view and download previous projects (read-only)
+E. Project & Research Management
+* The system shall support multiple project stages (proposal, development, demo, final)
+* The system shall store all documents and source code securely
+* The system shall archive completed projects for future reference
+
+
+
+
+
+1.1 User Management
+* User login and authentication using Registration Number and password
+* Role-based access:
+o Project Student, Research Student, Normal Student, Supervisor, Coordinator
+* Account creation for students (temporary password via university email)
+* First-time login password change
+* Coordinator and supervisor role assignment
+* Password reset functionality
+* Verify student Registration Number against SIS
+* Confirm Enrollment Status = Active
+* Determine student role based on year of study:
+o Eligible years ? Project/Research Student
+o Other years ? Normal Student
+* Import required student records from SIS into local system (read-only)
+1.3 Project/Research Management
+* Coordinator can:
+o Create project/research groups (2+ students for projects, individual for research)
+o Assign supervisors to students/groups
+o Track project/research progress
+o View approved projects for final presentation
+* Supervisor can:
+o View assigned students/groups
+o View student details (name, reg no, email, phone)
+o Review project/research files, demos, and source code
+o Provide comments for improvements
+o Approve project stages
+* Student can:
+o Upload proposals, progress reports, source code, demo files, final report
+o View supervisor comments
+o Track project progress
+o Access previous approved projects (read-only for normal students)
+1.4 Coordinator Filtered View
+* Coordinator sees only students who are:
+o Active
+o In eligible year for project/research
+o In the same department/programme
+* Coordinator cannot edit student personal/academic data
+1.5 File Management
+* Upload and download functionality for project/research documents
+* Maintain version history of submissions
+* Support multiple file types (PDF, DOCX, ZIP for source code, etc.)
+1.6 Notifications
+* Notify students of:
+o Temporary password on first registration
+o Supervisor comments
+o Approval status changes
+* Optional: Notify supervisors of new submissions
+1.7 Reporting & Tracking
+* Track project/research progress by group or individual
+* View previous project/research reports
+* Generate summary reports for coordinators and supervisors
+
+7. Registration Process
+The registration process defines how different users are enrolled into the system while enforcing access boundaries.
+
+7.1 Coordinator Registration
+* Coordinators are registered by the system administrator
+* Coordinator accounts are created with predefined roles and permissions
+* After registration, coordinators can log in and manage students, groups, and supervisors
+
+7.2 Supervisor Registration
+* Supervisors are registered by the coordinator or system administrator
+* Required details include:
+o Full name
+o Staff ID
+o Department / Area of expertise
+o Phone number
+o Email address
+o Office number
+* Upon registration, the system assigns the Supervisor role
+* Supervisors can only access groups and courses related to their expertise
+
+7.3 Student Registration
+A. Project Students (Group-Based)
+* Student accounts are created by the coordinator using official registration numbers
+* The coordinator assigns students to a project group
+* Each group must contain two or more students
+* Students receive login credentials after successful registration
+B. Research Students (Individual)
+* Individual research students are registered separately
+* No group assignment is required
+* Each student is linked to a specific research course
+
+7.4 Access Control & Boundary Enforcement
+* Only active students (currently studying) are allowed to register
+* Graduated students are restricted from logging in
+* Students can only access:
+o Their own project/research
+o Previous approved projects (read-only)
+* Supervisors can only access projects assigned to them
+* Coordinators have full access to all system records
+
+7.5 Login Credential Management
+* Username: Registration number (students) / Staff ID (supervisors)
+* Initial password is system-generated
+* Users are required to change password on first login
+
+7.6 Verification Process
+* Student registration is verified against institutional records
+* Supervisor registration is verified by department
+* Invalid or inactive users are denied access
+
+8. Project Progress Tracking Stages
+1. Group/Student Registration
+2. Supervisor Assignment
+3. Proposal Submission
+4. Proposal Approval
+5. System Development / Research Execution
+6. Demo Submission
+7. Supervisor Review & Comments
+8. Final Submission
+9. Final Approval for Presentation
+10. Archiving for Future Access
+
+8. System Outputs
+* Approved project and research reports
+* Digitally signed supervisor approval forms
+* Archived source code and documentation
+* Progress and performance reports
+
+9. Benefits of the Proposed System
+* Eliminates manual storage (flash disks & CDs)
+* Improves tracking and transparency
+* Enhances collaboration between students, supervisors, and coordinators
+* Ensures secure and centralized data management
+* Provides easy access to previous projects and research
+
+4. Student Records Required in Your System (Detailed)
+A. Core Student Profile (Imported)
+* Registration Number
+* Full Name
+* Programme
+* Department
+* Year of Study
+* Email
+* Phone Number
+* Enrollment Status (Active / Graduated)
+B. System Access Records (New)
+* User ID
+* Role:
+o Project Student
+o Research Student
+o Normal Student
+* Account Status (Active / Disabled)
+* Last Login
+C. Project / Research Records (New)
+* Project / Research Type
+* Project Group ID (if applicable)
+* Project / Research Title
+* Course Code
+* Supervisor ID
+* Project Stage
+* Progress Percentage
+* Final Approval Status
+D. Submission Records (New)
+* Proposal files
+* Progress reports
+* Final report
+* Source code
+* Demo files
+* Upload dates
+* Version history
+
+
+
+
+
+
+
+7. Registration, Login, and Coordinator-Filtered Student Process with SIS Integration
+This section provides a full and detailed process for student registration, login, SIS data pooling, conditional role assignment, and coordinator access with filtered student view.
+
+7.1 Key Principles
+* The Student Information System (SIS) remains the single source of truth for student data.
+* Student records in the proposed system are read-only.
+* Registration Number (Reg No) is used as the username.
+* Passwords are managed only by the proposed system.
+* Only active students are allowed access.
+* Student role is assigned based on year of study and eligibility for projects/research.
+* Coordinators can only view students who are active, eligible for projects/research, and within their department/programme.
+
+7.2 Student Record Pooling from SIS (Data Synchronization)
+Step 1: Identify Required Student Records
+Retrieve only the following fields from SIS:
+* Registration Number
+* Full Name
+* Programme
+* Department
+* Year of Study
+* University Email
+* Phone Number
+* Enrollment Status (Active / Suspended/Graduated)
+Step 2: Data Retrieval Method
+* Secure API connection to SIS or
+* Periodic import of verified student records
+Step 3: Data Storage in Proposed System
+* Store retrieved records locally in the system database
+* Mark all fields as read-only
+* SIS passwords are never accessed or stored
+Step 4: Periodic Synchronization
+* Enrollment status updated periodically to reflect SIS changes
+* Graduated or inactive students are automatically disabled
+
+7.3 Student Registration Process (First-Time Access)
+Step 1: Registration Number Submission
+* Student enters their Registration Number into the system
+Step 2: SIS Verification
+* System checks if:
+o Registration Number exists in SIS
+o Enrollment Status = Active
+? If verification fails ? registration denied
+? If verification succeeds ? proceed
+Step 3: Conditional Role Assignment
+* Determine eligibility based on Year of Study and programme:
+o Eligible year for project/research ? assign Project/Research Student role
+o Other years ? assign Normal Student role
+Step 4: Account Creation
+* System creates user account using Reg No
+* Assigns the determined role
+* Sets account status to Active
+Step 5: Password Generation & Delivery
+* System generates random temporary password
+* Password is hashed before storage
+* Temporary password sent to student’s university email
+Step 6: First Login & Password Change
+* Student logs in with Reg No and temporary password
+* System forces a password change
+
+7.4 Normal Login Process
+1. Student enters Registration Number and password
+2. System verifies password hash
+3. System checks enrollment status (from local database or SIS sync)
+4. System applies role-based access:
+o Project/Research Student ? full project/research functionality
+o Normal Student ? read-only access to previous projects
+5. Access granted based on role
+
+7.5 Coordinator Access with Filtered Student View
+Step 1: Login Verification
+* Coordinator logs in using system credentials
+* System authenticates coordinator
+Step 2: Filtered Student Retrieval
+* System queries local database for students meeting all conditions:
+o Enrollment Status = Active
+o Year of Study = Eligible for projects/research
+o Department = Coordinator’s Department
+o Programme = Coordinator’s Programme
+Step 3: Display Filtered List
+* Only students meeting all criteria are displayed
+* Coordinator cannot view inactive, graduated, or ineligible students
+Step 4: Coordinator Actions
+* Create project groups
+* Assign supervisors
+* Track project/research progress
+Step 5: Security & Data Integrity
+* Student personal data remains read-only
+* Coordinator can only use data for project/research management
+* No modifications to personal or academic information are allowed
+
+7.6 Workflow Summary
+Student enters Reg No
+        ?
+System verifies student exists in SIS
+        ?
+Enrollment status = Active?
+        ?
+Pull student data from SIS to local database (read-only)
+        ?
+Determine role based on Year of Study:
+  - Eligible year ? Project/Research Student
+  - Other year ? Normal Student
+        ?
+Create account and generate temporary password
+        ?
+Send password via university email
+        ?
+Student logs in, changes password
+        ?
+Login verification checks password and enrollment status
+        ?
+Access granted according to role
+        ?
+Coordinator logs in ? filtered student list:
+  - Active students
+  - Eligible year
+  - Same department/programme
+        ?
+Coordinator creates groups, assigns supervisors, tracks progress
+
+7.7 Security and Best Practices
+* Passwords stored with hashing and salting
+* Student data fields are read-only
+* Role-based access controls enforced
+* Login attempts logged for auditing
+* Periodic synchronization with SIS ensures updated enrollment status
+
+This process ensures secure, accurate, and role-based access for students and coordinators while keeping student personal data protected and consistent with SIS records.
+

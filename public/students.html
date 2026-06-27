@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Students List</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+        }
+        .table-container {
+            width: 100%;
+            max-width: 800px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        th, td {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background-color: #2c3e50;
+            color: #ffffff;
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+        /* Zebra striping using nth-child(odd) as requested */
+        tbody tr:nth-child(odd) {
+            background-color: #f9f9f9;
+        }
+        tbody tr:hover {
+            background-color: #f1f5f8;
+            transition: background-color 0.2s ease;
+        }
+        td {
+            color: #555;
+            font-size: 15px;
+        }
+        .reg-number {
+            font-family: monospace;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .year-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            background-color: #3498db;
+            color: white;
+        }
+        .year-4 { background-color: #2ecc71; }
+        .year-2 { background-color: #f39c12; }
+    </style>
+</head>
+<body>
+
+<div class="table-container">
+    <h2>Student Directory</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Registration No.</th>
+                <th>Course</th>
+                <th>Year</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>Betty Hahn</td><td class="reg-number">REG5935421</td><td>BSc CS</td><td><span class="year-badge year-2">Yr 2</span></td></tr>
+            <tr><td>Candelario Ruecker MD</td><td class="reg-number">REG9329142</td><td>BSc CS</td><td><span class="year-badge year-4">Yr 4</span></td></tr>
+            <tr><td>Chaim Windler</td><td class="reg-number">REG2725400</td><td>BSc CS</td><td><span class="year-badge year-2">Yr 2</span></td></tr>
+            <tr><td>Cheyenne Mosciski</td><td class="reg-number">REG4677903</td><td>BSc CS</td><td><span class="year-badge year-4">Yr 4</span></td></tr>
+            <tr><td>Dr. Freeman Davis</td><td class="reg-number">REG5098667</td><td>BSc CS</td><td><span class="year-badge year-4">Yr 4</span></td></tr>
+            <tr><td>Gianni Cassin MD</td><td class="reg-number">REG3317562</td><td>BSc CS</td><td><span class="year-badge year-4">Yr 4</span></td></tr>
+            <tr><td>Mr. Lambert Wehner I</td><td class="reg-number">REG0032264</td><td>BSc CS</td><td><span class="year-badge year-4">Yr 4</span></td></tr>
+            <tr><td>Ms. Delta Gorczany</td><td class="reg-number">REG1524879</td><td>BSc CS</td><td><span class="year-badge year-4">Yr 4</span></td></tr>
+            <tr><td>Otilia Kirlin</td><td class="reg-number">REG6902297</td><td>BSc CS</td><td><span class="year-badge year-4">Yr 4</span></td></tr>
+            <tr><td>Prof. Aurelio Robel II</td><td class="reg-number">REG4233087</td><td>BSc CS</td><td><span class="year-badge year-2">Yr 2</span></td></tr>
+            <tr><td>Prof. Joshua Hansen</td><td class="reg-number">REG8726015</td><td>BSc CS</td><td><span class="year-badge year-4">Yr 4</span></td></tr>
+            <tr><td>Remington Mraz V</td><td class="reg-number">REG9895826</td><td>BSc CS</td><td><span class="year-badge year-2">Yr 2</span></td></tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

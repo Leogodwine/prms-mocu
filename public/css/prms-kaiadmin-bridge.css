@@ -1,0 +1,891 @@
+/**
+ * MoCU-PRMS — Kaiadmin Lite alignment layer
+ * Loaded after kaiadmin.min.css + prms-theme.css
+ */
+
+/* Skip link above Kaiadmin stacking */
+.prms-skip-link:focus {
+  left: 1rem;
+  z-index: 100001;
+}
+
+/* Public site: skip link only when focused; high-contrast (not white-on-white) */
+body.prms-public-page .prms-skip-link {
+  background: var(--prms-musaris-navbar);
+  color: #ffffff;
+  border-radius: 0.375rem;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+body.prms-public-page .prms-skip-link:focus-visible {
+  outline: 2px solid var(--prms-musaris-accent);
+  outline-offset: 3px;
+}
+
+/* Long public pages: avoid fixed background scroll jank from Kaiadmin body */
+body.prms-public-page {
+  background-attachment: scroll !important;
+}
+
+/* Main content: cards follow Kaiadmin panel spec (prms-theme sets shadow) */
+.page-inner .card {
+  border-radius: 0.625rem;
+}
+
+.page-inner .prms-stat-card {
+  border-radius: 0.625rem;
+  box-shadow: 2px 6px 15px 0 rgba(69, 65, 78, 0.08);
+}
+
+/* Page chrome — match Kaiadmin demo titles / breadcrumbs */
+.main-panel .page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.main-panel .page-header .breadcrumbs,
+.prms-public-page .page-header .breadcrumbs {
+  margin-left: auto;
+  border-left: none;
+  padding-left: 0;
+}
+
+.prms-public-page .page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.prms-public-page .page-header .page-title {
+  font-family: var(--prms-font-display);
+  font-size: var(--prms-fs-lg);
+  font-weight: 600;
+  color: var(--prms-musaris-heading);
+  letter-spacing: normal;
+}
+
+.main-panel .page-header .page-title {
+  font-family: var(--prms-font-display);
+  font-size: var(--prms-fs-lg);
+  font-weight: 600;
+  color: var(--prms-musaris-heading);
+  letter-spacing: normal;
+  margin-bottom: 0;
+}
+
+.main-panel .breadcrumbs li a {
+  font-size: var(--prms-fs-sm);
+  color: var(--prms-text-emphasis);
+}
+
+.main-panel .breadcrumbs li.separator {
+  color: var(--prms-text-faint);
+}
+
+.main-panel .breadcrumbs li.active,
+.main-panel .breadcrumbs .active {
+  color: var(--prms-text);
+  font-size: var(--prms-fs-sm);
+}
+
+/* Topbar eyebrow */
+.navbar-header .prms-eyebrow {
+  font-family: var(--prms-font-sans);
+  font-size: var(--prms-fs-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--prms-text-accent) !important;
+}
+
+.navbar-header .navbar-nav .nav-link {
+  font-family: var(--prms-font-sans);
+  font-size: var(--prms-fs-base);
+  color: var(--prms-text);
+}
+
+.navbar-header .topbar-icon .nav-link:hover {
+  color: var(--prms-musaris-accent);
+}
+
+/* Date chip — MUSARIS accent */
+#prms-nav-date .bg-brand-soft {
+  background-color: rgba(var(--prms-accent-rgb), 0.12) !important;
+  color: var(--prms-musaris-accent) !important;
+  border: 1px solid rgba(var(--prms-accent-rgb), 0.22);
+}
+
+/* Footer strip */
+.main-panel > .footer,
+.footer {
+  border-top: 1px solid #eee;
+  background: #ffffff;
+}
+
+/* Public layout: full-width main panel, natural document scroll (not 100vh clip) */
+body.prms-kaiadmin-public .wrapper {
+  height: auto !important;
+  min-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: visible;
+}
+
+body.prms-kaiadmin-public .wrapper .main-panel.prms-public-main {
+  width: 100% !important;
+  max-width: 100%;
+  float: none;
+  margin-left: 0 !important;
+  height: auto !important;
+  min-height: 100vh;
+  overflow: visible !important;
+}
+
+/* Kaiadmin pins .main-header and uses calc width for sidebar apps — public site is full bleed */
+body.prms-kaiadmin-public .main-panel.prms-public-main > .main-header {
+  position: relative !important;
+  width: 100% !important;
+  min-height: auto !important;
+  z-index: 1030;
+}
+
+body.prms-kaiadmin-public .main-panel.prms-public-main > .container {
+  margin-top: 0 !important;
+  min-height: 0 !important;
+  max-width: 100%;
+  overflow: visible !important;
+  padding-left: 0.75rem !important;
+  padding-right: 0.75rem !important;
+  padding-bottom: 2rem !important;
+}
+
+@media (min-width: 1200px) {
+  body.prms-kaiadmin-public .main-panel.prms-public-main > .container {
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
+}
+
+/* Top bar edge-to-edge */
+body.prms-kaiadmin-public .navbar.prms-public-topnav {
+  width: 100% !important;
+  max-width: 100%;
+  background-color: var(--prms-sidebar-bg) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: none;
+}
+
+body.prms-kaiadmin-public .navbar.prms-public-topnav .container-fluid {
+  width: 100%;
+  max-width: 100%;
+}
+
+body.prms-kaiadmin-public .footer.prms-public-footer {
+  position: relative !important;
+  width: 100% !important;
+  margin-top: auto;
+}
+
+/* ── Project & research workspace sidebar (main sidebar collapse) ── */
+.wrapper > .sidebar:not(.prms-sidebar-sub) .nav-collapse.prms-workspace-nav {
+  margin: 0.25rem 0 0.5rem;
+  padding: 0.35rem 0.5rem 0.5rem 0.65rem;
+  border-left: 2px solid var(--prms-snav-border);
+  margin-left: 0.85rem;
+}
+
+.sidebar .prms-workspace-nav > li {
+  list-style: none;
+}
+
+/* Overview link */
+.wrapper > .sidebar:not(.prms-sidebar-sub) .prms-workspace-overview > a {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 0.65rem !important;
+  margin-bottom: 0.5rem;
+  border-radius: 0.5rem;
+  background: var(--prms-snav-ws-surface);
+  font-weight: 400;
+  font-size: 0.8125rem;
+  color: var(--prms-snav-text) !important;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.wrapper > .sidebar:not(.prms-sidebar-sub) .prms-workspace-overview > a:hover {
+  background: var(--prms-snav-hover-bg);
+}
+
+.wrapper > .sidebar:not(.prms-sidebar-sub) .prms-workspace-overview.active > a {
+  background: var(--prms-snav-active-bg);
+  color: var(--prms-snav-active-text) !important;
+}
+
+.sidebar .prms-ws-overview-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  background: rgba(var(--prms-primary-rgb), 0.25);
+  color: #9ec5ff;
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+
+/* Track group header */
+.wrapper > .sidebar:not(.prms-sidebar-sub) .prms-workspace-track-head {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.75rem 0.5rem 0.35rem;
+  margin-top: 0.35rem;
+  border-top: 1px solid var(--prms-snav-border);
+  pointer-events: none;
+}
+
+.sidebar .prms-workspace-overview + .prms-workspace-track-head {
+  margin-top: 0.15rem;
+  border-top: none;
+  padding-top: 0.5rem;
+}
+
+.wrapper > .sidebar:not(.prms-sidebar-sub) .prms-workspace-track-icon {
+  width: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--prms-snav-muted);
+  font-size: 0.75rem;
+}
+
+.wrapper > .sidebar:not(.prms-sidebar-sub) .prms-workspace-track-title {
+  flex: 1;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--prms-snav-muted);
+}
+
+.wrapper > .sidebar:not(.prms-sidebar-sub) .prms-workspace-track-count {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--prms-snav-muted);
+  background: var(--prms-snav-ws-surface);
+  padding: 0.1rem 0.45rem;
+  border-radius: 100px;
+  line-height: 1.4;
+}
+
+/* Chapter rows */
+.sidebar .prms-workspace-chapter > a,
+.sidebar .prms-workspace-chapter-link {
+  display: flex !important;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.55rem !important;
+  margin: 0.1rem 0;
+  border-radius: 0.45rem;
+  font-size: 0.8125rem;
+  line-height: 1.3;
+  transition: background 0.15s ease, padding-left 0.15s ease;
+}
+
+.wrapper > .sidebar:not(.prms-sidebar-sub) .prms-workspace-chapter > a:hover {
+  background: var(--prms-snav-hover-bg);
+}
+
+.wrapper > .sidebar:not(.prms-sidebar-sub) .prms-workspace-chapter.active > a {
+  background: var(--prms-snav-active-bg);
+  color: var(--prms-snav-active-text) !important;
+  box-shadow: none;
+  padding-left: 0.7rem !important;
+}
+
+.wrapper > .sidebar:not(.prms-sidebar-sub) .prms-workspace-chapter.active .prms-ws-step {
+  background: var(--prms-musaris-emphasis);
+  color: #fff;
+  border-color: transparent;
+}
+
+.wrapper > .sidebar:not(.prms-sidebar-sub) .prms-ws-step {
+  width: 1.35rem;
+  height: 1.35rem;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.625rem;
+  font-weight: 600;
+  background: var(--prms-snav-ws-step-bg);
+  border: 1px solid var(--prms-snav-ws-step-border);
+  color: var(--prms-snav-ws-step-text);
+}
+
+.wrapper > .sidebar:not(.prms-sidebar-sub) .prms-ws-label {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--prms-snav-text);
+}
+
+/* Status dot */
+.sidebar .prms-ws-status {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  margin-left: auto;
+}
+
+.wrapper > .sidebar:not(.prms-sidebar-sub)[data-background-color="white"] .prms-ws-status--secondary {
+  background: var(--prms-text-muted);
+  box-shadow: 0 0 0 2px var(--prms-color-neutral-200);
+}
+
+.wrapper > .sidebar:not(.prms-sidebar-sub)[data-background-color="dark"] .prms-ws-status--secondary,
+.wrapper > .sidebar:not(.prms-sidebar-sub)[data-background-color="dark2"] .prms-ws-status--secondary {
+  background: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08);
+}
+
+.sidebar .prms-ws-status--success {
+  background: #31ce36;
+  box-shadow: 0 0 0 2px rgba(49, 206, 54, 0.35);
+}
+
+.sidebar .prms-ws-status--warning {
+  background: #ffad46;
+  box-shadow: 0 0 0 2px rgba(255, 173, 70, 0.35);
+}
+
+.sidebar .prms-ws-status--danger {
+  background: var(--prms-musaris-danger);
+  box-shadow: 0 0 0 2px rgba(var(--prms-danger-rgb), 0.35);
+}
+
+.sidebar .prms-ws-status--info {
+  background: var(--prms-musaris-accent);
+  box-shadow: 0 0 0 2px rgba(var(--prms-accent-rgb), 0.35);
+}
+
+/* Collapsed parent sidebar only (sub-panel keeps full chapter list) */
+.sidebar_minimize .wrapper > .sidebar:not(.prms-sidebar-sub) .prms-workspace-nav {
+  display: none;
+}
+
+/* Sidebar / header logo — natural image, larger size */
+.sidebar .logo-header .logo,
+.main-header .logo-header .logo {
+  gap: 0.625rem;
+  min-width: 0;
+}
+
+.sidebar .logo-header .logo .prms-brand-logo--sidebar,
+.main-header .logo-header .logo .prms-brand-logo--header {
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+/* =========================================================
+   MUSARIS colour system — whole application
+   ========================================================= */
+
+/* Sidebar + logo — backgrounds follow layout customizer swatches */
+.wrapper > .sidebar:not(.prms-sidebar-sub)[data-background-color="dark"],
+.wrapper > .sidebar:not(.prms-sidebar-sub)[data-background-color="dark"] .sidebar-wrapper {
+  background: var(--prms-musaris-navbar) !important;
+  background-color: var(--prms-musaris-navbar) !important;
+}
+
+.wrapper > .sidebar:not(.prms-sidebar-sub)[data-background-color="dark2"],
+.wrapper > .sidebar:not(.prms-sidebar-sub)[data-background-color="dark2"] .sidebar-wrapper {
+  background: #151a2b !important;
+  background-color: #151a2b !important;
+}
+
+.wrapper > .sidebar:not(.prms-sidebar-sub)[data-background-color="white"],
+.wrapper > .sidebar:not(.prms-sidebar-sub)[data-background-color="white"] .sidebar-wrapper {
+  background: var(--prms-musaris-surface) !important;
+  background-color: var(--prms-musaris-surface) !important;
+  border-right: 1px solid var(--prms-border);
+  box-shadow: none !important;
+}
+
+/* Logo header strip uses its own customizer swatch (independent of sidebar) */
+.sidebar .logo-header[data-background-color="dark"],
+.main-header .logo-header[data-background-color="dark"] {
+  background: var(--prms-musaris-navbar) !important;
+  background-color: var(--prms-musaris-navbar) !important;
+}
+
+/* Default navbar (no customizer color yet) */
+.main-header .navbar-header:not([data-background-color]),
+.main-header .navbar-header.navbar-header-transparent:not([data-background-color]) {
+  background: var(--prms-musaris-navbar) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Light text on dark default navbar */
+.main-header .navbar-header:not([data-background-color]) .nav-link,
+.main-header .navbar-header:not([data-background-color]) .profile-username,
+.main-header .navbar-header:not([data-background-color]) .profile-username .fw-bold,
+.main-header .navbar-header[data-background-color="dark"] .nav-link,
+.main-header .navbar-header[data-background-color="dark"] .profile-username,
+.main-header .navbar-header[data-background-color="dark"] .profile-username .fw-bold,
+.main-header .navbar-header[data-background-color="dark2"] .nav-link,
+.main-header .navbar-header[data-background-color="dark2"] .profile-username,
+.main-header .navbar-header[data-background-color="blue"] .nav-link,
+.main-header .navbar-header[data-background-color="blue"] .profile-username,
+.main-header .navbar-header[data-background-color="blue2"] .nav-link,
+.main-header .navbar-header[data-background-color="purple"] .nav-link,
+.main-header .navbar-header[data-background-color="purple2"] .nav-link,
+.main-header .navbar-header[data-background-color="red"] .nav-link,
+.main-header .navbar-header[data-background-color="red2"] .nav-link,
+.main-header .navbar-header[data-background-color="green"] .nav-link,
+.main-header .navbar-header[data-background-color="green2"] .nav-link {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+.main-header .navbar-header:not([data-background-color]) .profile-username .op-7,
+.main-header .navbar-header[data-background-color="dark"] .profile-username .op-7,
+.main-header .navbar-header[data-background-color="dark2"] .profile-username .op-7 {
+  color: rgba(255, 255, 255, 0.65) !important;
+}
+
+/* Light navbar — dark text */
+.main-header .navbar-header[data-background-color="white"] .nav-link,
+.main-header .navbar-header[data-background-color="white"] .profile-username,
+.main-header .navbar-header[data-background-color="white"] .profile-username .fw-bold,
+.main-header .navbar-header[data-background-color="white"] .profile-username .op-7,
+.main-header .navbar-header[data-background-color="grey"] .nav-link,
+.main-header .navbar-header[data-background-color="light-blue"] .nav-link,
+.main-header .navbar-header[data-background-color="light-blue2"] .nav-link,
+.main-header .navbar-header[data-background-color="orange"] .nav-link,
+.main-header .navbar-header[data-background-color="orange2"] .nav-link {
+  color: var(--prms-text) !important;
+}
+
+.main-header .navbar-header .badge.bg-brand-soft {
+  background-color: rgba(var(--prms-accent-rgb), 0.15) !important;
+  color: var(--prms-musaris-accent) !important;
+}
+
+/* Sidebar nav tokens — switch with Settings → Sidebar color */
+.wrapper > .sidebar:not(.prms-sidebar-sub)[data-background-color="white"] {
+  --prms-snav-text: var(--prms-musaris-heading);
+  --prms-snav-muted: var(--prms-text-muted);
+  --prms-snav-active-text: var(--prms-musaris-emphasis);
+  --prms-snav-hover-bg: var(--prms-color-neutral-50);
+  --prms-snav-active-bg: var(--prms-primary-soft);
+  --prms-snav-border: var(--prms-border);
+  --prms-snav-ws-surface: var(--prms-color-neutral-50);
+  --prms-snav-ws-step-bg: var(--prms-color-neutral-100);
+  --prms-snav-ws-step-border: var(--prms-border);
+  --prms-snav-ws-step-text: var(--prms-text-muted);
+  --prms-snav-toggle: var(--prms-text-muted);
+}
+
+.wrapper > .sidebar:not(.prms-sidebar-sub)[data-background-color="dark"],
+.wrapper > .sidebar:not(.prms-sidebar-sub)[data-background-color="dark2"] {
+  --prms-snav-text: rgba(255, 255, 255, 0.92);
+  --prms-snav-muted: rgba(255, 255, 255, 0.55);
+  --prms-snav-active-text: #ffffff;
+  --prms-snav-hover-bg: rgba(255, 255, 255, 0.06);
+  --prms-snav-active-bg: rgba(var(--prms-primary-rgb), 0.28);
+  --prms-snav-border: rgba(255, 255, 255, 0.08);
+  --prms-snav-ws-surface: rgba(255, 255, 255, 0.06);
+  --prms-snav-ws-step-bg: rgba(255, 255, 255, 0.08);
+  --prms-snav-ws-step-border: rgba(255, 255, 255, 0.12);
+  --prms-snav-ws-step-text: rgba(255, 255, 255, 0.75);
+  --prms-snav-toggle: rgba(255, 255, 255, 0.65);
+}
+
+/* Kaiadmin primary sidebar nav */
+.wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item.active > a,
+.wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item.active > a:focus,
+.wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item.active > a:hover,
+.wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item.is-subpanel-open > a {
+  background: var(--prms-snav-active-bg) !important;
+  color: var(--prms-snav-active-text) !important;
+  box-shadow: none !important;
+}
+
+/* Remove Kaiadmin left accent bar on active sidebar links */
+.wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item.active > a:before,
+.wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item.active:hover > a:before,
+.wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item.is-subpanel-open > a:before,
+.wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item > a[data-toggle=collapse][aria-expanded=true]:before,
+.wrapper > .sidebar:not(.prms-sidebar-sub) .prms-workspace-chapter.active > a:before {
+  opacity: 0 !important;
+  display: none !important;
+}
+
+.wrapper > .sidebar:not(.prms-sidebar-sub)[data-background-color="white"] .nav.nav-primary > .nav-item.active > a,
+.wrapper > .sidebar:not(.prms-sidebar-sub)[data-background-color="white"] .nav.nav-primary > .nav-item.active > a:focus,
+.wrapper > .sidebar:not(.prms-sidebar-sub)[data-background-color="white"] .nav.nav-primary > .nav-item.active > a:hover,
+.wrapper > .sidebar:not(.prms-sidebar-sub)[data-background-color="white"] .nav.nav-primary > .nav-item.is-subpanel-open > a {
+  color: var(--prms-musaris-emphasis) !important;
+}
+
+.wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item > a:hover,
+.wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item > a:focus {
+  background: var(--prms-snav-hover-bg) !important;
+}
+
+.wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item > a,
+.wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item > a p {
+  color: var(--prms-snav-text) !important;
+}
+
+.wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item > a i,
+.wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item > a .caret {
+  color: var(--prms-snav-muted) !important;
+}
+
+.wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item.active > a p,
+.wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item.active > a i,
+.wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item.is-subpanel-open > a p,
+.wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item.is-subpanel-open > a i {
+  color: var(--prms-snav-active-text) !important;
+}
+
+.wrapper > .sidebar:not(.prms-sidebar-sub)[data-background-color="white"] .nav.nav-primary > .nav-item.active > a i,
+.wrapper > .sidebar:not(.prms-sidebar-sub)[data-background-color="white"] .nav.nav-primary > .nav-item.is-subpanel-open > a i {
+  color: var(--prms-musaris-emphasis) !important;
+}
+
+/* Logo toggles follow logo-header swatch, not sidebar swatch */
+.sidebar .logo-header[data-background-color="white"] .btn-toggle,
+.sidebar .logo-header[data-background-color="white"] .more,
+.sidebar .logo-header[data-background-color="grey"] .btn-toggle,
+.sidebar .logo-header[data-background-color="grey"] .more {
+  color: var(--prms-text-muted) !important;
+}
+
+.sidebar .logo-header[data-background-color="white"] .gg-menu-left::before,
+.sidebar .logo-header[data-background-color="white"] .gg-menu-left::after,
+.sidebar .logo-header[data-background-color="white"] .gg-menu-right::before,
+.sidebar .logo-header[data-background-color="white"] .gg-menu-right::after,
+.sidebar .logo-header[data-background-color="grey"] .gg-menu-left::before,
+.sidebar .logo-header[data-background-color="grey"] .gg-menu-left::after,
+.sidebar .logo-header[data-background-color="grey"] .gg-menu-right::before,
+.sidebar .logo-header[data-background-color="grey"] .gg-menu-right::after {
+  background: var(--prms-text-muted) !important;
+}
+
+.sidebar .logo-header:not([data-background-color="white"]):not([data-background-color="grey"]) .btn-toggle,
+.sidebar .logo-header:not([data-background-color="white"]):not([data-background-color="grey"]) .more {
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+
+/* Sidebar nav labels — regular weight in every state (KaiAdmin defaults to 600) */
+.sidebar .nav.nav-primary > .nav-item > a p,
+.sidebar .nav.nav-primary > .nav-item.active > a p,
+.sidebar .nav.nav-primary > .nav-item.active:hover > a p,
+.sidebar .nav.nav-primary > .nav-item > a:hover p,
+.sidebar .nav.nav-primary > .nav-item > a:focus p,
+.sidebar .nav.nav-primary > .nav-item > a[data-bs-toggle="collapse"][aria-expanded="true"] p,
+.sidebar[data-background-color="white"] .nav.nav-primary > .nav-item > a p,
+.sidebar[data-background-color="white"] .nav.nav-primary > .nav-item.active > a p,
+.sidebar[data-background-color="white"] .nav.nav-primary > .nav-item > a:hover p,
+.sidebar[data-background-color="white"] .nav.nav-primary > .nav-item > a:focus p,
+.sidebar[data-background-color="white"] .nav.nav-primary > .nav-item > a[data-bs-toggle="collapse"][aria-expanded="true"] p,
+.sidebar.sidebar-style-2 .nav.nav-primary > .nav-item > a p,
+.sidebar.sidebar-style-2 .nav.nav-primary > .nav-item.active > a p,
+.sidebar.sidebar-style-2 .nav.nav-primary > .nav-item > a:hover p,
+.sidebar.sidebar-style-2 .nav.nav-primary > .nav-item > a:focus p,
+.sidebar.sidebar-style-2 .nav.nav-primary > .nav-item > a[data-bs-toggle="collapse"][aria-expanded="true"] p {
+  font-weight: 400 !important;
+}
+
+/* Student workspace chapter sub-menu */
+.sidebar .nav.nav-primary > .nav-item.submenu > .collapse .nav-collapse.prms-workspace-chapters {
+  margin-top: 0.15rem;
+  margin-bottom: 0.35rem;
+}
+
+.sidebar .nav.nav-primary > .nav-item.submenu .prms-workspace-chapters a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+}
+
+.sidebar .nav.nav-primary > .nav-item.submenu .prms-ws-chapter-status {
+  font-size: 0.65rem;
+  opacity: 0.9;
+  flex-shrink: 0;
+}
+
+.wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item.submenu .prms-workspace-chapters .sub-item,
+.wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item.submenu .prms-workspace-chapters > li > a:hover .sub-item,
+.wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item.submenu .prms-workspace-chapters > li.active > a .sub-item,
+.wrapper > .sidebar:not(.prms-sidebar-sub) .nav-collapse li.active > a,
+.wrapper > .sidebar:not(.prms-sidebar-sub) .nav-collapse li a .sub-item {
+  color: var(--prms-snav-text) !important;
+  font-weight: 400 !important;
+}
+
+.wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item.submenu .prms-workspace-chapters > li.active > a .sub-item {
+  color: var(--prms-snav-active-text) !important;
+}
+
+.wrapper > .sidebar:not(.prms-sidebar-sub)[data-background-color="white"] .nav.nav-primary > .nav-item.submenu .prms-workspace-chapters > li.active > a .sub-item {
+  color: var(--prms-musaris-emphasis) !important;
+}
+
+/* Quick find modal — must render at body level (not inside navbar) */
+.prms-quick-nav-trigger {
+  color: var(--prms-musaris-heading) !important;
+}
+
+#prmsQuickNavModal.prms-quick-nav-modal {
+  z-index: 2100;
+}
+
+#prmsQuickNavModal .modal-dialog {
+  max-width: 42rem;
+}
+
+#prmsQuickNavModal .modal-content {
+  background-color: #ffffff;
+  color: var(--prms-musaris-heading);
+  border: 1px solid var(--prms-border);
+  box-shadow: var(--prms-shadow-lg);
+}
+
+#prmsQuickNavModal .modal-header,
+#prmsQuickNavModal .modal-footer {
+  background-color: var(--prms-color-neutral-50);
+}
+
+#prmsQuickNavModal .modal-title {
+  color: var(--prms-musaris-heading);
+}
+
+#prmsQuickNavModal .prms-quick-nav-input-group .input-group-text {
+  background-color: #ffffff;
+  border-color: var(--prms-border);
+  color: var(--prms-text-muted);
+}
+
+#prmsQuickNavModal .prms-quick-nav-input-group .form-control {
+  background-color: #ffffff !important;
+  color: var(--prms-musaris-heading) !important;
+  border-color: var(--prms-border);
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 1;
+}
+
+#prmsQuickNavModal .prms-quick-nav-input-group .form-control::placeholder {
+  color: var(--prms-text-muted);
+  opacity: 1;
+}
+
+#prmsQuickNavModal .prms-quick-nav-input-group:focus-within .input-group-text,
+#prmsQuickNavModal .prms-quick-nav-input-group:focus-within .form-control {
+  border-color: var(--prms-musaris-emphasis);
+}
+
+#prmsQuickNavModal .modal-body {
+  max-height: min(55vh, 24rem);
+  overflow-y: auto;
+  background-color: #ffffff;
+}
+
+.prms-quick-nav-group {
+  color: var(--prms-text-muted);
+  background: var(--prms-color-neutral-50);
+  letter-spacing: 0.06em;
+  font-size: 0.68rem;
+  border-bottom: 1px solid var(--prms-border);
+  z-index: 2;
+}
+
+.prms-quick-nav-item {
+  color: inherit;
+  transition: background-color 0.12s ease;
+}
+
+.prms-quick-nav-item:hover,
+.prms-quick-nav-item.active {
+  background: var(--prms-primary-soft) !important;
+}
+
+.prms-quick-nav-item.active .prms-quick-nav-label {
+  color: var(--prms-musaris-emphasis);
+}
+
+.prms-quick-nav-label {
+  color: var(--prms-musaris-heading);
+  font-size: 0.9375rem;
+}
+
+.prms-quick-nav-subtitle {
+  color: var(--prms-text-muted) !important;
+}
+
+.prms-quick-nav-icon {
+  width: 2.35rem;
+  height: 2.35rem;
+  background: var(--prms-primary-soft);
+  color: var(--prms-musaris-emphasis);
+  font-size: 0.95rem;
+}
+
+.prms-quick-nav-item.active .prms-quick-nav-icon {
+  background: var(--prms-musaris-emphasis);
+  color: #fff;
+}
+
+.prms-quick-nav-item.active .prms-quick-nav-enter {
+  color: var(--prms-musaris-emphasis) !important;
+  opacity: 1;
+  font-weight: 600;
+}
+
+.prms-quick-nav-input-group:focus-within {
+  box-shadow: 0 0 0 0.2rem rgba(var(--prms-primary-rgb), 0.15);
+  border-radius: var(--prms-radius-sm);
+}
+
+.modal-backdrop.show {
+  z-index: 2090 !important;
+}
+
+/* All app modals — above backdrop; explicit surfaces (KaiAdmin theme can wash these out) */
+.modal {
+  z-index: 2110 !important;
+}
+
+.modal .modal-dialog {
+  pointer-events: auto;
+}
+
+.modal .modal-content {
+  background-color: #ffffff;
+  color: var(--prms-musaris-heading, #17082d);
+  border: 1px solid var(--prms-border, #e7eaec) !important;
+  box-shadow: var(--prms-shadow-lg, 0 24px 48px rgba(23, 8, 45, 0.18));
+}
+
+.modal .modal-header,
+.modal .modal-footer {
+  background-color: var(--prms-color-neutral-50, #fafafa);
+  border-color: var(--prms-border, #e7eaec);
+}
+
+.modal .modal-title {
+  color: var(--prms-musaris-heading, #17082d);
+}
+
+.modal .modal-body {
+  background-color: #ffffff;
+  color: var(--prms-musaris-heading, #17082d);
+}
+
+.modal .btn-close {
+  opacity: 0.65;
+}
+
+.modal .btn-close:hover {
+  opacity: 1;
+}
+
+.modal .form-control,
+.modal .form-select {
+  background-color: #ffffff;
+  color: var(--prms-musaris-heading, #17082d);
+  border-color: var(--prms-border, #dbe3ef);
+}
+
+.modal .form-control:focus,
+.modal .form-select:focus {
+  border-color: var(--prms-musaris-emphasis, #1572e8);
+  box-shadow: 0 0 0 0.2rem rgba(var(--prms-primary-rgb, 21, 114, 232), 0.15);
+}
+
+/* Page canvas — MUSARIS gray-bg */
+.wrapper,
+.main-panel {
+  background-color: var(--prms-page-bg) !important;
+}
+
+/* Footer — MUSARIS dark text + accent links */
+.main-panel > .footer,
+.footer {
+  color: var(--prms-musaris-heading) !important;
+  background: var(--prms-musaris-surface) !important;
+  border-top: 1px solid var(--prms-border) !important;
+}
+
+.footer a {
+  color: var(--prms-musaris-accent) !important;
+}
+
+.footer .text-muted {
+  color: var(--prms-musaris-heading) !important;
+}
+
+/* Bootstrap text / background utilities */
+.text-primary { color: var(--prms-musaris-emphasis) !important; }
+.text-info { color: var(--prms-musaris-accent) !important; }
+.text-danger { color: var(--prms-musaris-danger) !important; }
+
+.bg-primary,
+.badge.bg-primary {
+  background-color: var(--prms-musaris-emphasis) !important;
+  color: #fff !important;
+}
+
+.bg-info,
+.badge.bg-info {
+  background-color: var(--prms-musaris-accent) !important;
+  color: #fff !important;
+}
+
+.bg-danger,
+.badge.bg-danger {
+  background-color: var(--prms-musaris-danger) !important;
+  color: #fff !important;
+}
+
+.border-primary {
+  border-color: var(--prms-musaris-emphasis) !important;
+}
+
+/* Public nav active indicator */
+.prms-public-nav .nav-link.active::after {
+  background: var(--prms-musaris-accent) !important;
+}
+
+@keyframes prms-settings-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.custom-template .custom-toggle i.icon-settings {
+  animation: prms-settings-spin 2.5s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .custom-template .custom-toggle i.icon-settings {
+    animation: none;
+  }
+}

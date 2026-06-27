@@ -1,0 +1,638 @@
+Functional Requirements Document (FRD)
+Integrated Project and Research Management Information System (PRMS)
+Moshi Co-operative University
+
+FR-01: User Authentication & Authorization
+FieldDescriptionRequirement No.FR-01Actor(s)Student, Supervisor, Coordinator, Head of Department (HOD), Research Office Staff, ICT Administrator, Public User (limited)Pre-Conditions• User has valid institutional credentials (students/staff) or registered account (public)
+• System authentication services are operational
+• Database connection is active
+• User is not already logged in from another sessionInput• Login credentials (email/student ID + password)
+• Registration details (name, email, role, department)
+• Password reset request email
+• Session timeout preference (if configurable)
+• Multi-factor authentication token (if enabled)Normal Flow1. User navigates to system login page
+2. User enters credentials (email/student ID and password)
+3. System validates credentials against database
+4. System checks user role and status (active/disabled)
+5. System creates secure session with role-based permissions
+6. System logs successful login with timestamp and IP address
+7. System redirects user to role-specific dashboard
+8. User can access authorized modules based on role
+9. System displays logout option in user menu
+10. User can change password from profile settingsAlternative FlowA1: Invalid credentials - System displays "Invalid email or password" message and prompts retry
+A2: Account disabled - System displays "Account disabled. Contact administrator"
+A3: Forgotten password - User clicks "Forgot Password", enters email, system sends reset link
+A4: First-time login - System forces password change and profile completion
+A5: Session expired - System redirects to login page with timeout message
+A6: Multiple failed attempts - System temporarily locks account (15 minutes)
+A7: Public user access - System provides read-only access to approved research without loginOutput• Successful login confirmation with dashboard access
+• Session token for authenticated requests
+• User role and permission set
+• Login timestamp recorded in audit log
+• Failed login attempt log for security monitoring
+• Password reset confirmation emailPost-Conditions• User session established with appropriate permissions
+• Audit trail updated with login event
+• User activity can be tracked to specific user ID
+• Password policies enforced (complexity, expiry)
+• Session timeout configured (default 30 minutes)
+FR-02: Proposal, Research reports, and Project Management
+FieldDescriptionRequirement No.FR-02Actor(s)Student (Undergraduate & Postgraduate), Supervisor, Coordinator, HODPre-Conditions• User is authenticated as a student
+• Student is enrolled in final year or research program
+• Submission deadline has not passed (or extension granted)
+• Student has not exceeded maximum submission attempts
+• Active academic year/semester is configuredInput• Project title (max 500 characters)
+• Research abstract (text)
+• Keywords (comma-separated)
+• Proposal document upload (PDF, DOC, DOCX, max 10MB)
+• Research category/faculty/department selection
+• Supervisor preference (if applicable)
+• Funding sources (if any)
+• Ethical clearance number (if obtained)Normal Flow1. Student navigates to "Create New Project" page
+2. Student selects project type (Proposal/Dissertation/Thesis/Report)
+3. Student completes metadata form (title, abstract, keywords)
+4. Student uploads proposal document
+5. System validates file type, size, and virus scan
+6. Student saves as draft OR submits for review
+7. For draft: System saves with status "Draft"
+8. For submit: System generates unique tracking number (e.g., PRJ-2025-XXXX)
+9. System assigns project to appropriate supervisor/coordinator
+10. System sends email confirmation to student
+11. System notifies assigned supervisor of pending review
+12. Student can view submission status on dashboardAlternative FlowA1: Deadline exceeded - System blocks submission with deadline notification
+A2: File too large - System rejects file with size limit message
+A3: Invalid file type - System rejects with allowed formats list
+A4: Missing required fields - System highlights missing fields with validation errors
+A5: Duplicate title detected - System warns student and suggests modifications
+A6: Supervisor not available - System queues for manual assignment by coordinator
+A7: Special character issue - System sanitizes input and provides clean version
+A8: Resubmission after revision - System increments version number and preserves historyOutput• Unique project tracking number
+• Project record created in database
+• Document stored with version control
+• Confirmation email sent to student
+• Notification sent to supervisor
+• Project listed in student's dashboard
+• Audit trail of submission createdPost-Conditions• Project available for supervisor review
+• Version history maintained
+• Backup of submitted document created
+• Deadline compliance recorded
+• Student notified of next steps
+FR-03: Supervision Management
+FieldDescriptionRequirement No.FR-03Actor(s)Student, Supervisor, Coordinator, HODPre-Conditions• Project has been submitted and assigned
+• Valid student-supervisor relationship exists
+• Supervision records are accessible
+• User has appropriate permissions
+• System notification services are operationalInput• Supervision meeting scheduling request
+• Meeting notes and discussion summary
+• Action items and deadlines
+• Student progress update
+• Supervisor feedback content
+• Meeting type (Physical/Virtual/Written)
+• Next meeting date preference
+• Student progress rating (scale 1-5)Normal Flow1. User (student or supervisor) navigates to supervision module
+2. System displays existing supervision history and logs
+3. User requests supervision meeting with date/time proposal
+4. System checks both parties' availability (if integrated)
+5. System sends meeting invitation to both parties
+6. Recipient accepts/declines/reschedules meeting
+7. Upon acceptance, system adds to calendar
+8. After meeting, supervisor logs meeting notes and action items
+9. Student acknowledges meeting record
+10. System updates project progress based on meeting outcomes
+11. Both parties can view complete supervision historyAlternative FlowA1: No supervision history - System displays "No supervision records found" message
+A2: Meeting declined - System notifies requester and suggests alternatives
+A3: Missed meeting - System flags for rescheduling with reason
+A4: Conflict resolution needed - Supervisor/coordinator can override scheduling
+A5: Emergency supervision request - Student can flag urgent requests for immediate attention
+A6: Multiple supervisors - System includes all committee members in communicationsOutput• Supervision meeting scheduled and confirmed
+• Meeting notes stored and timestamped
+• Action items tracked with deadlines
+• Progress update reflected in project dashboard
+• Email notifications sent to all parties
+• Supervision log updated for audit purposesPost-Conditions• Complete supervision trail maintained
+• Accountability for supervision activities established
+• Student progress formally documented
+• At-risk indicators updated based on meeting frequency
+• Quality assurance records available for review
+FR-04: Submission & Evaluation Workflow
+FieldDescriptionRequirement No.FR-04Actor(s)Student, Supervisor, Coordinator, HOD, Research Office StaffPre-Conditions• Project has been approved at previous stage
+• Workflow stage is properly configured
+• User has appropriate authorization
+• Evaluation criteria/rubric defined
+• Submission deadline is active (or extension granted)Input• Document submission (draft/final)
+• Self-assessment or reflection statement
+• Plagiarism report (if integrated)
+• Evaluation scores from supervisor
+• Approval/rejection decision
+• Revision instructions and requirements
+• Final grade/score submissionNormal Flow1. Student submits document at current workflow stage
+2. System validates submission against stage requirements
+3. System assigns submission to designated reviewer
+4. Reviewer (supervisor/coordinator/HOD) accesses document
+5. System displays evaluation rubric for the stage
+6. Reviewer completes evaluation with scores and comments
+7. System aggregates scores based on rubric weightings
+8. Reviewer selects decision: Approve / Revision Required / Reject
+9. For Revision: System captures specific revision requirements
+10. For Approve: System advances to next workflow stage
+11. For Reject: System provides reason and escalation options
+12. Student receives notification of decision
+13. System updates project status and progression
+14. Final approval (if final stage) triggers archivalAlternative FlowA1: Auto-rejection after revisions exceeded - System rejects after max revision attempts
+A2: Plagiarism detected - System flags for immediate review and possible rejection
+A3: Multiple reviewers required - System collects evaluations from all before final decision
+A4: Grade appeal - Student can initiate appeal to HOD with justification
+A5: Expedited review for deadline - System prioritises submissions approaching deadline
+A6: Blind review requirement - System anonymises document before reviewer accessOutput• Submission status updated in system
+• Evaluation results recorded with audit trail
+• Decision notification sent to all stakeholders
+• Revision requirements documented (if applicable)
+• Project workflow stage advanced or looped
+• Final archival record created (when complete)
+• Grade published to student (if final stage)Post-Conditions• Workflow consistency maintained across projects
+• Evaluation fairness and transparency ensured
+• Revision history preserved for quality audit
+• Completion status updated for institutional reporting
+• Student notified of next steps in process
+FR-05: Notification System
+FieldDescriptionRequirement No.FR-05Actor(s)Student, Supervisor, Coordinator, HOD, Research Office Staff, ICT Administrator, System (Automated)Pre-Conditions• User notification preferences are configured
+• Email server is operational
+• In-app notification system is functional
+• User contact information is valid
+• System events are being monitoredInput• Notification trigger event (submission, feedback, deadline, etc.)
+• Recipient selection (individual, role, group)
+• Notification priority level (Urgent/High/Normal/Low)
+• Message content and subject
+• Delivery channel preference (Email/SMS/In-app)
+• Attachment (if applicable)
+• Scheduled send time (for batch notifications)
+• Recurrence pattern (for reminders)Normal Flow1. System event triggers notification (e.g., proposal submitted)
+2. System identifies affected users and their preferences
+3. System generates notification content template
+4. System personalises content with user and project details
+5. System checks for duplicate notifications within timeframe
+6. System sends notification via selected channels
+7. System logs notification delivery attempt
+8. For in-app: User sees badge/counter on dashboard
+9. User can view notification history in dedicated inbox
+10. User can mark notifications as read/unread
+11. User can dismiss or archive notifications
+12. Unread notifications persist across sessionsAlternative FlowA1: Email delivery failure - System retries (3 attempts) then logs failure
+A2: User unsubscribes - System respects preferences for non-critical notifications
+A3: Bulk notifications - System batches to avoid spam triggers
+A4: Urgent notifications - System bypasses quiet hours for urgent events
+A5: Mobile push notification - System sends to registered mobile devices
+A6: No notification preference - System defaults to email + in-appOutput• Notification delivered via selected channels
+• Delivery status recorded (Success/Failed/Pending)
+• Read receipts tracked (if enabled)
+• Notification history stored for audit
+• User notified of critical system events
+• Reminder emails sent for upcoming deadlinesPost-Conditions• Users stay informed of relevant activities
+• Missed deadlines reduced through reminders
+• Communication audit trail maintained
+• User engagement tracked via notification interaction
+• Notification system performance monitored
+FR-06: File Management & Digital Archiving
+FieldDescriptionRequirement No.FR-06Actor(s)Student, Supervisor, Coordinator, HOD, Research Office Staff, ICT Administrator, Public User (read-only)Pre-Conditions• User has appropriate upload/download permissions
+• Storage space is available
+• File type and size are within limits
+• Antivirus scanning is operational
+• Archive index is searchableInput• File upload (document, source code, data set, image)
+• File metadata (title, description, version, type)
+• Storage location selection (project folder, archive, public repository)
+• Search query (keywords, filters, date range)
+• Export format preference (PDF, DOCX, CSV, ZIP)
+• Version number (for updates)
+• Retention period or embargo settingsNormal Flow1. User navigates to file management interface
+2. User selects upload action for specific project
+3. System validates file type against allowed list
+4. System scans file for viruses and malware
+5. System checks file size against limits
+6. System generates unique filename (timestamp + original name)
+7. System stores file in secure directory structure
+8. System extracts metadata (title, author, date, keywords)
+9. System indexes document for full-text search
+10. System creates document record in database
+11. User can search archive using keywords or filters
+12. System returns ranked search results
+13. User can preview/download authorized files
+14. System logs all access activitiesAlternative FlowA1: Duplicate file detected - System prompts user to confirm version or overwrite
+A2: Virus detected - System rejects upload and alerts administrator
+A3: Storage quota exceeded - System rejects upload with quota notification
+A4: Corrupted file - System rejects with file corruption message
+A5: Embargoed document - System restricts access until embargo date
+A6: Request full-text access - System queues request for approval
+A7: Bulk download - System compresses multiple files into ZIP archiveOutput• File stored securely with version tracking
+• Document record created in database
+• Full-text search index updated
+• Access permissions applied based on user role
+• Download available (if authorized)
+• Audit log of upload/download activity
+• Retention schedule applied to archived documentsPost-Conditions• Document integrity maintained via checksums
+• Version history preserved with timestamps
+• Storage usage tracked and reported
+• Backup processes include new files
+• Access control enforced consistently
+FR-07: Supervisor Assignment & Workload Management
+FieldDescriptionRequirement No.FR-07Actor(s)Coordinator, HOD, System (Automated), Supervisor (read-only)Pre-Conditions• Students are enrolled and ready for assignment
+• Supervisor pool is defined with capacities
+• Assignment rules/algorithm is configured
+• Coordinator has assignment permissions
+• Academic year/period is activeInput• Student list (CSV/Excel upload or manual entry)
+• Supervisor list with capacities and expertise areas
+• Assignment rules (workload balancing, expertise matching)
+• Manual override instructions
+• Assignment deadline
+• Batch assignment trigger (automated/scheduled)
+• Reassignment reason (for changes)Normal Flow1. Coordinator accesses supervisor assignment module
+2. System displays current workload distribution dashboard
+3. Coordinator imports/verifies student list for assignment
+4. Coordinator reviews supervisor capacities and expertise
+5. Coordinator selects assignment method: Automatic or Manual
+6. For Automatic: System applies assignment algorithm
+7. Algorithm considers workload balance (max students per supervisor)
+8. Algorithm matches student research area with supervisor expertise
+9. Algorithm distributes students fairly across available supervisors
+10. System generates proposed assignment matrix
+11. Coordinator reviews and adjusts manual overrides as needed
+12. Coordinator approves final assignments
+13. System notifies supervisors of new student assignments
+14. System notifies students of assigned supervisors
+15. Assignment record stored with timestamp and approverAlternative FlowA1: Insufficient supervisors - System alerts coordinator to add supervisors or adjust capacities
+A2: Expertise mismatch - System flags mismatches for coordinator decision
+A3: Student requests specific supervisor - Coordinator can honour or override
+A4: Supervisor at capacity - System excludes from further assignments
+A5: Reassignment needed - Coordinator can reassign with reason tracking
+A6: Bulk import errors - System provides error report for correctionsOutput• Student-supervisor assignment matrix created
+• Workload distribution report generated
+• Email notifications sent to supervisors and students
+• Assignment records stored with audit trail
+• Updated dashboard reflecting new assignments
+• Capacity utilization reports availablePost-Conditions• Each student has assigned supervisor
+• Supervisor workloads balanced within capacities
+• Assignment history tracked for analysis
+• Quality of matching can be evaluated
+• Adjustment requests handled systematically
+FR-08: Reports & Analytics
+FieldDescriptionRequirement No.FR-08Actor(s)Student (limited self-reports), Supervisor (own students), Coordinator (program), HOD (department), Research Office Staff (institution), ICT Administrator (technical), SystemPre-Conditions• User has appropriate access permissions for requested data scope
+• Sufficient data exists for meaningful reporting
+• Reporting period/filters are selected
+• System analytics services are running
+• Data aggregation processes are completeInput• Date range filters (academic year, semester, custom range)
+• User/role selection (student, supervisor, coordinator, department)
+• Report type selection (completion, workload, performance)
+• Metric preferences (specific KPIs to include)
+• Export format preferences (PDF, Excel, CSV, JSON)
+• Comparison period (for trend analysis)
+• Granularity level (daily, weekly, monthly, yearly)
+• Schedule settings (for automated reports)Normal Flow1. User navigates to reports/analytics dashboard
+2. System displays available report types based on user role
+3. User selects report type and applies filters (date, department, etc.)
+4. System retrieves relevant data from database based on permissions
+5. System processes and aggregates data using configured formulas
+6. System generates visualizations (charts, tables, graphs, heatmaps)
+7. System displays reports in interactive dashboard format
+8. User can drill down into specific data points for details
+9. User can apply additional filters or modify parameters
+10. System updates visualizations in real-time based on changes
+11. User can export reports in selected formats
+12. System applies watermark (for sensitive reports)
+13. User can save report configuration for future use
+14. System can schedule automatic report generation and email deliveryAlternative FlowA1: No data available - System displays "No data available for selected criteria" message
+A2: Large data sets - System provides pagination, sampling, or export-only option
+A3: Custom report builder - Admin can create custom report templates with saved queries
+A4: Real-time vs historical - User toggles between real-time and historical views
+A5: Comparative analysis - System allows period-over-period comparisons (e.g., 2024 vs 2025)
+A6: Forecast projections - System generates predictive analytics based on historical trends
+A7: Anomaly detection - System flags unusual patterns for administrator attentionOutput• Interactive dashboard with visual analytics
+• Tabular data with sorting and filtering options
+• Downloadable export files (PDF for presentation, Excel for analysis)
+• Scheduled reports delivered via email
+• Saved report configurations in user profile
+• Insights and recommendations (where AI-enabled)
+• Performance metric updates in dashboard widgetsPost-Conditions• Reports saved to user's report history for future reference
+• Insights available for institutional decision making
+• Performance metrics updated in executive dashboards
+• Automated reports scheduled as needed
+• Data available for business intelligence integration
+• Audit log records report generation access
+FR-08 Sub-Reports (Specific Report Types)
+FR-08.1: Academic Completion Reports
+Sub-ReportMetricsActor AccessStudent Progress ReportSubmission status, revisions required, completion percentage, estimated graduation dateStudent, Supervisor, CoordinatorProgram Completion RatePercentage of students completing on time, by deadline category, reasons for delayCoordinator, HOD, Research OfficeDropout/Withdrawal AnalysisCount of withdrawals, reasons analysis, patterns by program/departmentHOD, Research OfficeTime-to-Completion AnalyticsAverage completion time by program, comparison across academic yearsResearch OfficeFR-08.2: Supervisor Performance Reports
+Sub-ReportMetricsActor AccessSupervisor Workload DistributionCurrent student count vs capacity, distribution across programs, workload heatmapCoordinator, HOD, Supervisor (own)Supervisor Effectiveness ScoreStudent completion rates, average student grades, timeliness of feedbackCoordinator, HODSupervisor RankingComparative performance metrics, by department and programHOD, Research OfficeSupervision Quality MetricsFeedback frequency, meeting logs, student satisfaction scoresCoordinatorFR-08.3: Research Output Reports
+Sub-ReportMetricsActor AccessResearch Publication StatisticsCount by department, publication venues, citation impact (if integrated)Research Office, HODInstitutional Repository GrowthDocument submissions by month/year, access statistics, download countsResearch Office, ICT AdminResearch by Category/ThemeDistribution of research topics, emerging themes, funding sourcesResearch OfficeExternal Collaboration ReportCo-authored publications, joint projects, international partnershipsResearch OfficeFR-08.4: Administrative & Compliance Reports
+Sub-ReportMetricsActor AccessAccreditation Report (TCU/NACTE)Student-staff ratios, completion rates, research output metricsHOD, Research OfficeDeadline Compliance ReportSubmission timeliness, extension requests, late submission ratesCoordinator, HODQuality Assurance Audit TrailSupervision logs, feedback quality, evaluation consistencyHOD, Research OfficeSystem Usage AnalyticsLogin frequency, feature usage, user activity patternsICT AdministratorFR-08.5: Financial & Resource Reports (if implemented)
+Sub-ReportMetricsActor AccessResearch Grant UtilizationFunds allocated vs spent, project budget trackingResearch OfficeResource Allocation ReportLaboratory usage, equipment booking, material consumptionICT Admin
+FR-09: Deadline Management
+FieldDescriptionRequirement No.FR-09Actor(s)Coordinator (program), HOD (department), Research Office Staff (institution), System, Student (read-only)Pre-Conditions• Academic calendar is defined
+• User has deadline configuration permissions
+• System clock is synchronised
+• Notification system is operational
+• Deadline enforcement rules are definedInput• Deadline name and description
+• Deadline type (Proposal/Draft/Final/Progress Report)
+• Target academic year/semester
+• Target audience (specific program, department, or all)
+• Start date and time
+• End date and time (submission cutoff)
+• Grace period (if any)
+• Late submission policy selection
+• Recurrence pattern (annual, semester)
+• Reminder schedule (days before)Normal Flow1. Authorised user navigates to deadline management module
+2. System displays existing deadlines for current period
+3. User selects "Create New Deadline"
+4. User completes deadline configuration form
+5. User assigns deadline to specific programs/departments
+6. User sets submission window (start and end dates)
+7. User configures reminder schedule
+8. System validates no overlapping deadlines
+9. User activates deadline
+10. System notifies affected students and supervisors
+11. System adds deadline to user calendars
+12. System schedules reminder notifications
+13. User can monitor submission progress against deadline
+14. At deadline, system enforces cutoff and updates statusesAlternative FlowA1: Overlapping deadlines - System warns user and suggests adjustments
+A2: Deadline extension - Authorised user can extend deadline for individual students
+A3: Mass extension - Coordinator can extend deadline for entire program
+A4: Deadline deactivation - Authorised user can pause deadline if needed
+A5: Missed deadline handling - System applies configured late submission policy
+A6: Holiday adjustment - System automatically adjusts for institutional holidaysOutput• Deadline created and activated in system
+• Notifications sent to all affected users
+• Calendar entries generated for users
+• Reminder schedule configured
+• Deadline compliance dashboard updated
+• Late submissions flagged for reviewPost-Conditions• Deadlines enforced consistently across programs
+• Students receive timely reminders
+• Submission windows enforced by system
+• Extension requests tracked and justified
+• Historical deadlines archived for reference
+FR-10: System Administration & Audit
+FieldDescriptionRequirement No.FR-10Actor(s)ICT Administrator, System (automated)Pre-Conditions• User has administrator privileges
+• System is operational
+• Database access is available
+• Logging services are enabled
+• Backup systems are configuredInput• User account management actions
+• Role and permission changes
+• System configuration parameters
+• Backup schedule and preferences
+• Security policy settings
+• Audit log filters and search criteria
+• System maintenance commands
+• Data export/import requestsNormal Flow1. Administrator accesses system administration panel
+2. System requires re-authentication for sensitive actions
+3. Administrator selects management function (Users/Roles/Logs/Backup)
+4. For user management: Create, modify, disable, or delete users
+5. For role management: Define custom roles or modify permissions
+6. For configuration: Update system settings, file limits, email servers
+7. For audit: View logs filtered by date, user, action, or entity
+8. For backup: Configure schedule or execute manual backup
+9. System validates all changes before applying
+10. System logs all administrative actions in audit trail
+11. System sends confirmation of completed actions
+12. Administrator can export logs or reports for external reviewAlternative FlowA1: Failed backup - System alerts administrator and retries
+A2: Security breach detected - System locks affected accounts and alerts
+A3: Storage threshold reached - System warns and triggers cleanup process
+A4: Role permission conflict - System prevents inconsistent assignments
+A5: Data integrity check - System validates database integrity on scheduleOutput• Audit trail of all administrative actions
+• Backup files stored in designated location
+• Updated user accounts and permissions
+• System configuration changes applied
+• Security alerts (if triggered)
+• Maintenance logs recordedPost-Conditions• System integrity maintained
+• Security compliance ensured
+• Data recoverable from backups
+• User access properly controlled
+• Audit trail complete for compliance
+FR-11: Public Research Access Portal
+FieldDescriptionRequirement No.FR-11Actor(s)Non-Research User (Public), External Researcher, Prospective Student, SystemPre-Conditions• Public portal is accessible without authentication
+• Research archive contains approved, non-embargoed documents
+• Search index is up-to-date
+• System is configured for public access
+• Rate limiting is active (to prevent abuse)Input• Search keywords or phrases
+• Filter selections (Faculty, Department, Year, Author, Topic)
+• Sort preferences (Date, Title, Relevance, Author)
+• Document view/click request
+• Download request (if permitted)
+• Citation format preference (APA, MLA, Chicago, Harvard)
+• Optional: Registration details (for enhanced features)Normal Flow1. User navigates to public research portal URL
+2. System displays search interface with browse options
+3. User enters search criteria or selects browse category
+4. System executes search across indexed research metadata
+5. System returns ranked results with relevance scores
+6. User can refine search with additional filters
+7. System displays result count and pagination
+8. User clicks on research record for details
+9. System displays metadata (Title, Author, Supervisor, Year, Abstract)
+10. System displays citation information for the work
+11. User can view full-text in browser (if no embargo)
+12. User can download PDF (if download enabled)
+13. System logs view/download for usage statistics
+14. Optional: Registered user can save to personal libraryAlternative FlowA1: No results found - System suggests alternative search terms or browse options
+A2: Document under embargo - System displays embargo date and notifies when available
+A3: Download not permitted - System provides citation only, no download link
+A4: High traffic volume - System applies rate limiting or caching
+A5: Accessibility mode - System provides screen-reader compatible interface
+A6: Request full access - User can submit request form for restricted documentsOutput• Search results page with relevant research
+• Metadata display for selected research
+• Citation data in multiple formats
+• Document preview (in-browser)
+• Download file (if authorized)
+• Usage statistics recorded
+• User session logged (anonymised)Post-Conditions• Public access to institutional knowledge enabled
+• Institutional research visibility increased
+• Usage metrics available for reporting
+• Citation impact tracked (if integrated)
+• Embargo policy enforced automatically
+
+
+
+
+FR-01: User Authentication & Authorization
+FieldDescriptionRequirement No.FR-01PriorityHighActor(s)Student, Supervisor, Coordinator, Head of Department (HOD), Research Office Staff, ICT Administrator, Public User (limited)Pre-Conditions• User has valid institutional credentials or registered account 
+• Authentication services are operational 
+• Database connection is active 
+• User account is active and verifiedInput• Login credentials 
+• Registration details 
+• Password reset request 
+• Multi-factor authentication token (optional)Normal Flow1. User accesses login page 
+2. User enters credentials 
+3. System validates credentials 
+4. System checks role and account status 
+5. System creates encrypted session 
+6. System records login timestamp and IP address 
+7. User redirected to role-based dashboard 
+8. User accesses authorized modules 
+9. User may update password and profile settingsAlternative FlowA1: Invalid credentials displayed 
+A2: Disabled account notification 
+A3: Password reset link sent 
+A4: First-time login forces password change 
+A5: Session timeout redirects to login page 
+A6: Multiple failed attempts temporarily lock accountOutput• Secure authenticated session 
+• Role-based access permissions 
+• Login audit logs 
+• Session token generatedPost-Conditions• User activity traceable 
+• Password policies enforced 
+• Session timeout activatedBusiness Rules• Password must contain uppercase, lowercase, number, and special character 
+• Users can only access modules assigned to their rolesValidation Rules• Email must follow institutional format 
+• Password minimum length: 8 characters
+FR-02: Project & Research Proposal Management
+FieldDescriptionRequirement No.FR-02PriorityHighActor(s)Student, Supervisor, Coordinator, HODPre-Conditions• Student authenticated 
+• Student registered in active academic year 
+• Submission deadline activeInput• Project title 
+• Abstract 
+• Keywords 
+• Proposal document upload 
+• Research category 
+• Supervisor preferenceNormal Flow1. Student navigates to project module 
+2. Student selects project type 
+3. Student fills metadata form 
+4. Student uploads proposal document 
+5. System validates file type and size 
+6. System performs antivirus scan 
+7. Student saves draft or submits project 
+8. System generates tracking number 
+9. System assigns supervisor/coordinator 
+10. Confirmation notifications sent 
+11. Supervisor accesses uploaded document 
+12. System allows online document preview within browser 
+13. Supervisor adds comments, highlights, track changes, and annotations using Microsoft Word-like reviewing tools 
+14. Student views feedback and responds to comments directly in the system 
+15. System maintains revision history and document versionsAlternative FlowA1: Deadline exceeded 
+A2: Invalid file type 
+A3: File exceeds limit 
+A4: Duplicate title detected 
+A5: Supervisor unavailable 
+A6: Revision resubmission increments version numberOutput• Unique tracking number 
+• Stored project record 
+• Uploaded document preview 
+• Digital feedback and annotations 
+• Version-controlled document historyPost-Conditions• Project ready for review 
+• Supervisor feedback traceable 
+• Revision history maintainedBusiness Rules• Only assigned supervisor may review proposal 
+• Drafts editable before submission 
+• Maximum upload size: 10MBValidation Rules• Accepted formats: PDF, DOC, DOCX 
+• Title maximum: 500 characters
+FR-03: Supervision Management
+FieldDescriptionRequirement No.FR-03PriorityHighActor(s)Student, Supervisor, CoordinatorPre-Conditions• Project assigned to supervisor 
+• Users authenticatedInput• Meeting schedule request 
+• Progress updates 
+• Feedback comments 
+• Action itemsNormal Flow1. User opens supervision module 
+2. System displays supervision history 
+3. Meeting scheduled 
+4. Notifications sent 
+5. Supervisor previews submitted document 
+6. Supervisor provides inline comments, tracked changes, highlights, and margin notes similar to Microsoft Word review tools 
+7. Student receives annotated version 
+8. Student replies to comments and uploads revised document 
+9. System records supervision logs and updates progressAlternative FlowA1: Meeting declined 
+A2: No supervision history 
+A3: Urgent supervision request flagged 
+A4: Multiple supervisors includedOutput• Meeting records 
+• Annotated documents 
+• Feedback history 
+• Updated project progressPost-Conditions• Supervision accountability maintained 
+• Feedback audit trail preservedBusiness Rules• Every supervision meeting must have notes recorded 
+• Feedback visible only to authorized users
+FR-04: Submission & Evaluation Workflow
+FieldDescriptionRequirement No.FR-04PriorityHighActor(s)Student, Supervisor, Coordinator, HODPre-Conditions• Previous stage approved 
+• Workflow rules configuredInput• Final submission document 
+• Evaluation scores 
+• Feedback comments 
+• Approval decisionNormal Flow1. Student submits document 
+2. System validates submission 
+3. Reviewer accesses submission 
+4. Reviewer previews document online 
+5. Reviewer uses integrated review tools to add comments, tracked changes, highlights, and suggested corrections 
+6. Student receives feedback notifications 
+7. Student revises and resubmits 
+8. Reviewer evaluates revised document 
+9. System updates workflow status 
+10. Final approved documents archivedAlternative FlowA1: Plagiarism detected 
+A2: Revision attempts exceeded 
+A3: Blind review enabled 
+A4: Grade appeal submittedOutput• Evaluation report 
+• Revision comments 
+• Workflow progression statusPost-Conditions• Evaluation records preserved 
+• Quality assurance maintainedBusiness Rules• Final approval required before archival 
+• Revision comments cannot be deleted after submission
+FR-05: Notification System
+FieldDescriptionRequirement No.FR-05PriorityMediumActor(s)All Users, SystemPre-Conditions• Notification services operationalInput• Trigger event 
+• Recipient details 
+• Notification contentNormal Flow1. System detects event 
+2. Notification generated 
+3. Notification personalized 
+4. Email/In-app/SMS delivery executed 
+5. Notification history recordedAlternative FlowA1: Email delivery failure retry 
+A2: Bulk notifications batchedOutput• Notifications delivered 
+• Read/unread trackingPost-Conditions• Communication records maintainedBusiness Rules• Critical notifications cannot be disabled
+FR-06: File Management & Digital Archiving
+FieldDescriptionRequirement No.FR-06PriorityHighActor(s)Student, Supervisor, ICT Administrator, Public UserPre-Conditions• Storage available 
+• User permissions grantedInput• File upload 
+• Metadata 
+• Search queriesNormal Flow1. User uploads document 
+2. System validates file 
+3. Virus scan executed 
+4. Document stored securely 
+5. System generates previewable copy 
+6. Users preview documents online without download 
+7. Users annotate documents where authorized 
+8. System indexes documents for searchAlternative FlowA1: Virus detected 
+A2: Storage exceeded 
+A3: Duplicate version detectedOutput• Archived documents 
+• Searchable repository 
+• Version-controlled storagePost-Conditions• File integrity maintainedBusiness Rules• Archived documents cannot be modified 
+• Only authorized users may annotate files
+FR-07: Supervisor Assignment & Workload Management
+FieldDescriptionRequirement No.FR-07PriorityHighActor(s)Coordinator, HODPre-Conditions• Supervisor capacities configuredInput• Student list 
+• Supervisor listNormal Flow1. Coordinator reviews workload dashboard 
+2. System applies assignment algorithm 
+3. Supervisor expertise matched with project area 
+4. Coordinator approves assignments 
+5. Notifications sentAlternative FlowA1: Capacity exceeded 
+A2: Expertise mismatchOutput• Assignment matrix 
+• Workload reportsPost-Conditions• Balanced supervisor workload achieved
+FR-08: Reports & Analytics
+FieldDescriptionRequirement No.FR-08PriorityMediumActor(s)Coordinator, HOD, Research Office, ICT AdministratorPre-Conditions• Reporting services operationalInput• Date filters 
+• Report selectionNormal Flow1. User selects report type 
+2. System retrieves data 
+3. Analytics generated 
+4. Interactive charts displayed 
+5. Reports exportedAlternative FlowA1: No data available 
+A2: Large dataset paginationOutput• Dashboards 
+• Exportable reportsPost-Conditions• Institutional insights availableBusiness Rules• Users can only view reports permitted by role
+FR-09: Deadline Management
+FieldDescriptionRequirement No.FR-09PriorityHighActor(s)Coordinator, HOD, SystemPre-Conditions• Academic calendar configuredInput• Deadline details 
+• Reminder scheduleNormal Flow1. Authorized user creates deadline 
+2. System validates schedule 
+3. Notifications sent 
+4. System monitors submissions 
+5. Deadline enforcement activatedAlternative FlowA1: Deadline extension 
+A2: Overlapping deadlines warningOutput• Active submission deadlinesPost-Conditions• Submission control enforced
+FR-10: System Administration & Audit
+FieldDescriptionRequirement No.FR-10PriorityHighActor(s)ICT AdministratorPre-Conditions• Admin privileges grantedInput• User management actions 
+• System settingsNormal Flow1. Admin accesses control panel 
+2. System requires re-authentication 
+3. Admin manages users, roles, logs, backups 
+4. System validates changes 
+5. Audit trail updatedAlternative FlowA1: Failed backup retry 
+A2: Security breach alertOutput• Updated configurations 
+• Backup filesPost-Conditions• System security maintained
+FR-11: Public Research Access Portal
+FieldDescriptionRequirement No.FR-11PriorityMediumActor(s)Public User, External ResearcherPre-Conditions• Approved public documents availableInput• Search keywords 
+• FiltersNormal Flow1. User searches repository 
+2. System displays results 
+3. User previews metadata and abstract 
+4. User previews full-text document in browser 
+5. Citation generated automaticallyAlternative FlowA1: Embargo restriction 
+A2: Download disabledOutput• Search results 
+• Downloadable/public documentsPost-Conditions• Institutional research visibility enhancedNon-functional requirements
+1. Security
+2. Maintainability
+3. Interoperability
+4. Accessibility
+5. Accuracy
+6. Auditing
+7. Extensibility
+8. Reliability
+9. Response time
+10. Robustness
+

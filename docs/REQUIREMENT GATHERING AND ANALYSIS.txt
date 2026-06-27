@@ -1,0 +1,133 @@
+REQUIREMENT GATHERING AND ANALYSIS
+Functional requirements
+Table 1 FR-01: Student Account Registration
+FieldDescriptionRequirement No.FR-01Actor(s)Student, SystemPre-ConditionsStudent exists in SIS; Enrollment status = ActiveInputRegistration NumberNormal Flow1. Student enters registration number.
+2. System validates number against SIS.
+3. System retrieves student details.
+4. System creates account and assigns role.
+5. Temporary password is generated.OutputStudent account createdPost-ConditionsAccount exists with correct role; temporary password sent
+Table 2 FR-02: First Login & Password Change
+FieldDescriptionRequirement No.FR-02Actor(s)StudentPre-ConditionsAccount created, temporary password issuedInput* Registration Number 
+* Temporary Password
+* New PasswordNormal Flow1. Student logs in with temporary password.
+2. System forces password change.
+3. Student sets a new password.
+4. System validates and saves password.OutputPassword updatedPost-ConditionsAccount activated with permanent password
+Table 3 FR-03: Role Assignment Based on Eligibility
+FieldDescriptionRequirement No.FR-03Actor(s)SystemPre-ConditionsStudent record retrieved from SISInput* Year of Study
+* ProgramNormal Flow1. System checks year of study.
+2. System matches eligibility rules.
+3. System assigns Project/Research or Normal Student role.OutputRole assignedPost-ConditionsStudent has corrected system access level
+Table 4 FR-04: View Eligible Students
+FieldDescriptionRequirement No.FR-04Actor(s)CoordinatorPre-ConditionsCoordinator logged inInput* Department 
+* Programme 
+* Year of Study filtersNormal Flow1. Coordinator selects filters.
+2. System retrieves active and eligible students.
+3. System displays filtered list.OutputEligible students listPost-ConditionsCoordinator can proceed with grouping/assignment
+Table 5 FR-05: Create Project Groups
+FieldDescriptionRequirement No.FR-05Actor(s)CoordinatorPre-ConditionsEligible students availableInput* Selected student list
+* Group nameNormal Flow1. Coordinator selects students.
+2. Coordinator creates group.
+3. System validates group size.
+4. System saves group.OutputProject group createdPost-ConditionsStudents linked to a project group
+Table 6 FR-06: Assign Supervisor
+FieldDescriptionRequirement No.FR-06Actor(s)CoordinatorPre-ConditionsSupervisor and students/groups must existInput* Supervisor ID
+* Student/Group IDNormal Flow1. Coordinator selects supervisor.
+2. Coordinator selects group/student.
+3. System records assignment.
+4. System sends notification.OutputSupervisor assignedPost-ConditionsSupervisor linked to project/research
+Table 7 FR-07: Upload Project Documents
+FieldDescriptionRequirement No.FR-07Actor(s)Project/Research StudentPre-ConditionsStudent logged in, and eligible roleInputDocument file (PDF/DOCX/ZIP), StageNormal Flow1. Student selects project stage.
+2. Student uploads file.
+3. System validates file type and size.
+4. System stores file and version.OutputSubmission recordedPost-ConditionsDocument available for supervisor review
+Table 8 FR-08: Review Submissions
+FieldDescriptionRequirement No.FR-08Actor(s)SupervisorPre-ConditionsSupervisor assigned to projectInputSelected submissionNormal Flow1. Supervisor opens submission.
+2. System displays uploaded files.
+3. Supervisor reviews content.OutputSubmission openedPost-ConditionsSubmission ready for feedback
+Table 9 FR-09: Provide Feedback
+FieldDescriptionRequirement No.FR-09Actor(s)SupervisorPre-ConditionsSubmission reviewedInput* Comments
+* RecommendationsNormal Flow1. Supervisor enters feedback.
+2. System saves comments.
+3. System notifies student.OutputFeedback storedPost-ConditionsStudent can view supervisor feedback
+Table 10 FR-10: Approve or Reject Project Stage
+FieldDescriptionRequirement No.FR-10Actor(s)SupervisorPre-ConditionsFeedback providedInputApproval decision (Approve/Reject)Normal Flow1. Supervisor selects decision.
+2. System updates project status.
+3. System sends notification.OutputUpdated project statusPost-ConditionsProject moves to next stage or requires revision
+Table 11 FR-11: View Archived Projects
+FieldDescriptionRequirement No.FR-11Actor(s)Student, CoordinatorPre-ConditionsUser authenticatedInput* Search
+* filter criteriaNormal Flow1. User searches archived projects.
+2. System retrieves approved projects.
+3. System displays read-only files.OutputArchived project listPost-ConditionsNo modification to archived data
+Table 12 FR-12: Send Notifications
+FieldDescriptionRequirement No.FR-12Actor(s)SystemPre-ConditionsTrigger event occursInputEvent type (submission, feedback, approval)Normal Flow1. System detects trigger.
+2. System prepares message.
+3. System sends email/SMS.OutputNotification deliveredPost-ConditionsRecipient informed of system event
+Table 13 FR-13: Synchronize SIS Data
+FieldDescriptionRequirement No.FR-13Actor(s)SystemPre-ConditionsSecure SIS connection availableInputSIS student recordsNormal Flow1. System connects to SIS.
+2. System retrieves required fields.
+3. System updates local database.OutputUpdated student recordsPost-ConditionsLocal data matches SIS (read-only)
+Non functional requirements 
+1. Accessibility 
+2. Interoperability
+3. Maintainability
+4. Accuracy
+5. Response time
+6. Security
+7. Timelines
+8. Auditability
+9. Extensibility
+10. Robustness
+REGISTRATION PROCESS
+The registration process defines how different users are enrolled into the system while enforcing access boundaries.
+1. student record pooling from sis (data synchronization)
+Step 1: identify required student records
+Retrieve only the following fields from sis, registration number, full name, programme, department, year of study, university email, phone number, enrollment status (active / suspended/graduated).
+Step 2: data retrieval method
+Secure API connection to sis or periodic import of verified student records
+Step 3: data storage in proposed system
+Store retrieved records locally in the system database, and Mark all fields as read-only
+Step 4: periodic synchronization
+Enrollment status updated periodically to reflect sis changes, and graduated or inactive students are automatically disabled
+2. student registration process (first-time access)
+Step 1: registration number submission
+Student enters their registration number into the system
+Step 2: sis verification
+System checks if registration number exists in sis, and enrollment status is equal to active, if verification fails should display the notification that registration denied and if verification succeeds should proceed
+Step 3: conditional role assignment
+Determine eligibility based on year of study and programme the system checks if the year is eligible for project or research and assign project or research student role if not assign normal student role
+Step 4: account creation
+System creates user account using reg no, assigns the determined role, and sets account status to active
+Step 5: password generation
+System generates random temporary password, password is hashed before storage, and temporary password sent to student’s email and phone number
+Step 6: first login
+Student logs in with reg no and temporary password, and System forces a password change
+3. normal login process
+* Student enters registration number and password
+* System verifies password hash
+* System checks enrollment status (from local database or sis sync)
+o System applies role-based access for Project or research student with full project or research functionality, and Normal student with read-only access to previous projects
+* Access granted based on role
+4. coordinator login verification
+Coordinator logs in using system credentials, and System authenticates coordinator
+FLOW CHART
+
+Figure 1 PRMS registration process
+
+Figure 2 PRMS login process 01
+
+Figure 3 PRMS login process 02
+Project, and research management system - user actors, and tasks
+Table 14 Student actor, role, activity and actions
+RoleActivityActionsNormal StudentAuthenticationRegister, Login, Change Password, Reset PasswordProject ReviewView and download archived projects (read-only)Project/Research StudentSupervisor AccessView assigned supervisor detailsProject SubmissionUpload proposals, reports, demos, source codeFeedback ReviewView supervisor commentsProgress TrackingMonitor project stagesAll StudentsNotificationsReceive password, feedback, and status alerts
+Table 15 Coordinator actor, role, activity and actions
+RoleActivityActionsCoordinatorAuthenticationLogin using system credentialsStudent ManagementView and filter active studentsEligibility ControlView eligible project/research studentsProject ManagementCreate groups and register research studentsSupervisor AssignmentAssign supervisors to students/groupsMonitoringTrack progress and view approved projectsArchivingAccess archived projects
+Table 16 Supervisor actor, role, activity and actions
+RoleActivityActionsSupervisorAuthenticationLogin using system credentialsAssignment ViewingView assigned groups and studentsSubmission ReviewView proposals, reports, demos, source codeFeedbackAdd comments and recommendationsApprovalApprove or reject project stagesProgress TrackingMonitor assigned project milestonesNotificationsReceive alerts for new submissions
+Table 17 SIS actor, role, activity and actions
+RoleActivityActionsSISData ProvisionProvide verified student recordsStatus UpdatesProvide enrollment status changes
+System Use Case Diagram
+
+Figure 4 PRMS student Use Case Diagram 01
+
+Figure 5 PRMS coordinator and supervisor Use Case Diagram 02

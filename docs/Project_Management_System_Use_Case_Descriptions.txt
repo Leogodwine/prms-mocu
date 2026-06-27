@@ -1,0 +1,76 @@
+UML USE CASE DESCRIPTIONS
+Project Management System
+1. STUDENT USE CASES
+Use Case IDActorActivity / Use CaseDescriptionPre-ConditionsPost-ConditionsUC-01StudentRegister AccountStudent submits registration number for first-time access.Student exists in SIS and status is Active.Student account is created with assigned role.UC-02StudentFirst Login & Change PasswordStudent logs in using temporary password and changes it.Temporary password issued by system.Password updated and account activated.UC-03Project/Research StudentUpload Project DocumentsStudent uploads proposals, reports, demos, or source code.Student is eligible and logged in.Files stored and submission recorded.UC-04StudentView Archived ProjectsStudent views and downloads previous approved projects.Student is authenticated.Archived projects displayed in read-only mode.UC-05StudentView Supervisor FeedbackStudent views comments and approval status.Supervisor has reviewed submission.Feedback displayed to student.2. COORDINATOR USE CASES
+Use Case IDActorActivity / Use CaseDescriptionPre-ConditionsPost-ConditionsUC-06CoordinatorView Eligible StudentsCoordinator views students eligible for project or research.Coordinator is logged in.Eligible student list displayed.UC-07CoordinatorCreate Project GroupsCoordinator creates project groups of students.Students are eligible and active.Project groups successfully created.UC-08CoordinatorAssign SupervisorCoordinator assigns supervisors to students or groups.Supervisor and students exist in system.Supervisor assignment recorded.3. SUPERVISOR USE CASES
+Use Case IDActorActivity / Use CaseDescriptionPre-ConditionsPost-ConditionsUC-09SupervisorReview SubmissionsSupervisor views submitted project documents.Supervisor is assigned to the project.Submission opened for review.UC-10SupervisorProvide FeedbackSupervisor adds comments and recommendations.Submission is available for review.Feedback saved and student notified.UC-11SupervisorApprove Project StageSupervisor approves or rejects a project stage.Review completed.Project status updated.4. SYSTEM (AUTOMATED) USE CASES
+Use Case IDActorActivity / Use CaseDescriptionPre-ConditionsPost-ConditionsUC-12SystemSynchronize SIS DataSystem synchronizes student records with SIS.Secure SIS connection available.Local database updated.UC-13SystemAssign Roles AutomaticallySystem assigns roles based on eligibility rules.Student record retrieved from SIS.Correct role assigned.UC-14SystemSend NotificationsSystem sends automated email/SMS alerts.Trigger event occurs.Notification delivered to recipient.Use Case Descriptions – Admin and HOD
+Use Case 1: Manage User Accounts (Admin)
+* ID: UC-ADM-01
+* Primary Actor: Administrator
+* Description: Admin creates, modifies, or deactivates user accounts
+* Relationships: Includes "Reset Password" and "Assign Roles" sub-use cases
+* Extensions: Can be triggered by HOD's coordinator appointment request
+Use Case 2: Role & Access Control Management (Admin)
+* ID: UC-ADM-02
+* Primary Actor: Administrator
+* Description: Configure permissions and enforce separation of duties
+* Relationships: Generalizes "Configure Permissions" and "Enforce Security"
+Use Case 3: System Configuration (Admin)
+* ID: UC-ADM-03
+* Primary Actor: Administrator
+* Description: Set up academic cycles, timelines, and eligibility rules
+* Includes: "Define Deadlines" and "Configure Rules"
+Use Case 4: SIS Integration Management (Admin)
+* ID: UC-ADM-04
+* Primary Actor: Administrator
+* Description: Manage integration with Student Information System
+* Relationships: Extends "Data Synchronization"
+Use Case 5: Data Management & Maintenance (Admin)
+* ID: UC-ADM-05
+* Primary Actor: Administrator
+* Description: Perform backups, archiving, and log maintenance
+* Includes: "Backup Database" and "Archive Projects"
+Use Case 6: System Monitoring & Security (Admin)
+* ID: UC-ADM-06
+* Primary Actor: Administrator
+* Description: Monitor system, detect incidents, manage auth mechanisms
+* Relationships: Communicates with HOD's appointment initiation
+Use Case 7: View Supervisors (HOD)
+* ID: UC-HOD-01
+* Primary Actor: HOD
+* Description: View supervisor profiles, specializations, and workloads
+* Includes: "View Profiles" and "View Statistics"
+Use Case 8: View Students & Project Groups (HOD)
+* ID: UC-HOD-02
+* Primary Actor: HOD
+* Description: Access student academic details and group information
+* Extensions: Can export student lists
+Use Case 9: View Supervisor Assignments (HOD)
+* ID: UC-HOD-03
+* Primary Actor: HOD
+* Description: Monitor distribution and fairness of assignments
+* Includes: "Monitor Distribution"
+Use Case 10: View Departmental Projects (HOD)
+* ID: UC-HOD-04
+* Primary Actor: HOD
+* Description: Track active research and project progress
+* Relationships: Extends to archived projects view
+Use Case 11: View & Download Archived Projects (HOD)
+* ID: UC-HOD-05
+* Primary Actor: HOD
+* Description: Access completed projects for reference
+* Includes: "Search Projects" and "Download Reports"
+Use Case 12: Initiate Coordinator Appointment (HOD)
+* ID: UC-HOD-06
+* Primary Actor: HOD
+* Description: Start process to appoint/revoke project coordinator
+* Relationships: Communicates with Admin's security management
+* Extensions: Triggers Admin action for final approval
+Use Case 13: Generate Departmental Reports (HOD)
+* ID: UC-HOD-07
+* Primary Actor: HOD
+* Description: Create analytical reports on department performance
+* Includes: "Export Reports" and "Analyze Trends"
+
+

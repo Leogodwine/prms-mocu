@@ -1,0 +1,17 @@
+# Use port 8080 on the host so Apache/XAMPP can keep port 80.
+# If you already have a container on port 80 named "onlyoffice", either remove it
+# (docker rm -f onlyoffice) and run this compose file, or set ONLYOFFICE_DOCUMENT_SERVER_URL=http://localhost in .env.
+services:
+  onlyoffice-documentserver:
+    image: onlyoffice/documentserver:latest
+    container_name: prms-onlyoffice
+    ports:
+      - "8080:80"
+    environment:
+      - JWT_ENABLED=false
+      - JWT_SECRET=
+      - ALLOW_PRIVATE_IP_ADDRESS=true
+      - ALLOW_META_IP_ADDRESS=true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped

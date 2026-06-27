@@ -1,0 +1,507 @@
+# project management system - normalized database schema
+
+## 1. Core user entities
+
+### table: users
+| attribute | datatype | constraints | description |
+|-----------|----------|-------------|-------------|
+| user_id | int | primary key, auto_increment | unique user identifier |
+| username | varchar(50) | unique, not null | login username (reg_no or staff_id) |
+| email | varchar(255) | unique, not null | user's email address |
+| phone_number | varchar(20) | nullable | contact phone number |
+| password_hash | varchar(255) | not null | hashed password |
+| account_status | enum('active','inactive','suspended','locked') | default 'active' | account status |
+| last_login | timestamp | nullable | last successful login |
+| failed_login_attempts | int | default 0 | failed login counter |
+| password_changed_at | timestamp | default current_timestamp | last password change |
+| temporary_password | boolean | default false | flag for temp password |
+| created_at | timestamp | default current_timestamp | record creation timestamp |
+| updated_at | timestamp | default current_timestamp | last update timestamp |
+| deleted_at | timestamp | nullable | soft delete timestamp |
+
+**keys:**
+- primary key: user_id
+- unique keys: username, email
+- indexes: account_status, created_at
+
+### table: roles
+| attribute | datatype | constraints | description |
+|-----------|----------|-------------|-------------|
+| role_id | int | primary key, auto_increment | unique role identifier |
+| role_name | varchar(50) | unique, not null | role name (coordinator, supervisor, etc.) |
+| description | text | nullable | role description |
+| permissions | json | nullable | role permissions in json format |
+| created_at | timestamp | default current_timestamp | creation timestamp |
+
+**keys:**
+- primary key: role_id
+- unique key: role_name
+
+### table: user_roles
+| attribute | datatype | constraints | description |
+|-----------|----------|-------------|-------------|
+| user_role_id | int | primary key, auto_increment | unique assignment identifier |
+| user_id | int | foreign key, not null | references users.user_id |
+| role_id | int | foreign key, not null | references roles.role_id |
+| assigned_by | int | foreign key, nullable | references users.user_id (who assigned) |
+| assigned_at | timestamp | default current_timestamp | assignment timestamp |
+| is_active | boolean | default true | active status of role assignment |
+
+**keys:**
+- primary key: user_role_id
+- foreign keys: user_id ? users.user_id, role_id ? roles.role_id, assigned_by ? users.user_id
+- unique constraint: (user_id, role_id) (composite)
+- indexes: user_id, role_id, is_active
+
+## 2. Academic structure entities
+
+### table: departments
+| attribute | datatype | constraints | description |
+|-----------|----------|-------------|-------------|
+| department_id | int | primary key, auto_increment | unique department identifier |
+| department_code | varchar(20) | unique, not null | department short code |
+| department_name | varchar(100) | not null | full department name |
+| head_of_department | varchar(100) | nullable | hod name |
+| contact_email | varchar(255) | nullable | department contact email |
+| created_at | timestamp | default current_timestamp | creation timestamp |
+
+**keys:**
+- primary key: department_id
+- unique key: department_code
+- index: department_name
+
+### table: programmes
+| attribute | datatype | constraints | description |
+|-----------|----------|-------------|-------------|
+| programme_id | int | primary key, auto_increment | unique programme identifier |
+| programme_code | varchar(20) | unique, not null | programme short code |
+| programme_name | varchar(100) | not null | full programme name |
+| department_id | int | foreign key, not null | references departments.department_id |
+| duration_years | int | nullable | programme duration in years |
+| is_project_eligible | boolean | default false | eligibility for projects |
+| project_year | int | nullable | year when projects start |
+| created_at | timestamp | default current_timestamp | creation timestamp |
+
+**keys:**
+- primary key: programme_id
+- unique key: programme_code
+- foreign key: department_id ? departments.department_id
+- indexes: department_id, is_project_eligible
+
+## 3. Student management entities
+
+### table: students
+| attribute | datatype | constraints | description |
+|-----------|----------|-------------|-------------|
+| student_id | int | primary key, auto_increment | unique student identifier |
+| user_id | int | foreign key, unique, not null | references users.user_id |
+| registration_number | varchar(50) | unique, not null | official registration number |
+| full_name | varchar(200) | not null | student's full name |
+| programme_id | int | foreign key, nullable | references programmes.programme_id |
+| year_of_study | int | not null, check(1-5) | current year of study |
+| enrollment_status | enum('active','suspended','graduated','withdrawn') | default 'active' | enrollment status from sis |
+| university_email | varchar(255) | unique, nullable | university email address |
+| personal_email | varchar(255) | nullable | personal email address |
+| phone_number | varchar(20) | nullable | contact phone number |
+| admission_date | date | nullable | admission date |
+| expected_graduation | date | nullable | expected graduation date |
+| sis_sync_date | timestamp | nullable | last sis synchronization |
+| sis_data | json | nullable | raw sis data |
+| created_at | timestamp | default current_timestamp | creation timestamp |
+| updated_at | timestamp | default current_timestamp | update timestamp |
+
+**keys:**
+- primary key: student_id
+- unique keys: user_id, registration_number, university_email
+- foreign keys: user_id ? users.user_id, programme_id ? programmes.programme_id
+- indexes: enrollment_status, year_of_study, programme_id, created_at
+
+### table: student_sis_sync_log
+| attribute | datatype | constraints | description |
+|-----------|----------|-------------|-------------|
+| sync_log_id | int | primary key, auto_increment | unique sync log identifier |
+| sync_timestamp | timestamp | default current_timestamp | sync operation timestamp |
+| records_processed | int | default 0 | total records processed |
+| records_added | int | default 0 | new records added |
+| records_updated | int | default 0 | existing records updated |
+| records_deactivated | int | default 0 | records deactivated |
+| sync_status | enum('success','partial','failed') | not null | sync operation status |
+| error_message | text | nullable | error details if failed |
+| initiated_by | varchar(50) | not null | who initiated sync |
+
+**keys:**
+- primary key: sync_log_id
+- indexes: sync_timestamp, sync_status
+
+## 4. Staff management entities
+
+### table: staff
+| attribute | datatype | constraints | description |
+|-----------|----------|-------------|-------------|
+| staff_id | int | primary key, auto_increment | unique staff identifier |
+| user_id | int | foreign key, unique, not null | references users.user_id |
+| staff_number | varchar(50) | unique, not null | official staff number |
+| full_name | varchar(200) | not null | staff full name |
+| designation | varchar(100) | nullable | job title/designation |
+| department_id | int | foreign key, nullable | references departments.department_id |
+| email | varchar(255) | unique, nullable | work email address |
+| phone_number | varchar(20) | nullable | contact phone number |
+| office_location | varchar(100) | nullable | office location |
+| max_students_allowed | int | default 10 | maximum supervision capacity |
+| current_student_count | int | default 0 | current student count |
+| is_active | boolean | default true | active employment status |
+| created_at | timestamp | default current_timestamp | creation timestamp |
+
+**keys:**
+- primary key: staff_id
+- unique keys: user_id, staff_number, email
+- foreign keys: user_id ? users.user_id, department_id ? departments.department_id
+- indexes: department_id, is_active
+
+## 5. Project structure entities
+
+### table: project_types
+| attribute | datatype | constraints | description |
+|-----------|----------|-------------|-------------|
+| project_type_id | int | primary key, auto_increment | unique project type identifier |
+| type_name | varchar(50) | unique, not null | type name (group_project, individual_project, research) |
+| description | text | nullable | type description |
+| min_students | int | default 1 | minimum students required |
+| max_students | int | default 5 | maximum students allowed |
+| is_group_based | boolean | default true | whether group-based |
+| created_at | timestamp | default current_timestamp | creation timestamp |
+
+**keys:**
+- primary key: project_type_id
+- unique key: type_name
+
+### table: student_groups
+| attribute | datatype | constraints | description |
+|-----------|----------|-------------|-------------|
+| group_id | int | primary key, auto_increment | unique group identifier |
+| group_name | varchar(100) | not null | group display name |
+| group_code | varchar(50) | unique, not null | auto-generated group code |
+| project_type_id | int | foreign key, nullable | references project_types.project_type_id |
+| academic_year | varchar(10) | not null | academic year (e.g., 2024-2025) |
+| department_id | int | foreign key, nullable | references departments.department_id |
+| programme_id | int | foreign key, nullable | references programmes.programme_id |
+| status | enum('forming','active','completed','archived') | default 'forming' | group status |
+| created_by | int | foreign key, nullable | references users.user_id |
+| created_at | timestamp | default current_timestamp | creation timestamp |
+| completed_at | timestamp | nullable | completion timestamp |
+| project_title | text | nullable | proposed project title |
+| project_description | text | nullable | project description |
+
+**keys:**
+- primary key: group_id
+- unique key: group_code
+- foreign keys: project_type_id ? project_types.project_type_id, department_id ? departments.department_id, programme_id ? programmes.programme_id, created_by ? users.user_id
+- indexes: status, academic_year, department_id
+
+### table: student_group_members
+| attribute | datatype | constraints | description |
+|-----------|----------|-------------|-------------|
+| group_member_id | int | primary key, auto_increment | unique member identifier |
+| group_id | int | foreign key, not null | references student_groups.group_id |
+| student_id | int | foreign key, not null | references students.student_id |
+| role_in_group | varchar(50) | default 'member' | role (leader, member, etc.) |
+| joined_at | timestamp | default current_timestamp | join timestamp |
+| left_at | timestamp | nullable | leave timestamp |
+| is_active | boolean | default true | active membership status |
+
+**keys:**
+- primary key: group_member_id
+- foreign keys: group_id ? student_groups.group_id, student_id ? students.student_id
+- unique constraint: (group_id, student_id) (composite)
+- indexes: is_active, group_id, student_id
+
+### table: projects
+| attribute | datatype | constraints | description |
+|-----------|----------|-------------|-------------|
+| project_id | int | primary key, auto_increment | unique project identifier |
+| project_title | text | not null | project title |
+| project_description | text | nullable | project description |
+| group_id | int | foreign key, nullable | references student_groups.group_id |
+| individual_student_id | int | foreign key, nullable | references students.student_id |
+| project_type_id | int | foreign key, not null | references project_types.project_type_id |
+| academic_year | varchar(10) | not null | academic year |
+| status | enum('proposal','approved','in_progress','demo','final','completed','archived') | default 'proposal' | project status |
+| start_date | date | nullable | project start date |
+| expected_end_date | date | nullable | expected completion date |
+| actual_end_date | date | nullable | actual completion date |
+| final_grade | varchar(5) | nullable | final grade awarded |
+| created_at | timestamp | default current_timestamp | creation timestamp |
+| updated_at | timestamp | default current_timestamp | update timestamp |
+
+**keys:**
+- primary key: project_id
+- foreign keys: group_id ? student_groups.group_id, individual_student_id ? students.student_id, project_type_id ? project_types.project_type_id
+- check constraint: either group_id or individual_student_id must be non-null
+- indexes: status, academic_year, project_type_id
+
+## 6. Supervision & assignment entities
+
+### table: supervisor_assignments
+| attribute | datatype | constraints | description |
+|-----------|----------|-------------|-------------|
+| assignment_id | int | primary key, auto_increment | unique assignment identifier |
+| project_id | int | foreign key, not null | references projects.project_id |
+| supervisor_id | int | foreign key, not null | references staff.staff_id |
+| assignment_type | enum('primary','secondary','external') | default 'primary' | type of supervision |
+| assigned_by | int | foreign key, nullable | references users.user_id |
+| assigned_at | timestamp | default current_timestamp | assignment timestamp |
+| is_active | boolean | default true | active assignment status |
+| notes | text | nullable | assignment notes |
+
+**keys:**
+- primary key: assignment_id
+- foreign keys: project_id ? projects.project_id, supervisor_id ? staff.staff_id, assigned_by ? users.user_id
+- unique constraint: (project_id, supervisor_id, assignment_type) (composite)
+- indexes: is_active, project_id, supervisor_id
+
+## 7. Project workflow entities
+
+### table: project_stages
+| attribute | datatype | constraints | description |
+|-----------|----------|-------------|-------------|
+| stage_id | int | primary key, auto_increment | unique stage identifier |
+| stage_name | varchar(50) | unique, not null | stage name |
+| stage_order | int | unique, not null | display/processing order |
+| description | text | nullable | stage description |
+| requires_approval | boolean | default true | whether approval required |
+| days_allowed | int | nullable | days allowed for stage |
+| created_at | timestamp | default current_timestamp | creation timestamp |
+
+**keys:**
+- primary key: stage_id
+- unique keys: stage_name, stage_order
+
+### table: submissions
+| attribute | datatype | constraints | description |
+|-----------|----------|-------------|-------------|
+| submission_id | int | primary key, auto_increment | unique submission identifier |
+| project_id | int | foreign key, not null | references projects.project_id |
+| stage_id | int | foreign key, not null | references project_stages.stage_id |
+| submission_type | enum('proposal','report','demo','code','documentation','presentation') | not null | type of submission |
+| version | int | default 1 | submission version number |
+| file_path | text | nullable | path to stored file |
+| file_name | varchar(255) | nullable | original filename |
+| file_size | bigint | nullable | file size in bytes |
+| file_type | varchar(50) | nullable | file mime type |
+| submitted_by | int | foreign key, nullable | references users.user_id |
+| submitted_at | timestamp | default current_timestamp | submission timestamp |
+| status | enum('submitted','under_review','approved','rejected','needs_revision') | default 'submitted' | submission status |
+| review_due_date | date | nullable | review deadline |
+| actual_review_date | timestamp | nullable | actual review timestamp |
+| notes | text | nullable | submission notes |
+
+**keys:**
+- primary key: submission_id
+- foreign keys: project_id ? projects.project_id, stage_id ? project_stages.stage_id, submitted_by ? users.user_id
+- indexes: status, submission_type, submitted_at, project_id
+
+### table: submission_feedback
+| attribute | datatype | constraints | description |
+|-----------|----------|-------------|-------------|
+| feedback_id | int | primary key, auto_increment | unique feedback identifier |
+| submission_id | int | foreign key, not null | references submissions.submission_id |
+| reviewer_id | int | foreign key, not null | references staff.staff_id |
+| feedback_type | enum('comment','correction','suggestion','approval') | default 'comment' | type of feedback |
+| feedback_text | text | not null | feedback content |
+| rating | int | check(1-5), nullable | rating score (1-5) |
+| is_approved | boolean | default false | approval status |
+| requires_resubmission | boolean | default false | whether resubmission required |
+| created_at | timestamp | default current_timestamp | creation timestamp |
+| updated_at | timestamp | default current_timestamp | update timestamp |
+
+**keys:**
+- primary key: feedback_id
+- foreign keys: submission_id ? submissions.submission_id, reviewer_id ? staff.staff_id
+- indexes: submission_id, reviewer_id, is_approved
+
+### table: submission_attachments
+| attribute | datatype | constraints | description |
+|-----------|----------|-------------|-------------|
+| attachment_id | int | primary key, auto_increment | unique attachment identifier |
+| submission_id | int | foreign key, not null | references submissions.submission_id |
+| file_path | text | not null | path to stored file |
+| file_name | varchar(255) | not null | original filename |
+| file_type | varchar(50) | nullable | file mime type |
+| file_size | bigint | nullable | file size in bytes |
+| uploaded_by | int | foreign key, nullable | references users.user_id |
+| uploaded_at | timestamp | default current_timestamp | upload timestamp |
+| is_primary | boolean | default false | primary attachment flag |
+
+**keys:**
+- primary key: attachment_id
+- foreign key: submission_id ? submissions.submission_id
+- index: submission_id
+
+## 8. Notification system entities
+
+### table: notification_templates
+| attribute | datatype | constraints | description |
+|-----------|----------|-------------|-------------|
+| template_id | int | primary key, auto_increment | unique template identifier |
+| template_name | varchar(100) | unique, not null | template identifier name |
+| template_type | enum('email','sms','in_app') | not null | notification channel type |
+| subject | varchar(255) | nullable | email subject line |
+| body_template | text | not null | template body with variables |
+| variables | json | nullable | available template variables |
+| is_active | boolean | default true | active template status |
+| created_at | timestamp | default current_timestamp | creation timestamp |
+
+**keys:**
+- primary key: template_id
+- unique key: template_name
+- index: template_type, is_active
+
+### table: notifications
+| attribute | datatype | constraints | description |
+|-----------|----------|-------------|-------------|
+| notification_id | int | primary key, auto_increment | unique notification identifier |
+| notification_type | varchar(50) | not null | notification type identifier |
+| template_id | int | foreign key, nullable | references notification_templates.template_id |
+| title | varchar(255) | not null | notification title |
+| message | text | not null | notification message |
+| priority | enum('low','normal','high','urgent') | default 'normal' | priority level |
+| scheduled_for | timestamp | default current_timestamp | scheduled delivery time |
+| sent_at | timestamp | nullable | actual sent timestamp |
+| status | enum('pending','sent','failed','cancelled') | default 'pending' | delivery status |
+| channel | enum('email','sms','in_app','all') | default 'email' | delivery channel |
+| metadata | json | nullable | additional notification data |
+| created_at | timestamp | default current_timestamp | creation timestamp |
+
+**keys:**
+- primary key: notification_id
+- foreign key: template_id ? notification_templates.template_id
+- indexes: status, scheduled_for, notification_type
+
+### table: notification_recipients
+| attribute | datatype | constraints | description |
+|-----------|----------|-------------|-------------|
+| recipient_id | int | primary key, auto_increment | unique recipient identifier |
+| notification_id | int | foreign key, not null | references notifications.notification_id |
+| user_id | int | foreign key, nullable | references users.user_id |
+| email | varchar(255) | nullable | recipient email |
+| phone_number | varchar(20) | nullable | recipient phone number |
+| delivery_status | enum('pending','sent','delivered','failed','read') | default 'pending' | delivery status |
+| delivery_channel | varchar(20) | nullable | actual delivery channel |
+| delivered_at | timestamp | nullable | delivery timestamp |
+| read_at | timestamp | nullable | read timestamp |
+| failure_reason | text | nullable | failure description |
+
+**keys:**
+- primary key: recipient_id
+- foreign keys: notification_id ? notifications.notification_id, user_id ? users.user_id
+- indexes: notification_id, user_id, delivery_status
+
+## 9. File management entities
+
+### table: file_storage
+| attribute | datatype | constraints | description |
+|-----------|----------|-------------|-------------|
+| file_id | int | primary key, auto_increment | unique file identifier |
+| file_uuid | uuid | unique, default gen_random_uuid() | uuid for external reference |
+| original_filename | varchar(255) | not null | original uploaded filename |
+| stored_filename | varchar(255) | not null | server-stored filename |
+| file_path | text | not null | storage path |
+| file_type | varchar(100) | nullable | file extension/type |
+| file_size | bigint | not null | file size in bytes |
+| mime_type | varchar(100) | nullable | mime type |
+| uploader_id | int | foreign key, nullable | references users.user_id |
+| project_id | int | foreign key, nullable | references projects.project_id |
+| is_public | boolean | default false | public access flag |
+| download_count | int | default 0 | download counter |
+| checksum | varchar(64) | nullable | sha256 file checksum |
+| metadata | json | nullable | additional file metadata |
+| uploaded_at | timestamp | default current_timestamp | upload timestamp |
+| expires_at | timestamp | nullable | expiration timestamp |
+| deleted_at | timestamp | nullable | soft delete timestamp |
+
+**keys:**
+- primary key: file_id
+- unique key: file_uuid
+- foreign keys: uploader_id ? users.user_id, project_id ? projects.project_id
+- indexes: project_id, uploader_id, uploaded_at, file_type
+
+## 10. Audit & logging entities
+
+### table: audit_logs
+| attribute | datatype | constraints | description |
+|-----------|----------|-------------|-------------|
+| audit_id | int | primary key, auto_increment | unique audit log identifier |
+| user_id | int | foreign key, nullable | references users.user_id |
+| action | varchar(100) | not null | action performed |
+| entity_type | varchar(50) | nullable | type of entity affected |
+| entity_id | int | nullable | id of entity affected |
+| old_values | json | nullable | previous values |
+| new_values | json | nullable | new values |
+| ip_address | inet | nullable | ip address of requester |
+| user_agent | text | nullable | user agent string |
+| timestamp | timestamp | default current_timestamp | event timestamp |
+
+**keys:**
+- primary key: audit_id
+- foreign key: user_id ? users.user_id
+- indexes: user_id, action, timestamp, entity_type
+
+### table: login_history
+| attribute | datatype | constraints | description |
+|-----------|----------|-------------|-------------|
+| login_id | int | primary key, auto_increment | unique login record identifier |
+| user_id | int | foreign key, not null | references users.user_id |
+| login_time | timestamp | default current_timestamp | login timestamp |
+| logout_time | timestamp | nullable | logout timestamp |
+| ip_address | inet | nullable | ip address used |
+| user_agent | text | nullable | user agent string |
+| success | boolean | default true | login success flag |
+| failure_reason | varchar(100) | nullable | reason for failure |
+| session_duration | interval | generated column | calculated session duration |
+
+**keys:**
+- primary key: login_id
+- foreign key: user_id ? users.user_id
+- indexes: user_id, login_time, success
+
+## 11. System configuration entities
+
+### table: system_configurations
+| attribute | datatype | constraints | description |
+|-----------|----------|-------------|-------------|
+| config_id | int | primary key, auto_increment | unique configuration identifier |
+| config_key | varchar(100) | unique, not null | configuration key |
+| config_value | text | nullable | configuration value |
+| config_type | enum('string','integer','boolean','json','array') | default 'string' | value data type |
+| description | text | nullable | configuration description |
+| category | varchar(50) | nullable | configuration category |
+| is_encrypted | boolean | default false | whether value is encrypted |
+| created_at | timestamp | default current_timestamp | creation timestamp |
+| updated_at | timestamp | default current_timestamp | update timestamp |
+
+**keys:**
+- primary key: config_id
+- unique key: config_key
+- indexes: category, config_type
+
+## summary statistics
+- **total tables**: 24
+- **core entities**: 3
+- **academic entities**: 5
+- **project entities**: 9
+- **system entities**: 7
+- **normalization level**: 3nf (third normal form)
+
+## key design patterns
+1. **surrogate keys**: all tables use auto-increment integer primary keys
+2. **foreign key constraints**: all relationships explicitly defined
+3. **soft deletes**: major tables support soft deletion via deleted_at
+4. **audit trail**: comprehensive logging for all critical operations
+5. **index strategy**: foreign keys and frequently queried columns indexed
+6. **data integrity**: check constraints and enum types for domain validation
+
+## relationship summary
+- one-to-many: 18 relationships
+- many-to-many: 6 relationships (via junction tables)
+- self-referencing: 2 relationships
+- total relationships: 26 defined relationships

@@ -1,0 +1,92 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Inter', 'Poppins', ui-sans-serif, system-ui, sans-serif, 
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+@layer base {
+    :root {
+        --prms-bg: #f4f7fb;
+        --prms-surface: #ffffff;
+        --prms-text: #20469e;
+        --prms-muted: #64748b;
+
+        --prms-primary: #2563eb;
+        --prms-primary-dark: #1e40af;
+        --prms-primary-soft: #dbeafe;
+
+        --prms-success: #10b981;
+        --prms-warning: #f59e0b;
+        --prms-danger: #ef4444;
+
+        --prms-border: #e2e8f0;
+        --prms-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    body {
+        font-family: var(--font-sans);
+        background-color: var(--prms-bg);
+        color: var(--prms-text);
+    }
+}
+
+@layer components {
+
+    /* Layout */
+    .prms-shell {
+        @apply mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8;
+    }
+
+    /* Card */
+    .prms-card {
+        background: var(--prms-surface);
+        border: 1px solid var(--prms-border);
+        border-radius: 1rem;
+        box-shadow: var(--prms-shadow);
+        transition: all 0.2s ease;
+    }
+
+    .prms-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+    }
+
+    /* Pill / Badge */
+    .prms-pill {
+        @apply inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide;
+        color: var(--prms-primary);
+        background: var(--prms-primary-soft);
+        border: 1px solid #bfdbfe;
+    }
+
+    /* Primary Button */
+    .prms-btn-primary {
+        @apply inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200;
+        background: var(--prms-primary);
+    }
+
+    .prms-btn-primary:hover {
+        background: var(--prms-primary-dark);
+        transform: translateY(-1px);
+    }
+
+    /* Secondary Button */
+    .prms-btn-secondary {
+        @apply inline-flex items-center justify-center rounded-lg border px-4 py-2.5 text-sm font-semibold transition;
+        color: var(--prms-primary);
+        border-color: #bfdbfe;
+        background: #eff6ff;
+    }
+
+    .prms-btn-secondary:hover {
+        background: #dbeafe;
+    }
+}

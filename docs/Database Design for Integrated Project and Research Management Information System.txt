@@ -1,0 +1,113 @@
+Database Design for Integrated Project and Research Management Information System (PRMS)
+Moshi Co-operative University
+
+Table of Contents
+1. User Management Tables 
+2. Academic Structure Tables 
+3. Project & Research Tables 
+4. Supervision Tables 
+5. Submission & Evaluation Tables 
+6. File & Document Management Tables 
+7. Notification Tables 
+8. Reporting & Analytics Tables 
+9. System Administration Tables 
+10. Public Access Tables 
+
+1. USER MANAGEMENT TABLES
+
+1.1 users
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTUnique user identifieruser_unique_idVARCHAR(20)UNIQUE, NOT NULLStudent ID or Staff IDfirst_nameVARCHAR(50)NOT NULLUser first namemiddle_nameVARCHAR(50)NULLMiddle namelast_nameVARCHAR(50)NOT NULLLast nameemailVARCHAR(100)UNIQUE, NOT NULLInstitutional emailpassword_hashVARCHAR(255)NOT NULLEncrypted passwordphone_numberVARCHAR(20)NULLMobile phonealternative_phoneVARCHAR(20)NULLAlternative contactgenderENUM('M','F','O')NULLGenderdate_of_birthDATENULLDate of birthprofile_pictureVARCHAR(255)NULLProfile imagebiographyTEXTNULLUser profile biographyrole_idINTFOREIGN KEY, NOT NULLReferences roles.iddepartment_idINTFOREIGN KEYReferences departments.idfaculty_idINTFOREIGN KEYReferences faculties.idspecializationVARCHAR(255)NULLResearch specializationqualificationVARCHAR(255)NULLHighest qualificationtwo_factor_enabledBOOLEANDEFAULT FALSEMFA activationis_activeBOOLEANDEFAULT TRUEAccount statusis_verifiedBOOLEANDEFAULT FALSEVerification statuslast_loginDATETIMENULLLast loginlast_login_ipVARCHAR(45)NULLLogin IPfailed_login_attemptsINTDEFAULT 0Failed attemptsaccount_locked_untilDATETIMENULLLock expirycreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPCreated dateupdated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMP ON UPDATEUpdated datedeleted_atTIMESTAMPNULLSoft delete
+1.2 roles
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTUnique role IDrole_nameVARCHAR(50)UNIQUE, NOT NULLRole namerole_descriptionTEXTNULLRole descriptionrole_levelINTNOT NULLHierarchy leveldashboard_routeVARCHAR(255)NULLDefault dashboardis_defaultBOOLEANDEFAULT FALSEDefault rolecreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPCreated dateupdated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMP ON UPDATEUpdated date
+1.3 permissions
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTPermission IDpermission_nameVARCHAR(100)UNIQUE, NOT NULLPermission namepermission_categoryVARCHAR(50)NOT NULLCategorydescriptionTEXTNULLPermission descriptioncreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPCreated date
+1.4 role_permissions
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTUnique identifierrole_idINTFOREIGN KEY, NOT NULLReferences roles.idpermission_idINTFOREIGN KEY, NOT NULLReferences permissions.idgranted_byINTFOREIGN KEYReferences users.idgranted_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPGranted datecreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPCreated date
+1.5 user_sessions
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTSession IDuser_idINTFOREIGN KEY, NOT NULLReferences users.idsession_tokenVARCHAR(255)UNIQUE, NOT NULLSession tokenip_addressVARCHAR(45)NOT NULLIP addressuser_agentTEXTNULLBrowser/devicelogin_timeDATETIMENOT NULLLogin timelast_activityDATETIMENOT NULLLast activityexpiry_timeDATETIMENOT NULLSession expirydevice_typeVARCHAR(100)NULLDevice informationis_activeBOOLEANDEFAULT TRUESession statuslogout_timeDATETIMENULLLogout timecreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPCreated date
+1.6 password_resets
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTReset IDemailVARCHAR(100)NOT NULLUser emailtokenVARCHAR(255)NOT NULLReset tokenexpires_atDATETIMENOT NULLExpiry timeused_atDATETIMENULLUsed timestampcreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPCreated date
+2. ACADEMIC STRUCTURE TABLES
+
+2.1 faculties
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTFaculty IDfaculty_codeVARCHAR(20)UNIQUE, NOT NULLFaculty codefaculty_nameVARCHAR(100)UNIQUE, NOT NULLFaculty namedean_idINTFOREIGN KEYReferences users.iddescriptionTEXTNULLFaculty descriptionoffice_locationVARCHAR(255)NULLFaculty officeis_activeBOOLEANDEFAULT TRUEStatuscreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPCreated dateupdated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMP ON UPDATEUpdated date
+2.2 departments
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTDepartment IDdepartment_codeVARCHAR(20)UNIQUE, NOT NULLDepartment codedepartment_nameVARCHAR(100)UNIQUE, NOT NULLDepartment namefaculty_idINTFOREIGN KEY, NOT NULLReferences faculties.idhod_idINTFOREIGN KEYReferences users.idcoordinator_idINTFOREIGN KEYReferences users.iddescriptionTEXTNULLDepartment descriptionsubmission_requirementsJSONNULLSubmission rulesplagiarism_thresholdDECIMAL(5,2)DEFAULT 20.00Allowed similarityis_activeBOOLEANDEFAULT TRUEStatuscreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPCreated dateupdated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMP ON UPDATEUpdated date
+2.3 programs
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTProgram IDprogram_codeVARCHAR(20)UNIQUE, NOT NULLProgram codeprogram_nameVARCHAR(150)NOT NULLProgram nameprogram_levelENUM('Certificate','Diploma','Bachelor','Masters','PhD','Postgraduate')NOT NULLAcademic leveldepartment_idINTFOREIGN KEY, NOT NULLReferences departments.idduration_yearsINTNOT NULLProgram durationcoordinator_idINTFOREIGN KEYReferences users.idmaximum_studentsINTDEFAULT 0Student capacityis_activeBOOLEANDEFAULT TRUEProgram statuscreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPCreated dateupdated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMP ON UPDATEUpdated date
+2.4 academic_years
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTAcademic year IDyear_nameVARCHAR(20)UNIQUE, NOT NULLAcademic yearstart_dateDATENOT NULLStart dateend_dateDATENOT NULLEnd dateis_currentBOOLEANDEFAULT FALSECurrent yearcreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPCreated dateupdated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMP ON UPDATEUpdated date
+2.5 semesters
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTSemester IDacademic_year_idINTFOREIGN KEY, NOT NULLReferences academic_years.idsemester_nameVARCHAR(20)NOT NULLSemester namesemester_numberINTNOT NULLSemester numberstart_dateDATENOT NULLStart dateend_dateDATENOT NULLEnd dateis_currentBOOLEANDEFAULT FALSECurrent semestercreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPCreated dateupdated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMP ON UPDATEUpdated date
+2.6 student_enrollment
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTEnrollment IDstudent_idINTFOREIGN KEY, NOT NULLReferences users.idprogram_idINTFOREIGN KEY, NOT NULLReferences programs.idacademic_year_idINTFOREIGN KEY, NOT NULLReferences academic_years.idenrollment_dateDATENOT NULLEnrollment dateenrollment_statusENUM('Active','Graduated','Withdrawn','Suspended','Deferred')DEFAULT 'Active'Enrollment statusregistration_numberVARCHAR(50)UNIQUE, NOT NULLRegistration numberyear_of_studyINTNOT NULLCurrent yearcgpaDECIMAL(3,2)NULLStudent CGPAcreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPCreated dateupdated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMP ON UPDATEUpdated date
+3. PROJECT & RESEARCH TABLES
+
+3.1 research_projects
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTProject IDproject_codeVARCHAR(30)UNIQUE, NOT NULLTracking numberstudent_idINTFOREIGN KEY, NOT NULLReferences users.idsupervisor_idINTFOREIGN KEYReferences users.idco_supervisor_idINTFOREIGN KEYReferences users.iddepartment_idINTFOREIGN KEY, NOT NULLReferences departments.idfaculty_idINTFOREIGN KEY, NOT NULLReferences faculties.idprogram_idINTFOREIGN KEY, NOT NULLReferences programs.idacademic_year_idINTFOREIGN KEY, NOT NULLReferences academic_years.idsemester_idINTFOREIGN KEYReferences semesters.idproject_typeENUM('Proposal','Dissertation','Thesis','Project Report','Research Paper')NOT NULLProject typetitleVARCHAR(500)NOT NULLProject titleabstractTEXTNULLAbstractkeywordsVARCHAR(255)NULLKeywordsresearch_areaVARCHAR(100)NULLResearch areafunding_sourceVARCHAR(200)NULLFunding sourceethical_clearance_numberVARCHAR(100)NULLEthics numbercurrent_stageENUM('Draft','Submitted','Under Review','Revision Required','Approved','Rejected','Archived')DEFAULT 'Draft'Workflow stagesubmission_deadlineDATENULLSubmission deadlineplagiarism_scoreDECIMAL(5,2)NULLSimilarity percentagepreview_enabledBOOLEANDEFAULT TRUEPreview accesscollaboration_enabledBOOLEANDEFAULT TRUEInline collaborationfinal_gradeDECIMAL(5,2)NULLFinal gradefinal_grade_letterCHAR(2)NULLGrade letteris_archivedBOOLEANDEFAULT FALSEArchive statusarchived_dateDATENULLArchived datecreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPCreated dateupdated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMP ON UPDATEUpdated date
+3.2 project_versions
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTVersion IDproject_idINTFOREIGN KEY, NOT NULLReferences research_projects.idversion_numberINTNOT NULLVersion numberversion_noteTEXTNULLVersion notessubmitted_atDATETIMENOT NULLSubmission datesubmitted_byINTFOREIGN KEY, NOT NULLReferences users.idtotal_commentsINTDEFAULT 0Number of commentstotal_annotationsINTDEFAULT 0Annotation countis_currentBOOLEANDEFAULT FALSECurrent versioncreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPCreated date
+3.3 project_history
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTHistory IDproject_idINTFOREIGN KEY, NOT NULLReferences research_projects.idactionVARCHAR(50)NOT NULLAction performedprevious_stageVARCHAR(50)NULLPrevious stagenew_stageVARCHAR(50)NULLNew stageaction_byINTFOREIGN KEY, NOT NULLReferences users.idaction_reasonTEXTNULLAction reasonaction_notesTEXTNULLAdditional notesip_addressVARCHAR(45)NULLUser IPcreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPAction timestamp
+3.4 project_version_comparisons
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTComparison IDold_version_idINTFOREIGN KEY, NOT NULLReferences project_versions.idnew_version_idINTFOREIGN KEY, NOT NULLReferences project_versions.idcomparison_summaryTEXTNULLVersion changesgenerated_byINTFOREIGN KEYReferences users.idgenerated_atDATETIMENOT NULLComparison date
+4. SUPERVISION TABLES
+
+4.1 supervisor_assignments
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTAssignment IDproject_idINTFOREIGN KEY, NOT NULLReferences research_projects.idsupervisor_idINTFOREIGN KEY, NOT NULLReferences users.idassignment_typeENUM('Primary','Co-supervisor','Committee Member')NOT NULLAssignment roleassigned_byINTFOREIGN KEY, NOT NULLReferences users.idassigned_dateDATENOT NULLAssignment dateis_activeBOOLEANDEFAULT TRUEAssignment statusend_dateDATENULLEnd dateend_reasonVARCHAR(100)NULLReassignment reasoncreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPCreated dateupdated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMP ON UPDATEUpdated date
+4.2 supervision_logs
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTLog IDproject_idINTFOREIGN KEY, NOT NULLReferences research_projects.idsupervisor_idINTFOREIGN KEY, NOT NULLReferences users.idstudent_idINTFOREIGN KEY, NOT NULLReferences users.idmeeting_dateDATENOT NULLMeeting datemeeting_typeENUM('Physical','Virtual','Written','Group')NOT NULLMeeting typemeeting_duration_minutesINTNULLDurationdiscussion_summaryTEXTNOT NULLMeeting discussionaction_itemsTEXTNULLAction itemsstudent_progress_ratingENUM('Excellent','Good','Satisfactory','Poor','At Risk')NULLProgress ratingnext_meeting_dateDATENULLNext meetingcreated_byINTFOREIGN KEY, NOT NULLReferences users.idcreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPCreated dateupdated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMP ON UPDATEUpdated date
+4.3 supervisor_workload
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTWorkload IDsupervisor_idINTFOREIGN KEY, NOT NULLReferences users.idacademic_year_idINTFOREIGN KEY, NOT NULLReferences academic_years.idsemester_idINTFOREIGN KEYReferences semesters.idmax_capacityINTNOT NULLMaximum capacitycurrent_loadINTDEFAULT 0Current loadexpertise_areasJSONNULLExpertise areasavailability_statusENUM('Available','Busy','Full','On Leave')DEFAULT 'Available'AvailabilitynotesTEXTNULLNotescreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPCreated dateupdated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMP ON UPDATEUpdated date
+4.4 supervisor_feedback
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTFeedback IDproject_idINTFOREIGN KEY, NOT NULLReferences research_projects.idsupervisor_idINTFOREIGN KEY, NOT NULLReferences users.idstudent_idINTFOREIGN KEY, NOT NULLReferences users.idfeedback_typeENUM('Initial Review','Revision Request','Progress Feedback','Final Assessment')NOT NULLFeedback typefeedback_textTEXTNOT NULLFeedbackattachment_pathVARCHAR(500)NULLAttachmentrevision_requirementsTEXTNULLRequired changesrevision_deadlineDATENULLRevision deadlineinline_comment_enabledBOOLEANDEFAULT TRUEEnable commentstrack_changes_enabledBOOLEANDEFAULT TRUEEnable tracked changesis_resolvedBOOLEANDEFAULT FALSEResolution statusresolved_atDATETIMENULLResolution daterating_scoreDECIMAL(5,2)NULLFeedback scorecreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPCreated dateupdated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMP ON UPDATEUpdated date
+4.5 student_feedback_acknowledgment
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTAcknowledgment IDfeedback_idINTFOREIGN KEY, NOT NULLReferences supervisor_feedback.idstudent_idINTFOREIGN KEY, NOT NULLReferences users.idacknowledgment_dateDATETIMENOT NULLAcknowledgment datestudent_commentsTEXTNULLStudent responseis_acceptedBOOLEANNULLAcceptance statusappeal_reasonTEXTNULLAppeal reasoncreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPCreated date
+5. SUBMISSION & EVALUATION TABLES
+
+5.1 submissions
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTSubmission IDproject_idINTFOREIGN KEY, NOT NULLReferences research_projects.idsubmission_typeENUM('Proposal','Progress Report','Draft Report','Final Report','Source Code','Thesis')NOT NULLSubmission typesubmission_stageINTNOT NULLWorkflow stagedocument_pathVARCHAR(500)NOT NULLFile pathdocument_nameVARCHAR(255)NOT NULLFilenamepreview_pathVARCHAR(500)NULLPreview filedocument_sizeINTNULLFile sizeplagiarism_scoreDECIMAL(5,2)NULLSimilarity percentageversion_numberINTNOT NULLVersion numberreview_statusENUM('Pending','Reviewed','Commented','Approved')DEFAULT 'Pending'Review progresstotal_commentsINTDEFAULT 0Comments countsubmission_dateDATETIMENOT NULLSubmission datesubmitted_byINTFOREIGN KEY, NOT NULLReferences users.idip_addressVARCHAR(45)NULLSubmission IPis_currentBOOLEANDEFAULT TRUECurrent submissioncreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPCreated date
+6. FILE & DOCUMENT MANAGEMENT TABLES
+
+6.1 documents
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTDocument IDproject_idINTFOREIGN KEYReferences research_projects.iddocument_typeENUM('Proposal','Report','Source Code','Data Set','Certificate','Other')NOT NULLDocument typefile_nameVARCHAR(255)NOT NULLFilenamefile_pathVARCHAR(500)NOT NULLFile pathpreview_file_pathVARCHAR(500)NULLBrowser preview filesearchable_textLONGTEXTNULLExtracted searchable textfile_sizeINTNOT NULLFile sizemime_typeVARCHAR(100)NOT NULLMIME typefile_hashVARCHAR(64)NOT NULLSHA-256 hashversion_numberINTDEFAULT 1Versionannotation_enabledBOOLEANDEFAULT TRUEAnnotation supportcollaboration_enabledBOOLEANDEFAULT TRUECollaboration supportis_current_versionBOOLEANDEFAULT TRUECurrent versionuploaded_byINTFOREIGN KEY, NOT NULLReferences users.idupload_dateDATETIMENOT NULLUpload datedescriptionTEXTNULLDescriptionmetadata_jsonJSONNULLMetadataai_summaryTEXTNULLAI summaryai_keywordsTEXTNULLAI keywordsis_publicBOOLEANDEFAULT FALSEPublic accessembargo_untilDATENULLEmbargo datedownload_countINTDEFAULT 0Downloadscreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPCreated dateupdated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMP ON UPDATEUpdated date
+6.2 document_access_logs
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTAccess log IDdocument_idINTFOREIGN KEY, NOT NULLReferences documents.iduser_idINTFOREIGN KEYReferences users.idaccess_typeENUM('View','Download','Preview','Print','Annotate')NOT NULLAccess typeaccess_ipVARCHAR(45)NOT NULLAccess IPuser_agentTEXTNULLBrowser/deviceaccess_dateDATETIMENOT NULLAccess datesession_idVARCHAR(255)NULLSession IDcreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPCreated date
+6.3 document_retention_policies
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTPolicy IDdocument_typeENUM('Proposal','Report','Source Code','Data Set','Certificate','Other')NOT NULLDocument typeretention_yearsINTNOT NULLRetention yearsis_activeBOOLEANDEFAULT TRUEPolicy statuscreated_byINTFOREIGN KEY, NOT NULLReferences users.idcreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPCreated dateupdated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMP ON UPDATEUpdated date
+6.4 document_comments
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTComment IDdocument_idINTFOREIGN KEY, NOT NULLReferences documents.idsubmission_idINTFOREIGN KEYReferences submissions.iduser_idINTFOREIGN KEY, NOT NULLReferences users.idparent_comment_idINTFOREIGN KEYThreaded repliescomment_textTEXTNOT NULLCommentpage_numberINTNULLPage numberparagraph_referenceVARCHAR(100)NULLParagraph referenceselected_textTEXTNULLHighlighted textcomment_typeENUM('General','Suggestion','Correction','Approval','Issue')DEFAULT 'General'Comment typeis_resolvedBOOLEANDEFAULT FALSEResolution statusresolved_byINTFOREIGN KEYReferences users.idresolved_atDATETIMENULLResolution datecreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPCreated dateupdated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMP ON UPDATEUpdated date
+6.5 document_annotations
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTAnnotation IDdocument_idINTFOREIGN KEY, NOT NULLReferences documents.iduser_idINTFOREIGN KEY, NOT NULLReferences users.idannotation_typeENUM('Highlight','Underline','StrikeThrough','TextBox','Drawing')NOT NULLAnnotation styleannotation_colorVARCHAR(20)NULLAnnotation colorpage_numberINTNOT NULLPage numberx_positionDECIMAL(10,2)NULLX coordinatey_positionDECIMAL(10,2)NULLY coordinatewidthDECIMAL(10,2)NULLWidthheightDECIMAL(10,2)NULLHeightannotation_contentTEXTNULLAnnotation contentcreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPCreated date
+6.6 tracked_changes
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTChange IDdocument_idINTFOREIGN KEY, NOT NULLReferences documents.iduser_idINTFOREIGN KEY, NOT NULLReferences users.idchange_typeENUM('Insert','Delete','Replace','Format')NOT NULLChange typeoriginal_textTEXTNULLOriginal textmodified_textTEXTNULLModified textpage_numberINTNULLPage numberparagraph_referenceVARCHAR(100)NULLParagraphis_acceptedBOOLEANDEFAULT NULLAccepted/rejectedreviewed_byINTFOREIGN KEYReferences users.idreviewed_atDATETIMENULLReview datecreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPCreated date
+6.7 document_review_sessions
+Column NameData TypeConstraintsDescriptionidINTPRIMARY KEY, AUTO_INCREMENTSession IDdocument_idINTFOREIGN KEY, NOT NULLReferences documents.iduser_idINTFOREIGN KEY, NOT NULLReferences users.idsession_startDATETIMENOT NULLStart timesession_endDATETIMENULLEnd timeis_activeBOOLEANDEFAULT TRUEActive statuslast_activityDATETIMENULLLast activitycreated_atTIMESTAMPDEFAULT CURRENT_TIMESTAMPCreated date
+Entity Relationship Summary
+users ---- roles
+users ---- departments
+users ---- faculties
+users ---- research_projects
+users ---- notifications
+
+faculties ---- departments ---- programs ---- student_enrollment
+
+research_projects ---- project_versions
+research_projects ---- project_history
+research_projects ---- submissions
+research_projects ---- evaluations
+research_projects ---- documents
+research_projects ---- supervisor_feedback
+
+documents ---- document_comments
+documents ---- document_annotations
+documents ---- tracked_changes
+documents ---- document_review_sessions
+
+submissions ---- evaluations
+evaluations ---- evaluation_scores
+evaluation_rubrics ---- rubric_criteria
+
+academic_years ---- semesters
+departments ---- evaluation_rubrics
+

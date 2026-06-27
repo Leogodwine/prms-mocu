@@ -1,0 +1,793 @@
+MOSHI CO-OPERATIVE UNIVERSITY
+
+AN INTEGRATED PROJECT AND RESEARCH MANAGEMENT INFORMATION SYSTEM FOR HIGHER LEARNING INSTITUTIONS: CASE STUDY OF MOSHI CO – OPERATIVE UNIVERSITY (MoCU)
+
+
+PROJECT PROPOSAL
+
+
+
+BY
+
+
+GROUP NO 14
+
+NAMES OF PARTICIPANTREGISTRATION NUMBERVANCEE ANTHONY MBANGOMoCU/BBICT/1068/23GODWINE LEO JASSONMoCU/BBICT/1124/23    
+Bachelor of Business Information and Communication Technology
+
+
+SUPERVISOR:  Mr. SAMWEL KATWALE
+
+
+A project proposal submitted in partial fulfilment for the award of degree of Bachelor of Business Information and Communication Technology of Moshi Co-operative University
+
+March, 2026
+
+DECLARATION AND COPYRIGHT
+We, Godwine Leo Jasson, and Vancee Anthony Mbango declare that this dissertation/thesis is my own original work and that it has not been presented and will not be presented to any other higher learning Institution for a similar or any other academic award. 
+Signature ____________________ Date _____________________
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTIFICATION
+The undersigned certify that he/she has read and hereby recommend for acceptance by the Moshi Co-operative University a Research Proposal titled “Development of project and research management system at MoCU” in fulfilment of the requirements for the award of a degree of Bachelor of Business Information and Communication Technology (BBICT) at Moshi Co-operative University.
+
+
+_________________________________
+(Supervisor`s Name)
+
+
+
+
+__________________________________
+
+
+
+
+(Supervisor`s Signature)
+
+
+
+
+
+
+Date: __________________________________
+
+
+
+
+TABLE OF CONTENTS
+DECLARATION AND COPYRIGHT	i
+CERTIFICATION	ii
+LIST OF ABBREVIATION & ACRONYMS	iv
+CHAPTER 1	1
+1.0 INTRODUCTION	1
+1.1 Background	1
+1.2 Statement of the Problem	2
+1.3 Objectives of the Project	3
+1.3.1 Main Objective	3
+1.3.2 Specific Objectives	3
+1.4 Research Questions	3
+1.5 Scope of the Study	4
+1.6 Significance of the Study	4
+1.7 Justification of the Study	4
+1.8 Project Outcomes	5
+1.8.1 Project Limitations	5
+1.9 Project Framework	5
+1.10 Organization of the Study	5
+CHAPTER 2	6
+2.0 LITERATURE REVIEW	6
+2.1 Research Management in Tanzanian Universities	6
+2.2 Challenges in Manual Project Management at MoCU	7
+2.3 Existing Research Management Systems	8
+2.4 Weaknesses of Current Systems	8
+CHAPTER 3	10
+3.0 METHODOLOGY	10
+3.1 Research Design	10
+3.2 Study Area	11
+3.3 Target Population	12
+3.4 Sample Size and Sampling Techniques	13
+3.4.1 Sampling Techniques	13
+3.4.2 Sample Size	13
+3.5 Data Collection Methods	14
+3.5.1 Questionnaires	14
+3.5.2 Interviews	14
+3.5.3 Document Review	14
+3.5.4 Observation	14
+3. 6 Validity and Reliability of Research Instruments	14
+3.7 Data Analysis Methods	15
+3.7.1 Quantitative Data Analysis	15
+3.7.2 Qualitative Data Analysis	15
+3.8 System Requirements Analysis	15
+3.9 System Design	16
+3.10 System Development Tools and Technologies	16
+3.11 System Testing	17
+3.12 Ethical Considerations	17
+3.13 Expected System Evaluation Criteria	17
+3.14 Work Plan	18
+3.15 Conceptual Framework Description	18
+
+LIST OF ABBREVIATION & ACRONYMS
+MOCU: Moshi Co-operative University
+BBICT: Bachelor of Business Information and Communication Technology
+FBIS: Faculty Of Business and Information Science
+FCCD: Faculty Of Co-Operative and Community Development
+PRMIS: Project and Research Management Information System
+ICT: Information and Communication Technology
+HLIs: Higher Learning Institutions
+RMIS: Research Information Management Systems
+MIS: Management Information System 
+IS: Information System
+SDLC: System Development Life Cycle
+UAT: User Acceptance Testing
+ERD: Entity Relationship Diagram
+MVC: Model-View-Controller
+HTML: Hypertext Markup Language
+CSS: Cascading Style Sheets
+SPSS: Statistical Package for Social Sciences
+PHP: Hypertext Preprocessor
+UML: Unified Modeling Language
+ER: Entity-Relationship
+DRPS: Directorate of Research and Postgraduate Studies
+API: Application Programming Interface
+
+
+
+
+
+
+
+LIST OF FIGURES
+Figure 1: Shows the waterfall model used for system development	11
+Figure 2: Research Methodology Framework	19
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+LIST OF TABLES
+Table 1: Target population of the study	13
+Table 2: System design modeling tools used in the proposed system	16
+Table 3: System development tools and technologies used in the proposed system	17
+Table 4: Project work plan and timeline	18
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CHAPTER 1
+1.0 INTRODUCTION
+1.1 Background
+Higher Learning Institutions (HLIs) play a central role in knowledge creation, innovation, and socio-economic development through teaching, research, and project-based activities. As research output and academic projects continue to increase, effective management of research information and project activities has become a critical requirement for institutional efficiency, accountability, and competitiveness. Traditionally, many HLIs have relied on manual procedures or fragmented digital tools to manage research and project information, resulting in data redundancy, inefficiencies, and limited decision-support capabilities.
+Several efforts to improve research and project management through the use of information systems. (Anastasios et al., 2013) demonstrates the importance of institutional research management systems in supporting research administration and decision-making. Similarly, (Andreica & Agachi, 2008) emphasized that integrated software systems can enhance coordination and monitoring of research activities within universities. These systems have contributed to improved organization of research data, reporting, and institutional visibility.
+Other studies have focused on project management information systems within educational institutions. (Konstantinos et al., 2012) and (Liu et al., 2021) showed that project management systems improve planning, monitoring, and control of academic and scientific projects. However, these systems often emphasize project execution without fully integrating research lifecycle management, such as publication tracking, researcher profiling, and institutional reporting.
+Research Information Management Systems (RIMS) have also been widely adopted to manage research outputs, publications, and institutional repositories. (Scholze & Maier, 2012) and (Palavesm & Joorel, 2022) reported that RIMS improve research visibility, compliance, and institutional performance. (Hasan et al., 2017) further proposed success models for RIMS implementation in research-affiliated institutions. Despite these advances, many RIMS operate independently of project management systems, leading to fragmented information flows.
+Furthermore, the growing emphasis on digital transformation, open innovation, and digital sustainability in higher education has increased the demand for integrated information systems. (Bogers et al., 2018) and (Kotlarsky et al., 2023) emphasize that integrated digital systems enhance collaboration, innovation, and long-term sustainability in organizational processes. In the context of HLIs, integration supports efficient resource utilization, transparency, and strategic decision-making. Studies such as (Temporão & Pavani, 2019) and (Tay & Low, 2017) also highlight the benefits of system integration in improving academic workflows and institutional performance.
+Despite these existing efforts, there remains a significant gap in the availability of a fully integrated system that combines both project management and research management functionalities into a single platform tailored for higher learning institutions. Most existing systems address either project management or research management in isolation, limiting their effectiveness in supporting the complete academic and research lifecycle.
+Therefore, this study seeks to design and develop an Integrated Project and Research Management Information System for Higher Learning Institutions. The proposed system aims to build upon previous systems while addressing their limitations by providing a unified platform for managing projects, research activities, documentation, monitoring, and reporting. This integration is expected to enhance efficiency, improve data consistency, support informed decision-making, and strengthen research and project management practices in higher learning institutions.
+1.2 Statement of the Problem
+Despite the importance of research projects in academic training, the current project and research management practices at Moshi Co-operative University face several critical challenges that hinder academic efficiency and research quality. One major problem is the inefficient proposal submission process, where students are required to print multiple copies of proposals and physically submit them to supervisors. This process is time-consuming, costly, environmentally unfriendly, and increases the risk of document loss or damage (Eligi & Mwantimwa, 2017).
+Delayed communication and feedback also present a significant challenge. Supervisors often provide feedback through fragmented channels such as emails, handwritten notes, and verbal discussions. This lack of a standardized feedback mechanism leads to missed deadlines, unclear revision requirements, and frustration among students (Kotlarsky et al., 2023). Furthermore, poor document management practices result in research files being stored across personal computers, email attachments, and physical cabinets, making version control and retrieval of past projects difficult (Robertsone, 2022).
+Inadequate progress monitoring is another concern, as there is no centralized system for tracking project milestones, supervision records, or submission timelines. This often leads to last-minute submissions, incomplete supervision documentation, and difficulties in identifying at-risk projects. Additionally, generating reports on research completion rates, supervisor workload, and student research output requires manual compilation from multiple sources, which is both time-consuming and prone to errors.
+The lack of standardized procedures across faculties further contributes to inconsistencies in research management and assessment. Collectively, these challenges undermine research productivity, academic standards, and evidence-based decision-making at MoCU, thereby necessitating the development of an integrated Project and Research Management System.
+1.3 Objectives of the Project
+1.3.1 Main Objective
+The main objective of this project is to study and implement an integrated project and research management information system for higher learning institutions that automates and streamlines research and project administration processes.
+1.3.2 Specific Objectives
+The specific objectives of the project are to:
+Conduct a comprehensive analysis of existing research and project management workflows at MoCU by engaging students, supervisors, heads of departments, and administrative staff.
+i. To examine the existing project and research management processes at Moshi Co-operative University.
+ii. To analyse user requirements for an integrated Project and Research Management Information System.
+iii. To design a system architecture that supports project registration, supervision, submission, and evaluation.
+iv. To develop and implement the proposed system.
+v. To test and evaluate the performance and usability of the developed system.
+1.4 Research Questions
+i. What are the existing project and research management processes at MoCU?
+ii. What challenges are associated with the current management practices?
+iii. What user requirements are necessary for an integrated management system?
+iv. How can an integrated system improve research and project management efficiency?
+v.  How effective is the developed system in addressing identified challenges?
+1.5 Scope of the Study
+This study focuses on the design and implementation of a Project and Research Management System at Moshi Co-operative University. The system will cover undergraduate final-year project proposals, project reports, and source codes for ICT students, as well as research proposals and reports for business-related programs.
+The study will include processes ranging from initial proposal submission to final approval and digital archiving. Administrative functions will include user management, deadline configuration, reporting, and system monitoring. The system will be developed as a responsive web-based application accessible via computers, tablets, and smartphones. The study will be conducted at the Main Campus of Moshi Co-operative University.
+1.6 Significance of the Study
+The PRMS will be significant to students by simplifying submission processes, improving access to supervisor feedback, and providing access to past research for learning purposes. Supervisors will benefit from easy access to supervision records, structured feedback tools, and real-time monitoring of student progress.
+Departments and university management will benefit from comprehensive research archives, improved reporting capabilities, and the creation of an institutional research repository for future reference. Overall, the system will enhance research quality, learning outcomes, and administrative efficiency within the university.
+1.7 Justification of the Study
+The development of a Project and Research Management System at MoCU is justified by the increasing number of students and research activities, which have rendered manual systems inefficient and unsustainable. Digital research management systems have been shown to improve efficiency, transparency, and collaboration in higher learning institutions (Benavides et al., 2020).
+The PRMS will promote timely supervision, standardized documentation, and consistent research procedures, thereby enhancing research quality and credibility. Automation of routine administrative tasks will reduce workload for academic staff and allow them to focus on effective supervision. Additionally, the system will provide real-time data to support evidence-based planning, policy formulation, and institutional research visibility, in line with MoCU’s digital transformation strategy.
+1.8 Project Outcomes
+Upon completion, the project is expected to deliver a fully functional web-based Project and Research Management System that is secure, scalable, and user-friendly. The system will eliminate reliance on physical document storage, reduce time spent on manual processes by at least 60%, improve progress tracking, and minimize missed deadlines. Additional outcomes include a searchable digital archive of research outputs, improved stakeholder satisfaction, and enhanced institutional research management capacity.
+1.8.1 Project Limitations
+The effectiveness of the PRMS will depend on reliable internet connectivity across campus. The system will rely on responsive web design rather than native mobile applications. Pilot testing will be limited to one faculty, which may not capture requirements from all academic disciplines.
+1.9 Project Framework
+The project will follow a structured framework consisting of planning, analysis, design, development, testing, deployment, and evaluation phases. This framework ensures systematic implementation while incorporating continuous feedback to improve system quality and usability.
+1.10 Organization of the Study
+This proposal is organized into three chapters. Chapter One presents the introduction, including background, problem statement, objectives, research questions, scope, significance, and justification of the study. Chapter Two reviews related literature on research and project management systems. Chapter Three describes the research methodology, including research design, study area, sampling techniques, data collection methods, system development approach, and ethical considerations.
+
+
+
+
+
+CHAPTER 2
+2.0 LITERATURE REVIEW
+2.1 Research Management in Tanzanian Universities
+Research management in Tanzanian higher education institutions has undergone a gradual transformation over the past two decades, driven by increasing research expectations, enrolment growth, and national development priorities. According to the Tanzania Commission for Universities (TCU) Annual Report (2022), university research output has grown steadily, with publications in indexed journals increasing by approximately 15 percent annually. Despite this growth, advancements in research management infrastructure have large, particularly in public universities.
+A study by (Eligi & Mwantimwa, 2017), conducted across five Tanzanian universities, revealed that research management remains predominantly manual, with only about 30 per cent of institutions using partial digital systems. The study identified fragmented data storage, limited collaboration tools, and weak monitoring mechanisms as major challenges. At Moshi Co-operative University, research coordination involves multiple disconnected systems, including departmental spreadsheets for student projects, periodic faculty reports to the research office, and individually maintained publication records. Such fragmentation limits visibility, accountability, and institutional learning.
+Existing literature emphasizes that effective research management systems should integrate project lifecycle management, document control, collaboration tools, and reporting functionalities (Creswell, 2022). In the Tanzanian context, additional constraints include intermittent internet connectivity, varying levels of digital literacy among users, and the need for multilingual system interfaces. (Konstantinos et al., 2012) argue that successful adoption of digital research systems requires alignment with institutional culture, structured training programs, and phased implementation strategies.
+Globally, universities are increasingly adopting comprehensive Research Information Management Systems (RIMS) that capture the entire research lifecycle. However, (Kotlarsky et al., 2023) note that African universities often face financial, technical, and human resource constraints, making incremental and context-specific systems more viable than large-scale enterprise solutions.
+2.2 Challenges in Manual Project Management at MoCU
+An examination of existing practices at Moshi Co-operative University reveals several challenges consistent with broader trends in Tanzanian higher education, while also reflecting institution-specific realities.
+Document management challenges remain prominent. Physical research documents are vulnerable to loss, damage, and misplacement. reported that nearly 20 percent of final-year project documents at MoCU require reconstruction or duplication due to handling losses. Although some documents are stored digitally, they are scattered across personal computers, email accounts, and removable storage devices, leading to version control problems and restricted accessibility.
+Communication breakdowns are another critical concern. The absence of structured communication platforms results in delayed and inconsistent feedback. Student interviews indicated that approximately 65 percent experienced feedback delays exceeding three weeks during peak academic periods. Supervisors reported difficulties in tracking multiple students across diverse communication channels such as emails, WhatsApp messages, and face-to-face meetings, which reduces supervision effectiveness.
+Process inconsistencies across faculties further complicate project management. Different departments follow varying procedures for proposal approval, monitoring, and assessment. For example, the Faculty of Business requires three draft submissions before final approval, while the Science Faculty requires only two. Such variations create confusion for interdisciplinary students and complicate administrative oversight.
+Monitoring and evaluation gaps persist due to the absence of centralized tracking mechanisms. Departmental heads reported spending an average of 15 hours per month compiling manual progress reports, often using outdated or incomplete data. This reactive approach limits early identification of at-risk projects and uneven supervisory workloads.
+Knowledge preservation challenges also undermine institutional learning. Although completed student projects represent valuable academic resources, most are archived in physical libraries with limited indexing. (Mushi et al., 2020) found that only 40 percent of previous projects at MoCU are accessible to current students, with accessibility declining further for older projects. Collectively, these challenges negatively affect research quality, student satisfaction, and MoCU’s ability to demonstrate research impact to accreditation bodies and funding agencies.
+2.3 Existing Research Management Systems
+Globally, research management systems vary in scope, complexity, and cost, and can be categorized into commercial enterprise systems, open-source platforms, and locally developed solutions.
+Commercial enterprise systems, such as Pure and Symplectic Elements, are widely used in research-intensive universities. Pure provides comprehensive modules for grant management, publications, researcher profiling, and analytics. However, its high licensing and maintenance costs often exceeding USD 100,000 annually make it unaffordable for most Tanzanian universities. Symplectic Elements offers automated publication harvesting and integration with bibliographic databases but requires advanced technical infrastructure and skilled personnel.
+Open-source solutions provide cost-effective alternatives. D Space, originally developed for institutional repositories, has been adapted by some universities for research management. However, it requires extensive customization to support full research workflows. Open Journal Systems (OJS), while effective for journal management, lacks robust project tracking functionalities. VIVO focuses on researcher profiling and expertise discovery but does not support comprehensive project lifecycle management.
+Locally developed systems in African universities demonstrate better contextual alignment. The University of Nairobi’s Research Management System supports proposal submission, ethical review, and project monitoring, with success attributed to close alignment with local academic processes. Makerere University’s Electronic Research Administration (eRA) integrates grant management and research outputs but faces sustainability challenges due to high maintenance costs. The University of Dar es Salaam Research Database focuses primarily on publication tracking rather than holistic project management.
+Comparative analysis indicates that while international systems offer extensive features, they often lack affordability and contextual relevance. Local systems address contextual needs but vary in scalability and long-term sustainability. This gap highlights the need for a tailored solution for MoCU that balances functionality, cost, and contextual appropriateness.
+2.4 Weaknesses of Current Systems
+Evaluation of existing research management systems reveals several weaknesses relevant to MoCU:
+First, over-engineering for local needs characterizes many international systems, which include advanced modules for patent management and commercialization that exceed MoCU’s current requirements. Such complexity increases costs and training demands without proportional benefits.
+Second, limited offline functionality undermines system reliability in environments with unstable internet connectivity. Power outages and bandwidth limitations common in Tanzanian universities can render web-based systems inaccessible during critical academic periods.
+Third, poor integration with local academic processes reduces system effectiveness. International systems are often designed around workflows common in Global North institutions, which differ significantly from Tanzanian supervision models, ethical review processes, and assessment practices.
+Fourth, limited multilingual support, particularly the absence of Swahili interfaces, restricts accessibility for undergraduate students and some staff. Language barriers reduce system adoption and effective use.
+Fifth, high total cost of ownership remains a persistent challenge. Beyond initial development or licensing costs, ongoing maintenance, upgrades, and technical support strain institutional budgets, often leading to system abandonment (Ramalingam, 2016).
+Sixth, insufficient training and change management contribute to resistance among academic staff accustomed to manual systems. Many implementations focus on technical deployment while neglecting user engagement and continuous support.
+Finally, scalability and data migration challenges hinder long-term sustainability. Systems developed for pilot projects often struggle to scale institution-wide, while inconsistent historical data complicates migration and limits analytical value.
+For MoCU, these weaknesses underscore the importance of a context-responsive Project and Research Management System that balances simplicity and functionality, aligns with institutional workflows, accommodates infrastructure constraints, and incorporates comprehensive training and change management strategies.
+
+
+
+
+
+
+
+
+CHAPTER 3
+3.0 METHODOLOGY
+3.1 Research Design
+This study will adopt a descriptive research design integrated with a system development research approach.
+A descriptive research design will be used to examine the existing project and research management practices at Moshi Co-operative University (MoCU). This design is appropriate because it enables the researcher to systematically collect, analyze, and describe current administrative procedures, challenges, and stakeholder requirements without manipulating study variables. The design facilitates an in-depth understanding of workflow inefficiencies, communication gaps, document management practices, and reporting mechanisms within the institution.
+In addition to the descriptive component, the study will employ a System Development Life Cycle (SDLC) approach to design and implement the proposed Integrated Project and Research Management Information System (PRMS). Specifically, the Waterfall model will be adopted due to its structured, sequential, and documentation-driven nature, which is suitable for academic system development projects.
+The Waterfall model consists of the following phases:
+Requirements Analysis: Identification and documentation of functional and non-functional system requirements based on data collected from stakeholders.
+System Design: Development of system architecture, database structure, user interfaces, and process flow diagrams.
+System Development (Implementation): Coding and configuration of the system using selected technologies.
+System Testing: Verification and validation of system functionality through unit testing, integration testing, and user acceptance testing.
+Deployment: Installation and configuration of the system within the institutional environment.
+Evaluation and Maintenance: Assessment of system performance, usability, and effectiveness in addressing identified challenges.
+The integration of descriptive research design with the Waterfall SDLC model ensures a systematic process of problem identification, solution development, and validation. approach enhances methodological while ensuring that the developed system aligns with institutional needs and academic standards.
+
+Figure 1: Shows the waterfall model used for system development
+3.2 Study Area
+This study will be conducted at Moshi Co-operative University (MoCU), Located In Moshi municipality, Kilimanjaro region, Tanzania. MoCU is a public higher learning institution established under the Universities Act No. 7 of 2005 (as amended) and is mandated to provide training, research, consultancy, and community outreach services in co-operative development, business studies, information and communication technology, and related disciplines.
+The University comprises multiple faculties and academic departments that supervise undergraduate and postgraduate research projects annually. As part of its academic requirements, students are required to prepare and submit research proposals and final project reports under the guidance of academic supervisors. MoCU is selected as the study area for the following reasons.
+The University manages a growing number of student research projects and academic research activities each academic year, increasing the need for structured coordination and monitoring mechanisms.
+Existing project and research management practices are largely manual and semi-digital, involving physical document submissions, email-based feedback, and fragmented data storage systems.
+The institution is currently undertaking digital transformation initiatives aimed at enhancing administrative efficiency, transparency, and service delivery, creating a conducive environment for the implementation of an integrated information system.
+The researcher has access to institutional stakeholders and administrative processes, facilitating effective data collection and system testing.
+The geographical scope of the study will be conducted at the Main Campus of Moshi Co-operative University (MoCU). However, the developed system will be designed with scalability considerations to allow potential future deployment across other campuses and academic units.
+3.3 Target Population
+The target population of this study will consist of stakeholders who are directly involved in the project and research management processes at Moshi Co-operative University (MoCU). These stakeholders are selected because they participate in various stages of research proposal submission, supervision, evaluation, and institutional documentation. The target population will include the following groups:
+Undergraduate students undertaking final-year projects: These students are the primary users of the proposed system as they are responsible for submitting research proposals, uploading research documents, and receiving feedback from supervisors.
+Academic staff (supervisors): Academic staff supervise students’ research projects, review proposals and reports, and provide academic guidance and approvals during the research process.
+Heads of Departments (HODs): Heads of Departments oversee academic activities within their departments, monitor research progress, and ensure that research projects meet departmental standards and guidelines.
+Research and Consultancy Office staff: These staff members are responsible for coordinating institutional research activities, managing research documentation, and ensuring compliance with university research policies.
+ICT staff are responsible for managing and maintaining information systems within the university and will play a critical role in the implementation, maintenance, and technical support of the proposed system.
+Non-research users are the students who do not conduct research includes undergraduate, postgraduate, and non-degree students who are not actively involved in research projects but can access and review approved research proposals and completed projects through a controlled, read-only interface. This group benefits from enhanced knowledge sharing, academic reference, and institutional transparency.
+These groups are selected because they interact directly with project supervision, research documentation, proposal approvals, and institutional reporting processes. Their involvement makes them the most relevant population for providing information regarding the challenges of the current system and the requirements for the proposed integrated project and research management information system.
+3.4 Sample Size and Sampling Techniques
+3.4.1 Sampling Techniques
+Two sampling techniques will be employed, which are:
+Purposive Sampling: This technique will be used to select Heads of Departments, Research Office staff, and ICT personnel, as they possess specialized knowledge and experience regarding institutional research processes and system implementation.
+Stratified Random Sampling: Stratified random sampling will be applied to students (research and non-research) and academic staff (supervisors). The population will be divided into distinct strata based on user type (undergraduate research students, postgraduate research students, non-research students, and supervisors). Random samples will then be selected proportionally from each stratum to ensure fair representation and reduce sampling bias.
+3.4.2 Sample Size Determination 
+The sample size for this study will be determined using a combination of purposive sampling and stratified random sampling to ensure proportional representation of all key stakeholders involved in research management and system usage. Stratified random sampling will be applied to student and academic staff (supervisor) groups to capture variations in user experiences and perspectives, while purposive sampling is used for Heads of Departments, Research Office staff, and ICT personnel due to their specialized roles. The final sample distribution is adjusted to ensure adequate representation of all key stakeholders involved in academic and administrative processes.
+The sample size is determined using Yamane’s (1967) formula:
+n = N/1+N*(e)2
+Where:
+n = Sample size 
+N = Total population
+e = Margin of error
+Data:
+Total population (N) = 8063
+Margin of error (e) 10% = 0.10
+Required: Sample size (n) = ?
+From n = N/1+N*(e)2
+Substituting values:
+n = 8063/1+8063*(0.10)2
+n = 8063/1+80.63
+n = 8063/81.63
+n = 99 = 100
+Therefore, the total sample size for the study is 100 respondents.
+The total population of Moshi Co-operative University is 8,063 respondents. Using Yamane’s (1967) formula at a 10% margin of error, a sample size of 100 respondents is obtained proportionally and purposively distributed among the selected population groups
+3.4.3 Sample size distribution 
+Population groupSample SizeSampling TechniqueUndergraduate students conducting final-year projects42Stratified Random SamplingPostgraduate students conducting research10Stratified Random SamplingNon-research students (undergraduate, postgraduate, non-degree)32Stratified Random SamplingAcademic staff (supervisors)10Stratified Random SamplingHeads of Departments2Purposive SamplingResearch Office staff2Purposive SamplingICT personnel2Purposive SamplingTable 1: Sample size distribution with sampling technique of the study
+Total Estimated Sample Size: 100 respondents
+This sample size is considered sufficient to capture diverse perspectives from both active system users (researchers and administrators) and passive users (non-researchers), while remaining feasible within the study timeframe.
+3.5 Data Collection Methods
+To ensure triangulation and enhance the validity of the findings, data will be collected using both primary and secondary methods.
+3.5.1 Questionnaires
+To collect standardized data from a relatively large number of respondents (students and supervisors). A structured questionnaire will be developed containing closed-ended questions, Likert scales to rate challenges, and a few open-ended questions for additional comments. It will gather information on current submission processes, communication challenges, document management practices, and user expectations for the proposed system.
+3.5.2 Interviews
+To collect in-depth qualitative data from key informants (HoDs, DRPS staff, ICT personnel). A semi-structured interview guide will be used. This allows for flexibility to probe deeper into responses and uncover detailed information about administrative challenges, reporting requirements, technical constraints, and expectations from a managerial perspective.
+3.5.3 Document Review
+To gather contextual secondary data and validate information from primary sources. A document review checklist will be used to systematically examine institutional documents such as project guidelines, submission forms, supervision records, research policies, and reporting templates to understand existing workflows and identify inefficiencies.
+3.5.4 Observation
+To directly observe current practices and validate self-reported data. An observation checklist will guide the observation of processes such as proposal submission, supervision meetings (where possible), and document storage practices to gain a firsthand understanding of the workflow and challenges.
+3. 6 Validity and Reliability of Research Instruments
+Validity of the instruments will be developed based on a thorough review of the literature and the study's specific objectives. They will be reviewed by the research supervisor to ensure adequate coverage. A pre-test of the instruments will be conducted with 3-5 individuals similar to the target population to identify and correct ambiguous or unclear questions before full administration. Reliability by using multiple data collection methods, such as questionnaires, interviews, observation, and document review, which allows for cross-verification of information.
+3.7 Data Analysis Methods
+3.7.1 Quantitative Data Analysis
+Quantitative data obtained from questionnaires will be analyzed using descriptive statistics. The data will be coded and entered into the Statistical Package for Social Sciences (SPSS). Analysis will include frequencies and Percentages to show the distribution of responses and means and standard deviations to identify central tendencies and variations in ratings. Results will be presented using tables, charts, and graphs to illustrate common challenges and user needs.
+3.7.2 Qualitative Data Analysis
+Qualitative data obtained from interviews, observations, and open-ended questions will be analyzed using thematic analysis. Interview recordings will be transcribed. The transcripts, observation notes, and open-ended responses will be carefully read and coded to identify patterns and themes. Responses will be grouped into themes such as communication challenges, document management issues, monitoring inefficiencies, and reporting difficulties. Thematic analysis may be supported by qualitative software or done manually. The findings from both analyses will be synthesized to inform system requirements and design decisions.
+3.8 System Requirements Analysis
+System requirements for the proposed Integrated Project and Research Management System (PRMS) will be derived from multiple sources, which are User feedback obtained through questionnaires and interviews, Institutional document review, including project guidelines, submission forms, supervision records, and reporting templates, and identified process gaps from observations of current workflows. Requirements will be categorized into:
+1. Functional Requirements: features and functions the system must provide, including User Authentication & Authorization management, Project and Research Management, Notifications, File Management, Reporting, and Tracking management
+2. Non-Functional Requirements: system attributes ensuring performance and quality, including accessibility, interoperability, maintainability, accuracy, response time, security, timelines, auditability, extensibility, and robustness
+3.9 System Design
+The PRMS will be designed using structured modeling techniques to ensure clarity and effective communication of system structure and functionality. The system will be developed as a responsive web-based application to allow access via computers, tablets, and smartphones. These include:
+System Design TechniqueRepresentationUse Case DiagramsRepresenting interactions between system users (researchers, supervisors, administrators, and public users) and system functionsEntity Relationship Diagrams (ERD)Modeling database entities and relationshipsSystem FlowchartsDepicting process flows such as submission, review, and approvalDatabase Schema DesignDefining tables, fields, and relationships for efficient data storageTable 2: System design modeling tools used in the proposed system
+3.10 System Development Tools and Technologies
+These technologies are chosen for affordability, scalability, maintainability, and alignment with institutional infrastructure. The proposed system will utilize the following technologies:
+ComponentTechnologyJustificationFrontendHTML, CSS, Bootstrap, JavaScriptEnables responsive and user-friendly interface and experiences across devicesBackendPHP (Laravel Framework)Supports MVC architecture, security, and scalabilityDatabaseMySQLReliable relational database compatible with institutional infrastructureDevelopment EnvironmentVisual Studio CodeLightweight, flexible, and widely used for PHP developmentWeb ServerApacheOpen-source, robust, and compatible with PHP and MySQLTable 3: System development tools and technologies used in the proposed system
+3.11 System Testing
+The developed system will undergo comprehensive testing to ensure functionality, usability, and reliability. Testing ensures that the PRMS functions as intended and meets the needs of all stakeholders.
+1. Unit Testing: verifying individual modules and components
+2. Integration Testing: ensuring that modules interact correctly and processes flow seamlessly
+3. System Testing: The fully integrated system will be tested as a whole to validate that it meets all specified functional and non-functional requirements.
+4. User Acceptance Testing (UAT): conducted with selected students (research and non-research), supervisors, and administrators to confirm that the system meets functional and usability expectations
+3.12 Ethical Considerations
+i. The study will adhere to strict ethical principles:
+ii. Obtaining research clearance from MoCU authorities
+iii. Seeking informed consent from all participants
+iv. Ensuring confidentiality and secure handling of collected data
+v. Using data strictly for academic purposes
+vi. Avoiding plagiarism and ensuring proper citation of sources
+3.13 Expected System Evaluation Criteria
+Upon completion, the system will be evaluated to determine its effectiveness in addressing the identified problems and meeting user needs. The evaluation will be based on the Usability, the ease of navigation and user-friendliness for both research and non-research users, the reliability and accuracy of system functions and data integrity, Efficiency due to performance, and responsiveness of system operations, and User Satisfaction, the feedback from students, supervisors, administrators, and public users regarding system usefulness and accessibility
+3.14 Work Plan
+ActivityMonth 1Month 2Month 3Month 4Month 5Month 6Proposal Writing?Literature Review??Data Collection??Requirements Analysis?System Design??System Development??System Testing?System Evaluation?Report Writing??Final Submission?Table 4: Project work plan and timeline
+3.15 Conceptual Framework Description
+This conceptual framework illustrates how the need for a system is transformed into a functional Integrated Project and Research Management Information System.
+1. Input (Independent Variables): Factors creating the need for the system, including the current state of project and research management, user needs, and existing challenges.
+2. Process (Intervening Variables): The system development methodology (Waterfall SDLC) and related activities that convert inputs into a functional system.
+3. Output (Dependent Variable): The proposed system and its expected outcomes, such as improved efficiency, better tracking, and enhanced decision-making.
+
+Figure 2: Research Methodology Framework
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+REFERENCES
+Anastasios, T., Cleo, S., Effie, P., Olivier, T., & George, M. (2013). Institutional Research Management using an Integrated Information System. Procedia - Social and Behavioral Sciences, 73, 518–525. https://doi.org/10.1016/j.sbspro.2013.02.085
+Andreica, A. B., & Agachi, P. S. (2008). Design and Implementation of an Integrated Software System for Managing Research Activities in Universities.
+Benavides, L., Tamayo Arias, J., Arango Serna, M., Branch Bedoya, J., & Burgos, D. (2020). Digital Transformation in Higher Education Institutions: A Systematic Literature Review. Sensors, 20(11), 3291. https://doi.org/10.3390/s20113291
+Bogers, M., Chesbrough, H., & Moedas, C. (2018). Open Innovation: Research, Practices, and Policies. California Management Review, 60(2), 5–16. https://doi.org/10.1177/0008125617745086
+Creswell, J. W. (2022). Research Design: Qualitative, Quantitative, and Mixed Methods Approaches—John W. Creswell, J. David Creswell—Google Books. https://books.google.co.tz/books/about/Research_Design.html?id=Pr2VEAAAQBAJ&redir_esc=y
+Eligi, I., & Mwantimwa, K. (2017). ICT accessibility and usability to support learning of visually-impaired students in Tanzania. International Journal of Education and Development Using ICT, 13(2). https://www.learntechlib.org/p/180638/
+Hasan, M., Maarop, N., Samy, G. N., Baharum, H. I., Abidin, W. Z., & Hassan, N. H. (2017, July 16). Developing a success model of Research Information Management System for research affiliated institutions. https://ieeexplore.ieee.org/abstract/document/8002444
+Konstantinos, C., Basios, M., Theodoros, K., Ioannis, K., Ioannis, K., & Douligeris, C. (2012, October 5). I.P.AD.: An Integrated Project Management and Instructional Systems Development Model for E-learning. https://ieeexplore.ieee.org/abstract/document/6377426
+Kotlarsky, J., Oshri, I., & Sekulic, N. (2023). Digital Sustainability in Information Systems Research: Conceptual Foundations and Future Directions. Journal of the Association for Information Systems, 24, 936–952. https://doi.org/10.17705/1jais.00825
+Liu, J., Wang, C., & Xiao, X. (2021). Design and Application of Science and Technology Project Management Information System for Educational Institutes. https://doi.org/10.1155/2021/2074495
+Mushi, G. E., Pienaar, H., & Van Deventer, M. (2020). Identifying and Implementing Relevant Research Data Management Services for the Library at the University of Dodoma, Tanzania. Data Science Journal, 19, 1. https://doi.org/10.5334/dsj-2020-001
+Palavesm, K., & Joorel, S. J. (2022). IRINS: Implementing a Research Information Management System in Indian Higher Education Institutions. Procedia Computer Science, 211, 238–245. https://doi.org/10.1016/j.procs.2022.10.197
+Ramalingam, E. (2016). Research Paper on Content Management Systems (CMS): Problems in the Traditional Model and Advantages of CMS in Managing Corporate Websites.
+Robertsone, G. (2022). (PDF) Digital Transformation in Higher Education: Drivers, Success Factors, Benefits and Challenges. https://www.researchgate.net/publication/366158308_Digital_Transformation_In_Higher_Education_Drivers_Success_Factors_Benefits_And_Challenges
+Scholze, F., & Maier, J. (2012). Establishing a Research Information System as Part of an Integrated Approach to Information Management: Best Practice at the Karlsruhe Institute of Technology (KIT). LIBER Quarterly: The Journal of the Association of European Research Libraries, 21(2), 201–212. https://doi.org/10.18352/lq.8019
+Tay, H. L., & Low, S. W. K. (2017). Digitalization of learning resources in a HEI – a lean management perspective. International Journal of Productivity and Performance Management, 66(5), 680–694. https://doi.org/10.1108/IJPPM-09-2016-0193
+Temporão, G. P., & Pavani, A. M. B. (2019). The Integration Of An Institutional Repository And A Learning Management System: A Case Study. Inted2019 Proceedings, 3314–3320. 13th International Technology, Education and Development Conference. https://doi.org/10.21125/inted.2019.0862
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+APPENDICES
+APPENDIX I: QUESTIONNAIRE 
+MOSHI CO-OPERATIVE UNIVERSITY
+DEPARTMENT OF BUSINESS INFORMATION AND COMMUNICATION TECHNOLOGY
+
+AN INTEGRATED PROJECT AND RESEARCH MANAGEMENT INFORMATION SYSTEM FOR HIGHER LEARNING INSTITUTIONS  (PRMS).
+
+Dear Respondent,
+We Vancee Anthony Mbango, and Godwine Leo Jasson, a final-year students pursuing a Bachelor of Business Information and Communication Technology (BBICT) at Moshi Co-operative University. We are conducting research on the development of an Integrated Project and Research Management Information System for Higher Learning Institutions, a case study at Moshi Co-operative University (MoCU).
+Your participation in this questionnaire is voluntary and anonymous. The information provided will be used strictly for academic purposes. Please answer all questions honestly.
+Thank you for your cooperation.
+
+Instructions: Tick (“?“) the appropriate box or write in the space provided.
+PART A: RESEARCH STUDENTS 
+Section A: Demographic Information
+1. Gender?
+Male [  ]
+Female [  ]
+2. Age group?
+Below 20 [  ]
+21–30 [  ]
+31–40 [  ]
+Above 40 [  ]
+3. Your faculty/school:
+FBIS [  ]
+FCCD [  ]
+4. What is your study level in the university?
+Undergraduate student [  ]
+Postgraduate student [  ] 
+Non-degree student [  ]
+5. Your year of study:
+Year 1 [  ] 
+Year 2 [ ] 
+Year 3 [ ]  
+Section B: Current Research/Project Process
+6. Have you ever submitted a research proposal or project through the current system?
+Yes [  ]
+No [  ]
+7. How do you currently submit your research?
+hard copies submitted physically [  ]
+Email [  ]
+WhatsApp or other messaging apps [  ]
+USB/flash drive [  ]
+Other (specify) __________
+8. How would you rate the current submission process?
+Very easy [  ]
+Easy [  ]
+Moderate [  ]
+Difficult [  ] 
+Very difficult [  ]
+9. On average, how many printed copies do you submit per research document?
+1-2 copies [  ]
+3-4 copies [  ]
+5 or more copies [  ]
+10. How long does it typically take to receive feedback from your supervisor after submission?
+Within 3 days [  ]
+4-7 days [  ]
+8-14 days [  ]
+More than 14 days [  ]
+Section C: Challenges
+11. What challenges do you face in the current system? (You may select more than one)
+Delayed feedback from supervisors [  ]
+Loss of documents [  ]
+Poor communication [  ]
+Lack of tracking system [  ]
+Difficulty accessing records [  ]
+Other __________
+12. How often do you experience delays in receiving feedback?
+Always [  ]
+Often [  ]
+Sometimes [  ]
+Rarely [  ]
+Never [  ]
+Section D: Proposed System Requirements
+13. Do you think a digital research/project management system is needed?
+Strongly agree [  ]
+Agree [  ]
+Neutral [  ]
+Disagree [  ]
+Strongly disagree [  ]
+14. What features would you like in the new system? (Tick all that apply)
+Online submission [  ]
+Supervisor feedback system [  ]
+Document tracking [  ]
+Notification alerts [  ]
+Downloadable reports [  ]
+Other __________
+PART B: NON-RESEARCH STUDENTS 
+Section A: Basic Information
+1. What is your level of study?
+Undergraduate [  ]
+Postgraduate [  ]
+Non-degree [  ]
+2. Are you currently involved in any research/project?
+Yes [  ]
+No [  ]
+Section B: Awareness of Research Materials
+3. Are you aware that research projects and proposals exist in your university?
+Yes [  ]
+No [  ]
+4. Have you ever accessed any research project/report before?
+Yes [  ]
+No [  ]
+Section C: Access to Research Information
+5. How do you currently access research materials?
+Library (physical) [  ]
+Friends/colleagues [  ]
+Online sources [  ]
+I don’t access them [  ]
+6. How easy is it to access research materials at the university?
+Very easy [  ]
+Easy [  ]
+Moderate [  ]
+Difficult [  ]
+Very difficult [  ]
+Section D: Challenges
+7. What challenges do you face when trying to access research materials?
+Limited access [  ]
+No centralized system [  ]
+Difficulty searching documents [  ]
+Outdated materials [  ]
+Lack of awareness [  ]
+Other __________
+Section E: Perception of proposed system 
+8. Do you think a system that allows students to view approved research projects would be useful?
+Strongly agree [  ]
+Agree [  ]
+Neutral [  ]
+Disagree [  ]
+Strongly disagree [  ]
+9. What benefits do you expect from such a system? (Tick all that apply)
+Easy access to academic materials [  ]
+Better understanding of research writing [  ]
+Improved academic performance [  ]
+Time saving [  ]
+Other __________
+ Section F: suggested features 
+10. What features would you prefer in the system?
+Search function [  ]
+Download option [  ]
+Categorized topics [  ]
+Simple user interface [  ]
+Other __________
+PART C: ACADEMIC STAFF (SUPERVISORS)
+Section A: demographic information 
+1. Your faculty/school
+FBIS [  ] FCCD [  ]
+2. How many years have you served as a research supervisor at MoCU?
+Less than 2 years[  ]
+2-5 years[  ]
+6-10 years[  ]
+More than 10 years[  ]
+3. How many students do you typically supervise per academic year?
+1-5 students [  ]
+6-10 students [  ]
+11-15 students [  ]
+More than 15 students [  ]
+Section B: Current supervision practices
+4. How do you currently receive student research documents? (Tick all that apply)
+Printed hard copies [  ]
+Email [  ]
+WhatsApp [  ]
+USB/flash drive [  ]
+Other: _______________
+5. How do you currently provide feedback to students? (Tick all that apply)
+Handwritten comments on printed documents
+Email comments [  ]
+Verbal feedback during meetings [  ]
+Track changes in Word documents [  ]
+PDF annotations [  ]
+Other: _______________
+Section C: Challenges 
+Instructions: Please rate your agreement with the following statements using the scale: Strongly Disagree = 1, Disagree = 2, Neutral = 3, Agree = 4, Strongly Agree = 5
+Statement Strong Disagree DisagreeNeutral AgreeStrong Agree Tracking multiple students across different communication channels is difficult I often receive incomplete or incorrectly formatted submissionsKeeping records of supervision history is challengingI have difficulty monitoring students who are falling behind scheduleThe current system makes it hard to ensure consistent standards across students I spend too much time on administrative tasks rather than substantive feedback
+Section D: system requirements
+6. Which features would help you most as a supervisor? (Select any four features)
+Dashboard showing all assigned students and their progress [  ]
+Online feedback/commenting tools [  ]
+Automated deadline reminders [  ]
+Student submission tracking [  ]
+Supervision history log [  ]
+Notification of late submissions [  ]
+Report generation on student progress [  ]
+Document version comparison [  ]
+7. Would a centralized system improve your supervision efficiency?
+Yes, significantly [  ]
+Yes, moderately [  ]
+No change expected [  ]
+No, it would complicate things [  ]
+8. What is your level of comfort with using web-based systems?
+Very uncomfortable [  ]
+Somewhat uncomfortable [  ]
+Neutral [  ]
+Comfortable [  ]
+Very comfortable [  ]
+9. What type of training would you prefer if the system is implemented?
+Written manual/documentation [  ]
+Video tutorials [  ]
+In-person workshop [  ]
+One-on-one support [  ]
+No training needed [  ]
+Section E: General comment
+Please provide any additional comments, Recommendations, suggestions, or concerns.
+_________________________________________________________________
+_________________________________________________________________
+
+Thank you for your participation!
+
+APPENDIX II: INTERVIEW QUESTIONS
+MOSHI CO-OPERATIVE UNIVERSITY
+DEPARTMENT OF BUSINESS INFORMATION AND COMMUNICATION TECHNOLOGY
+
+AN INTEGRATED PROJECT AND RESEARCH MANAGEMENT INFORMATION SYSTEM FOR HIGHER LEARNING INSTITUTIONS (PRMS)
+INTERVIEW GUIDE
+
+INTERVIEWER: Vancee Anthony Mbango and Godwine Leo Jasson
+DATE: ____________________
+TIME: ____________________
+LOCATION: ____________________
+RESPONDENT ID: ____________________
+RESPONDENT POSITION: HOD [ ] Research Office [  ] ICT [  ] Senior Supervisor [  ]
+
+"Good morning/afternoon. Thank you for taking time to speak with us today.
+We Vancee and Godwine, a final-year students undertaking Bachelor of Business Information and Communication Technology at Moshi Co-operative University. We are conducting research on the development of an Integrated Project and Research Management Information System for Higher Learning Institutions, using MoCU as a case study.
+This interview aims to understand the current research management processes at MoCU, identify challenges, and gather your requirements for the proposed system. The interview will take approximately 20-30 minutes.
+Your participation is voluntary, and all responses will be treated confidentially. With your permission, I would like to take notes during our conversation. May I also record this interview to ensure accuracy?
+Do you have any questions before we begin?”
+
+Section A: Background information 
+1. What is your currently position or role at MoCU?
+2. Your faculty/school
+3. How many years do you have on your current position?
+Section B: current process
+4. Can you describe the current process for research proposal submission and approval in your department/office from start to finish?
+a) How are research/project activities currently managed in your department/office?
+b) Who is involved at each stage?
+c) What documents are required?
+2. What documentation is required at each stage of the research project lifecycle?
+a) Proposal, ethics approval, progress reports, final report, source code (for ICT)
+3. How do you currently monitor the progress of student research projects?
+a) Tools used? 
+b) Frequency of monitoring? 
+c) Reporting mechanisms?
+Section C: Challenges 
+1. What challenges do you face in managing research/project information?
+a) Administrative, technical, human resource challenges
+2. How effective is communication between students, supervisors, and administration?
+3. Are there issues related to document tracking or storage? Please explain.
+4. Can you describe a specific instance where the current system failed or caused significant delay?
+a) What happened? 
+b) What was the impact? 
+c) How was it resolved?
+5. How does the lack of a centralized system affect decision-making in your department/office?
+a) Reporting delays? 
+b) Data accuracy? 
+c) Resource allocation?
+6. What information would you like to have real-time access to that you cannot currently access?
+a) Student progress?
+b) Supervisor workload?
+c) Completion rates?
+Section D: System improvement 
+7. What improvements would you recommend for the current system?
+8. Do you think a centralized digital system would improve efficiency? Why?
+9. What features should be included in a new research/project management system?
+Section E: Technical & policy considerations (ICT & Admin only)
+10. What technical challenges might affect system implementation?
+11. Are there existing policies that would support or limit system development?
+12. What is the current state of ICT infrastructure at MoCU for supporting web-based systems?
+a) Internet reliability?
+b) Server capacity?
+c) Power stability?
+13. What security protocols and data protection requirements must be implemented?
+a) User authentication?
+b) Data encryption?
+c) Backup procedures?
+14. What technology stack would you recommend for long-term maintainability?
+a) Programming languages?
+b) Database? 
+c) Hosting options?
+Section F: Additional comments 
+15. Is there anything else you would like to add that we have not discussed?
+a) Suggestions?
+b) Recommendations? 
+c) Warnings?
+
+Thank you very much for your time and valuable insights. Your responses will be very helpful in designing a system that meets the actual needs of MoCU.
+May we contact you again if we have any follow-up questions?
+
+Thank you again.
+
+INTERVIEWER NOTES (to be completed after interview):
+Key themes identified:
+1. _________________________________________________
+2. _________________________________________________
+3. _________________________________________________
+
+Follow-up actions required:
+_____________________________________________________
+
+_____________________________________________________
+Interviewer Signature: ________________ Date: _________
+THANK YOU FOR YOUR PARTICIPATION!
+
+For any questions
+Contact: Vancee Anthony Mbango +255 621 953 322 / Godwine Leo Jasson +255 626 725 383
+Email: conceev@gmail.com
+2
+
+
