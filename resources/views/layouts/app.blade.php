@@ -13,8 +13,8 @@
     @include('layouts.partials.kaiadmin-styles')
     @php $kai = asset(config('prms.kaiadmin_assets', 'vendor/prms-mocu/assets')); @endphp
     <link rel="stylesheet" href="{{ $kai }}/css/demo.css">
-    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=30">
-    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=33">
+    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=31">
+    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=35">
 
     @stack('styles')
 </head>
@@ -54,6 +54,7 @@
         <div class="main-header">
             <div class="main-header-logo">
                 <div class="logo-header prms-mobile-toolbar" data-background-color="dark">
+                    <span class="prms-sidebar-brand-name prms-mobile-toolbar-brand">{{ config('app.name', 'MoCU-PRMS') }}</span>
                     <div class="nav-toggle">
                         <button type="button" class="btn btn-toggle toggle-sidebar" aria-label="Toggle sidebar">
                             <i class="gg-menu-right"></i>
@@ -152,10 +153,8 @@
         </div>
 
         <footer class="footer">
-            <div class="container-fluid">
-                <div class="text-muted small">
-                    &copy; {{ date('Y') }} Moshi Co-operative University — {{ config('app.name', 'MoCU-PRMS') }}
-                </div>
+            <div class="container-fluid text-center py-3">
+                @include('layouts.partials.prms-copyright')
             </div>
         </footer>
     </div>
@@ -170,7 +169,7 @@
 @stack('modals')
 
 @include('layouts.partials.kaiadmin-scripts', ['full' => true])
-<script src="{{ asset('js/prms-header.js') }}?v=1"></script>
+<script src="{{ asset('js/prms-header.js') }}?v=2"></script>
 
 @if (auth()->check())
     <script src="{{ asset('js/prms-quick-nav.js') }}?v=6" defer></script>

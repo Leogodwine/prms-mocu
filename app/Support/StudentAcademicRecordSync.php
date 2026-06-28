@@ -60,5 +60,48 @@ class StudentAcademicRecordSync
         if ($dirty) {
             $profile->save();
         }
+
+        self::syncExpectedGraduationFromUser($user);
+    }
+
+    public static function computeExpectedGraduationYear(User $user): ?int
+    {
+        if ($user->year_of_study === null || (int) $user->year_of_study < 1) {
+            return null;
+        }
+
+        $programme = FinalYearWorkflowEngine::resolveProgramme($user);
+        if ($programme === null || $programme->duration_years === null || (int) $programme->duration_years < 1) {
+            return null;
+        }
+
+        $durationYears = (int) $programme->duration_years;
+        $yearOfStudy = (int) $user->year_of_study;
+
+        if ($yearOfStudy > $durationYears) {
+            return null;
+        }
+
+        $yearsRemaining = $durationYears - $yearOfStudy;
+
+        return (int) now()->year + max(0, $yearsRemaining);
+    }
+
+    public static function syncExpectedGraduationFromUser(User $user): void
+    {
+        $year = self::computeExpectedGraduationYear($user);
+        if ($year === null || $year < 2000 || ! Schema::hasTable('students')) {
+            return;
+        }
+
+        $profile = $user->studentProfile;
+        if ($profile === null) {
+            return;
+        }
+
+        if (Schema::hasColumn('students', 'expected_graduation')) {
+            $profile->expected_graduation = sprintf('%d-12-31', $year);
+            $profile->save();
+        }
     }
 }

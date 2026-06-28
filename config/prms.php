@@ -43,6 +43,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Site copyright (footers, print views, exports)
+    |--------------------------------------------------------------------------
+    */
+    'copyright' => [
+        'university' => env('PRMS_COPYRIGHT_UNIVERSITY', 'Moshi Co-operative University'),
+        'system_name' => env('PRMS_COPYRIGHT_SYSTEM', 'project and research management system'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Final-year workflow defaults
     |--------------------------------------------------------------------------
     |

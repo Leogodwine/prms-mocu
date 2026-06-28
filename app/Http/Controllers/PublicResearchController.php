@@ -460,7 +460,7 @@ class PublicResearchController extends Controller
         $year = $project->published_at ? $project->published_at->format('Y') : now()->format('Y');
         $title = trim((string) $project->title);
         $authors = $this->resolveAuthorList($project);
-        $institution = 'Moshi Co-operative University Research Repository';
+        $institution = 'Moshi Co-operative University Institutional Repository';
 
         // APA: Authors. (Year). Title. Institution.
         $apaAuthors = $this->joinAuthorsApa($authors);

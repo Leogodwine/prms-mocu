@@ -12,7 +12,7 @@
     @include('layouts.partials.kaiadmin-styles')
     <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=19">
     <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=14">
-    <link rel="stylesheet" href="{{ asset('css/prms-welcome.css') }}?v=35">
+    <link rel="stylesheet" href="{{ asset('css/prms-welcome.css') }}?v=36">
     @stack('styles')
 </head>
 <body class="prms-landing">
@@ -61,9 +61,7 @@
 
     <footer class="text-center">
         <div class="container">
-            <p class="mb-0 small opacity-75">
-                &copy; {{ date('Y') }} {{ __('Moshi Co-operative University (MoCU)') }} · {{ config('app.name', 'MoCU-PRMS') }}
-            </p>
+            @include('layouts.partials.prms-copyright', ['muted' => false, 'class' => 'opacity-75'])
         </div>
     </footer>
 

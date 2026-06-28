@@ -137,7 +137,6 @@
         <!-- <p class="prms-auth-browser-note small text-muted mb-0">
             Optimised for current versions of Chrome, Edge, Firefox, and Safari.
         </p> -->
-        
     </footer>
 </div>
 @endsection

@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#1572E8">
     <meta name="description" content="Browse approved research, projects, and reports from Moshi Co-operative University.">
 
-    <title>@yield('title', 'Research Repository') | {{ config('app.name', 'MoCU-PRMS') }}</title>
+    <title>@yield('title', 'Institutional Repository') | {{ config('app.name', 'MoCU-PRMS') }}</title>
 
     @include('layouts.partials.kaiadmin-styles')
     <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=19">
@@ -26,7 +26,7 @@
                 <div class="container-fluid">
                     <a class="navbar-brand d-flex align-items-center gap-2 text-white" href="{{ route('home') }}">
                         <img src="{{ asset('images/mocu_logo.png') }}" alt="Moshi Co-operative University" class="prms-brand-logo prms-brand-logo--nav">
-                        <span class="prms-eyebrow text-white-50 mb-0" style="font-size: 0.65rem;">Research Portal</span>
+                        <span class="prms-eyebrow text-white-50 mb-0" style="font-size: 0.65rem;">MoCU-PRMS</span>
                     </a>
 
                     <button class="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#publicNav" aria-controls="publicNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,21 +40,21 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link text-white {{ request()->routeIs('public.research.*') ? 'fw-bold opacity-100' : '' }}" href="{{ route('public.research.index') }}">
-                                    Research Repository
+                                    Institutional Repository
                                 </a>
                             </li>
                         </ul>
                         <ul class="navbar-nav ms-auto align-items-lg-center">
                             @auth
                                 <li class="nav-item">
-                                    <a class="btn btn-light btn-sm rounded-pill px-3 fw-semibold text-primary" href="{{ route('dashboard') }}">
-                                        <i class="fas fa-th-large me-1" aria-hidden="true"></i> Dashboard
+                                    <a class="nav-link text-white {{ request()->routeIs('dashboard') ? 'fw-bold opacity-100' : '' }}" href="{{ route('dashboard') }}">
+                                        Dashboard
                                     </a>
                                 </li>
                             @else
                                 <li class="nav-item">
-                                    <a class="btn btn-light btn-sm rounded-pill px-3 fw-semibold text-primary" href="{{ route('login') }}">
-                                        <i class="fas fa-sign-in-alt me-1" aria-hidden="true"></i> Sign in
+                                    <a class="nav-link text-white {{ request()->routeIs('login') ? 'fw-bold opacity-100' : '' }}" href="{{ route('login') }}">
+                                        Sign in
                                     </a>
                                 </li>
                             @endauth
@@ -70,7 +70,7 @@
                 @else
                     @include('layouts.partials.prms-page-header', [
                         'headerHomeUrl' => route('home'),
-                        'headerDefaultTitle' => 'Research Repository',
+                        'headerDefaultTitle' => 'Institutional Repository',
                     ])
                 @endif
                 <x-prms-flash-messages />
@@ -80,7 +80,7 @@
 
         <footer class="footer prms-public-footer mt-auto flex-shrink-0">
             <div class="container-fluid text-center text-muted small py-3">
-                &copy; {{ date('Y') }} Moshi Co-operative University. All rights reserved · {{ config('app.name', 'MoCU-PRMS') }} research portal
+                @include('layouts.partials.prms-copyright')
             </div>
         </footer>
     </div>

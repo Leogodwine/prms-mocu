@@ -37,7 +37,6 @@ class AdminUserController extends Controller
             return back()->withErrors(['csv_file' => 'The CSV file is empty or has no header row.']);
         }
 
-        $studentRoles = StoreAdminUserRequest::STUDENT_ROLES;
         $staffRoles = StaffProfileProvisioner::staffProfileRoles();
         $imported = 0;
         $skipped = 0;
@@ -72,16 +71,37 @@ class AdminUserController extends Controller
                 continue;
             }
 
-            if (User::query()->where('email', $email)->exists()) {
+            if (User::query()->where('email', $email)->exists() || User::query()->where('login_id', $loginId)->exists()) {
                 $skipped++;
 
                 continue;
             }
 
-            $role = $this->normalizeBulkImportRole(trim((string) ($row['role'] ?? 'normal_student')));
+            $role = $this->normalizeBulkImportRole(trim((string) ($row['role'] ?? '')));
+            if (! in_array($role, StoreAdminUserRequest::BULK_IMPORT_ROLES, true)) {
+                $skipped++;
+
+                continue;
+            }
+
+            $isStudent = StoreAdminUserRequest::isStudentFormRole($role);
             $department = trim((string) ($row['department'] ?? '')) ?: null;
             $programme = trim((string) ($row['programme'] ?? '')) ?: null;
-            $yearOfStudy = in_array($role, $studentRoles, true) ? 1 : null;
+            $yearOfStudyRaw = trim((string) ($row['year_of_study'] ?? ''));
+            $yearOfStudy = $yearOfStudyRaw !== '' ? (int) $yearOfStudyRaw : null;
+
+            if ($isStudent) {
+                if ($department === null || $programme === null || $yearOfStudy === null || $yearOfStudy < 1) {
+                    $skipped++;
+
+                    continue;
+                }
+            } elseif ($department === null) {
+                $skipped++;
+
+                continue;
+            }
+
             $tempPassword = Str::password(12);
 
             try {
@@ -91,44 +111,51 @@ class AdminUserController extends Controller
                     $email,
                     $loginId,
                     $role,
+                    $isStudent,
                     $department,
                     $programme,
                     $yearOfStudy,
                     $tempPassword,
-                    $studentRoles,
                     $staffRoles
                 ): User {
-                    $attributes = [
+                    $user = User::query()->create([
                         'name' => $name,
                         'email' => $email,
                         'login_id' => $loginId,
-                        'role' => $role,
+                        'role' => $isStudent ? StoreAdminUserRequest::FORM_STUDENT_ROLE : $role,
                         'department' => $department,
-                        'programme' => $programme,
-                        'year_of_study' => $yearOfStudy,
+                        'programme' => $isStudent ? $programme : null,
+                        'year_of_study' => $isStudent ? $yearOfStudy : null,
                         'enrollment_status' => 'active',
                         'account_status' => 'active',
                         'password' => $tempPassword,
                         'must_change_password' => true,
                         'notify_email_new_submission' => true,
                         'notify_email_submission_reviewed' => true,
-                    ];
+                    ]);
 
-                    if (Schema::hasColumn('users', 'registration_number') && in_array($role, $studentRoles, true)) {
-                        $attributes['registration_number'] = $loginId;
-                    }
+                    if ($isStudent) {
+                        if (Schema::hasColumn('users', 'registration_number')) {
+                            $user->registration_number = $loginId;
+                        }
+                        if (Schema::hasColumn('users', 'staff_id')) {
+                            $user->staff_id = null;
+                        }
+                        $user->save();
 
-                    if (Schema::hasColumn('users', 'staff_id') && in_array($role, $staffRoles, true)) {
-                        $attributes['staff_id'] = $loginId;
-                    }
-
-                    $user = User::query()->create($attributes);
-
-                    if (in_array($role, $studentRoles, true)) {
                         StudentProfileProvisioner::ensureStudentProfile($user);
-                    }
+                        $user->refresh();
+                        StudentAcademicRecordSync::syncLinkedStudentRowFromUser($user);
+                        StudentWorkflowAssigner::syncForUser($user->fresh());
+                    } elseif (in_array($role, $staffRoles, true)) {
+                        if (Schema::hasColumn('users', 'staff_id')) {
+                            $user->staff_id = $loginId;
+                        }
+                        if (Schema::hasColumn('users', 'registration_number')) {
+                            $user->registration_number = null;
+                        }
+                        $user->save();
 
-                    if (in_array($role, $staffRoles, true)) {
                         StaffProfileProvisioner::syncFromUser($user);
                     }
 
@@ -138,7 +165,7 @@ class AdminUserController extends Controller
                         'source' => 'bulk_import',
                     ]);
 
-                    return $user;
+                    return $user->fresh();
                 });
 
                 AdminUserCreatedNotifier::notify($user, $loginId, $tempPassword, $request->user());
@@ -163,7 +190,7 @@ class AdminUserController extends Controller
 
         $message = "Successfully imported {$imported} user(s).";
         if ($skipped > 0) {
-            $message .= " {$skipped} row(s) skipped (duplicate email or missing required fields).";
+            $message .= " {$skipped} row(s) skipped (duplicate account, invalid role, or missing required fields).";
         }
 
         return back()->with('status', $message);
@@ -174,7 +201,8 @@ class AdminUserController extends Controller
         $role = strtolower(str_replace([' ', '-'], '_', $role));
 
         return match ($role) {
-            'student' => 'normal_student',
+            'student', 'normal_student', 'research_student', 'project_student' => StoreAdminUserRequest::FORM_STUDENT_ROLE,
+            'head_of_dept', 'head_of_department', 'hod' => 'hod',
             default => $role,
         };
     }
@@ -265,7 +293,7 @@ class AdminUserController extends Controller
             $usersQuery->where('account_status', $statusFilter);
         }
 
-        $users = $usersQuery->latest()->paginate(20);
+        $users = $usersQuery->with('studentProfile')->latest()->paginate(20);
 
         $stats = [
             'total'         => User::query()->count(),
@@ -277,6 +305,7 @@ class AdminUserController extends Controller
         return view('admin.users', [
             'users' => $users,
             'roles' => $allowedRoles,
+            'formRoles' => StoreAdminUserRequest::FORM_ROLES,
             'statuses' => $allowedStatuses,
             'stats' => $stats,
             'filters' => $filters,
@@ -326,22 +355,21 @@ class AdminUserController extends Controller
     public function store(StoreAdminUserRequest $request): RedirectResponse
     {
         $validated = $request->validated();
+        $formRole = (string) $validated['role'];
+        $isStudent = StoreAdminUserRequest::isStudentFormRole($formRole);
 
         $tempPassword = Str::password(12);
 
-        $studentRoles = ['project_student', 'research_student', 'normal_student'];
-        $yearOfStudy = in_array($validated['role'], $studentRoles, true)
-            ? ($validated['year_of_study'] ?? null)
-            : null;
+        $yearOfStudy = $isStudent ? ($validated['year_of_study'] ?? null) : null;
 
-        $user = DB::transaction(function () use ($request, $validated, $studentRoles, $yearOfStudy, $tempPassword) {
+        $user = DB::transaction(function () use ($request, $validated, $formRole, $isStudent, $yearOfStudy, $tempPassword) {
             $user = User::query()->create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'login_id' => $validated['login_id'],
-                'role' => $validated['role'],
+                'role' => $isStudent ? StoreAdminUserRequest::FORM_STUDENT_ROLE : $formRole,
                 'department' => $validated['department'] ?? null,
-                'programme' => $validated['programme'] ?? null,
+                'programme' => $isStudent ? ($validated['programme'] ?? null) : null,
                 'year_of_study' => $yearOfStudy,
                 'enrollment_status' => 'active',
                 'account_status' => 'active',
@@ -351,12 +379,36 @@ class AdminUserController extends Controller
                 'notify_email_submission_reviewed' => true,
             ]);
 
-            if (in_array($validated['role'], $studentRoles, true)) {
-                StudentProfileProvisioner::ensureStudentProfile($user);
-            }
+            if ($isStudent) {
+                if (Schema::hasColumn('users', 'registration_number')) {
+                    $user->registration_number = $validated['login_id'];
+                }
+                if (Schema::hasColumn('users', 'staff_id')) {
+                    $user->staff_id = null;
+                }
+                $user->save();
 
-            if (in_array($validated['role'], StaffProfileProvisioner::staffProfileRoles(), true)) {
+                StudentProfileProvisioner::ensureStudentProfile($user);
+                $user->refresh();
+                StudentAcademicRecordSync::syncLinkedStudentRowFromUser($user);
+                StudentWorkflowAssigner::syncForUser($user->fresh());
+            } elseif (in_array($formRole, StaffProfileProvisioner::staffProfileRoles(), true)) {
+                if (Schema::hasColumn('users', 'staff_id')) {
+                    $user->staff_id = $validated['login_id'];
+                }
+                if (Schema::hasColumn('users', 'registration_number')) {
+                    $user->registration_number = null;
+                }
+                $user->save();
                 StaffProfileProvisioner::syncFromUser($user);
+            } elseif ($formRole === 'admin') {
+                if (Schema::hasColumn('users', 'staff_id')) {
+                    $user->staff_id = $validated['login_id'];
+                }
+                if (Schema::hasColumn('users', 'registration_number')) {
+                    $user->registration_number = null;
+                }
+                $user->save();
             }
 
             Audit::log($request, 'admin.user_created', 'User', (string) $user->id, null, [
@@ -364,7 +416,7 @@ class AdminUserController extends Controller
                 'login_id' => $user->login_id,
             ]);
 
-            return $user;
+            return $user->fresh();
         });
 
         $statusMessage = 'User created. Sign-in details were sent to the new user and all administrators received in-app notifications with the username and temporary password.';
@@ -408,21 +460,27 @@ class AdminUserController extends Controller
         $user->email = $validated['email'];
         $user->login_id = $validated['login_id'];
         $user->phone_number = $validated['phone_number'] ?? null;
-        $user->role = $validated['role'];
         $user->account_status = $validated['account_status'];
 
-        $studentRoles = UpdateAdminUserRequest::STUDENT_ROLES;
+        $formRole = (string) $validated['role'];
+        $isStudent = StoreAdminUserRequest::isStudentFormRole($formRole);
         $staffRoles = StaffProfileProvisioner::staffProfileRoles();
 
+        if ($isStudent) {
+            $user->role = StoreAdminUserRequest::FORM_STUDENT_ROLE;
+        } else {
+            $user->role = $formRole;
+        }
+
         if (Schema::hasColumn('users', 'registration_number') || Schema::hasColumn('users', 'staff_id')) {
-            if (in_array($validated['role'], $studentRoles, true)) {
+            if ($isStudent) {
                 if (Schema::hasColumn('users', 'registration_number')) {
                     $user->registration_number = $validated['login_id'];
                 }
                 if (Schema::hasColumn('users', 'staff_id')) {
                     $user->staff_id = null;
                 }
-            } elseif (in_array($validated['role'], $staffRoles, true)) {
+            } elseif (in_array($formRole, $staffRoles, true) || $formRole === 'admin') {
                 if (Schema::hasColumn('users', 'staff_id')) {
                     $user->staff_id = $validated['login_id'];
                 }
@@ -444,12 +502,10 @@ class AdminUserController extends Controller
                 $user->department = $validated['department'] ?? null;
             }
             if (Schema::hasColumn('users', 'programme')) {
-                $user->programme = $validated['programme'] ?? null;
+                $user->programme = $isStudent ? ($validated['programme'] ?? null) : null;
             }
             if (Schema::hasColumn('users', 'year_of_study')) {
-                $user->year_of_study = in_array($validated['role'], $studentRoles, true)
-                    ? ($validated['year_of_study'] ?? null)
-                    : null;
+                $user->year_of_study = $isStudent ? ($validated['year_of_study'] ?? null) : null;
             }
         }
 
@@ -459,7 +515,7 @@ class AdminUserController extends Controller
             StaffProfileProvisioner::syncFromUser($user->fresh());
         }
 
-        if ($request->user()->role === 'admin' && in_array($validated['role'], $studentRoles, true)) {
+        if ($request->user()->role === 'admin' && $isStudent) {
             StudentProfileProvisioner::ensureStudentProfile($user);
             $user->refresh();
             StudentAcademicRecordSync::syncLinkedStudentRowFromUser($user);

@@ -74,22 +74,22 @@ body.prms-landing .navbar.prms-public-topnav .prms-landing-nav-inner {
 }
 @media (min-width: 992px) {
   .prms-landing .prms-landing-nav-inner {
-    --prms-nav-pad-start: 12rem;
-    --prms-nav-pad-end: 12rem;
+    --prms-nav-pad-start: 4rem;
+    --prms-nav-pad-end: 4rem;
     gap: 1.25rem;
   }
 }
 @media (min-width: 1200px) {
   .prms-landing .prms-landing-nav-inner {
-    --prms-nav-pad-start: 16.5rem;
-    --prms-nav-pad-end: 16.5rem;
+    --prms-nav-pad-start: 5.5rem;
+    --prms-nav-pad-end: 5.5rem;
     gap: 1.5rem;
   }
 }
 @media (min-width: 1400px) {
   .prms-landing .prms-landing-nav-inner {
-    --prms-nav-pad-start: 22.5rem;
-    --prms-nav-pad-end: 22.5rem;
+    --prms-nav-pad-start: 7.5rem;
+    --prms-nav-pad-end: 7.5rem;
   }
 }
 .prms-landing .navbar.prms-public-nav {

@@ -1,7 +1,7 @@
 /**
  * Kaiadmin copies .sidebar .logo-header HTML into .main-header .logo-header on load,
- * which restores logo + MoCU-PRMS in the mobile top bar. Strip branding from the
- * top bar only; sidebar header keeps logo + product name.
+ * which restores logo + MoCU-PRMS in the mobile top bar. Strip cloned sidebar branding;
+ * the app layout keeps a dedicated MoCU-PRMS label in the mobile toolbar.
  */
 (function () {
     'use strict';

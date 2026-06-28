@@ -6,25 +6,46 @@
 
 @section('content')
 
-<section class="position-relative public-research-page" style="background: var(--prms-page-bg); padding: 4rem 0 3rem;">
+<section class="position-relative public-research-page" style="padding: 4rem 0 3rem;">
     <div class="container public-research-container">
         {{-- ────────── Hero / search ────────── --}}
-        <div class="card border-0 shadow-sm public-research-hero-card mb-4">
-            <div class="card-body public-research-panel-body text-center public-research-hero">
-                <h1 class="display-5 fw-bold text-strong mt-2 mb-3" style="letter-spacing: -0.025em;">
-                    Project and Research repository
+        <div class="row align-items-center g-4 g-lg-5 mb-4 public-research-hero">
+            <div class="col-lg-5 col-md-6 public-research-hero__media">
+                <div class="public-research-hero__material" aria-hidden="true">
+                    <div class="public-research-hero__material-surface public-research-hero__material-surface--back"></div>
+                    <div class="public-research-hero__material-surface public-research-hero__material-surface--front">
+                        <span class="material-symbols-outlined public-research-hero__material-icon public-research-hero__material-icon--main">local_library</span>
+                    </div>
+                    <div class="public-research-hero__material-chip public-research-hero__material-chip--science">
+                        <span class="material-symbols-outlined">science</span>
+                        <span>Research</span>
+                    </div>
+                    <div class="public-research-hero__material-chip public-research-hero__material-chip--article">
+                        <span class="material-symbols-outlined">article</span>
+                        <span>Reports</span>
+                    </div>
+                    <div class="public-research-hero__material-chip public-research-hero__material-chip--code">
+                        <span class="material-symbols-outlined">code</span>
+                        <span>Projects</span>
+                    </div>
+                    <div class="public-research-hero__material-badge">
+                        <span class="material-symbols-outlined">verified</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-7 col-md-6 public-research-hero__content">
+                <h1 class="display-5 fw-bold public-research-hero__title mt-0 mb-3">
+                    Institutional repository
                 </h1>
-                <p class="lead text-muted mb-0">
-                    Discover approved <strong>proposals, research reports</strong>, and
-                    <strong>computer-based course projects</strong> authored
-                    by MoCU students. Every record is reviewed before publication.
+                <p class="lead mb-0 public-research-hero__lead">
+                    Discover approved proposals, research reports, and computer-based course projects authored by MoCU students. Every record is reviewed before publication.
                 </p>
 
-                <form action="{{ route('public.research.index') }}" method="POST" class="mt-4 mx-auto public-research-search" role="search">
+                <form action="{{ route('public.research.index') }}" method="POST" class="mt-4 public-research-search" role="search">
                     @csrf
                     <input type="hidden" name="_filter_action" value="apply">
                     <label for="prms-search" class="visually-hidden">Search the repository</label>
-                    <div class="input-group input-group-lg" style="box-shadow: var(--prms-shadow);">
+                    <div class="input-group input-group-lg public-research-search__group">
                         <span class="input-group-text bg-white border-end-0">
                             <i class="fas fa-search text-muted" aria-hidden="true"></i>
                         </span>
@@ -50,21 +71,23 @@
                     <p class="small text-muted mb-0 public-research-meta__count">
                         {{ $visibleTotal }} approved publication{{ $visibleTotal === 1 ? '' : 's' }} available
                     </p>
-                    <div class="d-flex flex-wrap gap-2 public-research-meta__filters">
+                    <div class="d-flex flex-wrap align-items-center gap-1 public-research-meta__filters">
                         @foreach ([
                             '' => 'All',
                             'proposal' => 'Proposals',
                             'research' => 'Reports',
                             'project' => 'Projects',
                         ] as $value => $label)
+                            @if (! $loop->first)
+                                <span class="public-research-meta__sep text-muted" aria-hidden="true">·</span>
+                            @endif
                             <form method="POST" action="{{ route('public.research.index') }}" class="d-inline">
                                 @csrf
                                 <input type="hidden" name="_filter_action" value="apply">
                                 @include('partials.public-research-filter-fields', ['filters' => $filters, 'override' => ['type' => $value]])
                                 <button type="submit"
-                                        class="btn btn-sm rounded-pill {{ $activeCategory === $value ? 'btn-primary' : 'btn-light border' }}">
+                                        class="public-research-category-link {{ $activeCategory === $value ? 'is-active' : '' }}">
                                     {{ $label }}
-                                    <span class="ms-1 opacity-75">({{ $categoryCounts[$value === '' ? 'all' : $value] ?? 0 }})</span>
                                 </button>
                             </form>
                         @endforeach
@@ -74,9 +97,6 @@
         </div>
 
         {{-- ────────── Results + filters ────────── --}}
-        @php
-            $resultsColumnClass = ! empty($relatedSearches) ? 'col-lg-6' : 'col-lg-9';
-        @endphp
         <div class="row public-research-results g-4">
 
             {{-- ── Refine sidebar (left) ── --}}
@@ -89,7 +109,7 @@
                                 Refine results
                             </summary>
 
-                            <div class="mt-3">
+                            <div class="mt-2 public-refine-filters">
                                 @php
                                     $activeSinceYear = $filters['since_year'] ?? '';
                                     $activeDepartment = (int) ($filters['department_id'] ?? 0);
@@ -97,8 +117,7 @@
                                     $activeSort = $filters['sort'] ?? 'recent';
                                 @endphp
 
-                                <div class="mb-4">
-                                    <h3 class="small fw-semibold text-muted text-uppercase mb-2">Time</h3>
+                                <div class="public-refine-block">
                                     <ul class="list-unstyled mb-0 public-quick-filter-list">
                                         @foreach ([
                                             '' => 'Any time',
@@ -154,12 +173,11 @@
                                     @endif
                                 </div>
 
-                                <div class="mb-4">
-                                    <h3 class="small fw-semibold text-muted text-uppercase mb-2">Sort by</h3>
+                                <div class="public-refine-block">
                                     <ul class="list-unstyled mb-0 public-quick-filter-list">
                                         @foreach ([
-                                            'relevance' => 'Sort by relevance',
-                                            'recent' => 'Sort by date',
+                                            'relevance' => 'Relevance',
+                                            'recent' => 'Date',
                                         ] as $value => $label)
                                             <li>
                                                 <form method="POST" action="{{ route('public.research.index') }}">
@@ -179,8 +197,7 @@
                                     </ul>
                                 </div>
 
-                                <div class="mb-4">
-                                    <h3 class="small fw-semibold text-muted text-uppercase mb-2">Department</h3>
+                                <div class="public-refine-block">
                                     <ul class="list-unstyled mb-0 public-quick-filter-list public-quick-filter-scroll">
                                         <li>
                                             <form method="POST" action="{{ route('public.research.index') }}">
@@ -215,9 +232,8 @@
                                     </ul>
                                 </div>
 
-                                <div class="mb-3">
-                                    <h3 class="small fw-semibold text-muted text-uppercase mb-2">Author</h3>
-                                    <ul class="list-unstyled mb-2 public-quick-filter-list public-quick-filter-scroll">
+                                <div class="public-refine-block public-refine-block--author">
+                                    <ul class="list-unstyled mb-1 public-quick-filter-list public-quick-filter-scroll">
                                         <li>
                                             <form method="POST" action="{{ route('public.research.index') }}">
                                                 @csrf
@@ -249,11 +265,11 @@
                                             </li>
                                         @endforeach
                                     </ul>
-                                    <form method="POST" action="{{ route('public.research.index') }}">
+                                    <form method="POST" action="{{ route('public.research.index') }}" class="public-refine-author-search">
                                         @csrf
                                         <input type="hidden" name="_filter_action" value="apply">
                                         @include('partials.public-research-filter-fields', ['filters' => $filters, 'except' => ['author']])
-                                        <label for="filter-author-search" class="form-label small text-muted mb-1">Search author</label>
+                                        <label for="filter-author-search" class="visually-hidden">Filter by author</label>
                                         <div class="input-group input-group-sm">
                                             <input id="filter-author-search"
                                                    type="text"
@@ -279,7 +295,7 @@
             </div>
 
             {{-- ── Results (center) ── --}}
-            <div class="{{ $resultsColumnClass }}" id="prms-research-results" aria-live="polite">
+            <div class="col-lg-9" id="prms-research-results" aria-live="polite">
                 <div id="prms-research-results-content">
                 @if ($projects->isEmpty())
                     <div class="card border-0 shadow-sm public-research-empty h-100">
@@ -308,28 +324,22 @@
                         {{ $projects->appends(request()->query())->links() }}
                     </div>
                 @endif
-                </div>
 
-                @include('partials.public-research-loading-skeleton')
-            </div>
-
-            {{-- ── Related searches (right) ── --}}
-            @if (! empty($relatedSearches))
-                <div class="col-lg-3">
-                    <aside class="card border-0 shadow-sm public-research-related h-100" aria-label="Related searches">
+                @if (trim((string) ($filters['search'] ?? '')) !== '' && ! empty($relatedSearches))
+                    <aside class="card border-0 shadow-sm public-research-related mt-4" aria-label="Related searches">
                         <div class="card-body public-research-panel-body">
                             <h2 class="h6 fw-bold text-strong mb-3">Related searches</h2>
                             <ul class="list-unstyled mb-0 public-related-search-list">
                                 @foreach ($relatedSearches as $term)
-                                    <li class="mb-2">
-                                        <form method="POST" action="{{ route('public.research.index') }}">
+                                    <li>
+                                        <form method="POST" action="{{ route('public.research.index') }}" class="d-inline">
                                             @csrf
                                             <input type="hidden" name="_filter_action" value="apply">
                                             @include('partials.public-research-filter-fields', [
                                                 'filters' => $filters,
                                                 'override' => ['search' => $term],
                                             ])
-                                            <button type="submit" class="btn btn-link btn-sm text-start px-0 py-0 public-related-search-link">
+                                            <button type="submit" class="btn btn-sm btn-light border rounded-pill public-related-search-link">
                                                 {{ $term }}
                                             </button>
                                         </form>
@@ -338,8 +348,11 @@
                             </ul>
                         </div>
                     </aside>
+                @endif
                 </div>
-            @endif
+
+                @include('partials.public-research-loading-skeleton')
+            </div>
         </div>
     </div>
 </section>
@@ -347,14 +360,167 @@
 @endsection
 
 @push('styles')
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
 <style>
+    .material-symbols-outlined {
+        font-family: "Material Symbols Outlined", sans-serif;
+        font-weight: normal;
+        font-style: normal;
+        font-size: 1.25rem;
+        line-height: 1;
+        letter-spacing: normal;
+        text-transform: none;
+        display: inline-block;
+        white-space: nowrap;
+        word-wrap: normal;
+        direction: ltr;
+        font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    body.prms-public-page,
+    body.prms-kaiadmin-public .wrapper .main-panel.prms-public-main {
+        background-color: #ffffff !important;
+    }
+
+    .public-research-page {
+        background-color: #ffffff;
+    }
+
     .public-research-container {
         --public-panel-padding: 1.5rem;
         --public-section-gap: 1rem;
     }
 
+    .public-research-hero__material {
+        position: relative;
+        width: 100%;
+        max-width: 22rem;
+        margin-inline: auto;
+        aspect-ratio: 1;
+        min-height: 16rem;
+    }
+
+    .public-research-hero__material-surface {
+        position: absolute;
+        border-radius: 1.75rem;
+    }
+
+    .public-research-hero__material-surface--back {
+        inset: 8% 6% 14% 14%;
+        background: linear-gradient(145deg, #e8f1fd 0%, #dce9fb 100%);
+        transform: rotate(-6deg);
+    }
+
+    .public-research-hero__material-surface--front {
+        inset: 12% 10% 10% 10%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(160deg, #ffffff 0%, #f5f9ff 100%);
+        box-shadow:
+            0 1px 2px rgba(21, 114, 232, 0.08),
+            0 8px 24px rgba(21, 114, 232, 0.12),
+            0 24px 48px rgba(15, 23, 42, 0.06);
+    }
+
+    .public-research-hero__material-icon--main {
+        font-size: clamp(4.5rem, 14vw, 6.5rem);
+        color: var(--prms-primary, #1572E8);
+        font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 48;
+    }
+
+    .public-research-hero__material-chip {
+        position: absolute;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.45rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        background: #ffffff;
+        color: var(--prms-text, #334155);
+        box-shadow:
+            0 1px 2px rgba(15, 23, 42, 0.06),
+            0 4px 12px rgba(15, 23, 42, 0.08);
+    }
+
+    .public-research-hero__material-chip .material-symbols-outlined {
+        font-size: 1.125rem;
+    }
+
+    .public-research-hero__material-chip--science {
+        top: 6%;
+        right: 0;
+        color: #0d47a1;
+    }
+
+    .public-research-hero__material-chip--science .material-symbols-outlined {
+        color: #1565c0;
+    }
+
+    .public-research-hero__material-chip--article {
+        bottom: 18%;
+        left: -2%;
+        color: #1b5e20;
+    }
+
+    .public-research-hero__material-chip--article .material-symbols-outlined {
+        color: #2e7d32;
+    }
+
+    .public-research-hero__material-chip--code {
+        bottom: 4%;
+        right: 8%;
+        color: #4a148c;
+    }
+
+    .public-research-hero__material-chip--code .material-symbols-outlined {
+        color: #6a1b9a;
+    }
+
+    .public-research-hero__material-badge {
+        position: absolute;
+        top: 22%;
+        left: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.75rem;
+        height: 2.75rem;
+        border-radius: 50%;
+        background: #e3f2fd;
+        color: var(--prms-primary, #1572E8);
+        box-shadow: 0 4px 12px rgba(21, 114, 232, 0.2);
+    }
+
+    .public-research-hero__material-badge .material-symbols-outlined {
+        font-size: 1.5rem;
+        font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+    }
+
+    .public-research-hero__content {
+        text-align: left;
+    }
+
+    .public-research-hero__lead {
+        color: #000000;
+        font-weight: 400;
+    }
+
+    .public-research-hero__title {
+        color: var(--prms-primary, #1572E8);
+        letter-spacing: -0.025em;
+    }
+
     .public-research-search {
-        max-width: 640px;
+        max-width: 100%;
+    }
+
+    .public-research-search__group {
+        box-shadow: var(--prms-shadow);
     }
 
     .public-research-meta,
@@ -389,23 +555,87 @@
         margin: 0;
     }
 
-    .public-research-meta__filters .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
+    .public-research-category-link {
+        border: 0;
+        background: none;
+        padding: 0;
+        font-size: 0.875rem;
+        line-height: 1.4;
+        color: var(--prms-text-muted, #64748b);
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .public-research-category-link:hover,
+    .public-research-category-link:focus {
+        color: var(--prms-primary, #1572E8);
+        text-decoration: underline;
+    }
+
+    .public-research-category-link.is-active {
+        color: var(--prms-primary, #1572E8);
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .public-research-meta__sep {
+        font-size: 0.875rem;
+        line-height: 1;
+        user-select: none;
     }
 
     .public-research-panel-body {
         padding: var(--public-panel-padding) !important;
     }
 
-    .public-research-refine .mb-4,
-    .public-research-refine .mb-3 {
-        margin-bottom: var(--public-section-gap) !important;
+    .public-research-refine .public-research-panel-body {
+        --public-panel-padding: 1.15rem;
     }
 
-    .public-research-refine h3.mb-2 {
+    .public-refine-filters {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .public-refine-block {
+        margin-bottom: 0 !important;
+    }
+
+    .public-refine-block--author .public-refine-author-search {
+        margin-top: 0.25rem;
+    }
+
+    .public-research-refine .mb-4,
+    .public-research-refine .mb-3 {
         margin-bottom: 0.5rem !important;
+    }
+
+    .public-quick-filter-list li + li {
+        margin-top: 0;
+    }
+
+    .public-quick-filter-list .public-quick-filter-btn {
+        color: var(--prms-text, #334155);
+        text-decoration: none;
+        width: 100%;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        line-height: 1.35;
+        min-height: 0;
+        padding-top: 0.1rem !important;
+        padding-bottom: 0.1rem !important;
+    }
+
+    .public-quick-filter-list .public-quick-filter-btn:hover,
+    .public-quick-filter-list .public-quick-filter-btn:focus {
+        color: var(--prms-primary, #1572E8);
+        text-decoration: none;
+    }
+
+    .public-quick-filter-list .public-quick-filter-btn.active {
+        color: var(--prms-primary, #1572E8);
+        font-weight: 600;
     }
 
     .public-research-results {
@@ -464,25 +694,6 @@
         opacity: 0.92;
     }
 
-    .public-quick-filter-list .public-quick-filter-btn {
-        color: var(--prms-text, #334155);
-        text-decoration: none;
-        width: 100%;
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-    }
-
-    .public-quick-filter-list .public-quick-filter-btn:hover,
-    .public-quick-filter-list .public-quick-filter-btn:focus {
-        color: var(--prms-primary, #1572E8);
-        text-decoration: none;
-    }
-
-    .public-quick-filter-list .public-quick-filter-btn.active {
-        color: var(--prms-primary, #1572E8);
-        font-weight: 600;
-    }
-
     .public-quick-filter-scroll {
         max-height: 220px;
         overflow-y: auto;
@@ -498,18 +709,26 @@
     }
 
     .public-related-search-link {
-        color: var(--prms-primary, #1572E8);
+        color: var(--prms-text, #334155);
         text-decoration: none;
         line-height: 1.35;
+        font-weight: 500;
     }
 
     .public-related-search-link:hover {
-        text-decoration: underline;
+        color: var(--prms-primary, #1572E8);
+        background: var(--prms-primary-soft, rgba(21, 114, 232, 0.08)) !important;
+        border-color: var(--prms-primary, #1572E8) !important;
     }
 
     .public-related-search-list {
-        max-height: 220px;
-        overflow-y: auto;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .public-related-search-list li {
+        margin: 0;
     }
 
     /* Scholar-style result rows (proposals & reports only) */
@@ -608,6 +827,37 @@
     @keyframes prms-skeleton-pulse {
         0% { background-position: 100% 0; }
         100% { background-position: -100% 0; }
+    }
+
+    @media (max-width: 767.98px) {
+        .public-research-hero__content {
+            text-align: center;
+        }
+
+        .public-research-meta__filters {
+            justify-content: center;
+            margin-left: 0;
+        }
+
+        .public-research-meta__count {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .public-research-hero__material {
+            max-width: 18rem;
+            min-height: 14rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .public-research-hero__material-chip {
+            font-size: 0.6875rem;
+            padding: 0.35rem 0.6rem;
+        }
+
+        .public-research-hero__material-chip--article {
+            left: 0;
+        }
     }
 
     @media (prefers-reduced-motion: reduce) {

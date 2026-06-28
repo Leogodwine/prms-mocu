@@ -16,6 +16,9 @@
 </head>
 <body class="bg-white">
     @yield('content')
+    <footer class="text-center text-muted small py-3 no-print">
+        @include('layouts.partials.prms-copyright')
+    </footer>
     @stack('scripts')
 </body>
 </html>
