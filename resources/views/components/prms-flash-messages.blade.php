@@ -42,7 +42,7 @@
         </div>
     @endif
 
-    @if ($errors->any())
+    @if ($errors->any() && ! in_array(old('form_context'), ['create', 'edit'], true))
         <div class="alert alert-danger d-flex align-items-start gap-2 mb-4" role="alert">
             <i class="fas fa-exclamation-circle mt-1 flex-shrink-0" aria-hidden="true"></i>
             <div class="flex-grow-1">

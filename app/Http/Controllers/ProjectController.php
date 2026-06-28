@@ -15,6 +15,7 @@ use App\Notifications\ProjectNotification;
 use App\Support\Audit;
 use App\Support\ProjectSimilarityQueue;
 use App\Support\StudentResearchEligibility;
+use App\Support\StudentWorkflowAssigner;
 use App\Services\Similarity\ProjectSimilarityAnalyzer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -258,6 +259,8 @@ class ProjectController extends Controller
         }
 
         $project = ResearchProject::create($payload);
+
+        StudentWorkflowAssigner::assignOutputTrackFromProjectType($user, $validated['project_type'] ?? null);
 
         ProjectSimilarityQueue::dispatchFor($project);
 

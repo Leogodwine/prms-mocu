@@ -6,6 +6,7 @@ use App\Models\Department;
 use App\Models\ProjectGroup;
 use App\Models\User;
 use App\Support\Audit;
+use App\Support\PrmsEventNotifier;
 use App\Support\StudentAcademicRecordSync;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -135,6 +136,8 @@ class HodController extends Controller
             'programme' => $user->programme,
             'year_of_study' => $user->year_of_study,
         ]);
+
+        PrmsEventNotifier::notifyStudentAcademicUpdated($user, $request->user());
 
         return back()->with('status', 'Student academic record updated.');
     }

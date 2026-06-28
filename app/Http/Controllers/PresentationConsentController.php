@@ -6,6 +6,7 @@ use App\Models\ProjectSubmission;
 use App\Models\SubmissionFeedback;
 use App\Support\Audit;
 use App\Support\PresentationConsentForm;
+use App\Support\PrmsEventNotifier;
 use App\Support\StudentStageProgress;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -99,6 +100,8 @@ class PresentationConsentController extends Controller
             null,
             ['pdf_path' => $pdfPath]
         );
+
+        PrmsEventNotifier::notifyConsentForwardedToCoordinator($submission, $supervisor);
 
         return redirect()
             ->route('supervisor.index')

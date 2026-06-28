@@ -13,6 +13,7 @@ use App\Models\SupervisionLog;
 use App\Notifications\SubmissionReviewedNotification;
 use App\Services\OnlyOfficeService;
 use App\Support\Audit;
+use App\Support\PrmsEventNotifier;
 use App\Support\PrmsListFilters;
 use App\Support\RepositoryPublication;
 use App\Support\StudentStageProgress;
@@ -508,6 +509,10 @@ class SupervisorController extends Controller
                 'status' => $evaluation->status,
             ]
         );
+
+        if ($validated['status'] === 'finalized') {
+            PrmsEventNotifier::notifyEvaluationFinalized($submission, (int) $evaluation->total_score);
+        }
 
         $message = $validated['status'] === 'finalized'
             ? 'Evaluation finalized with score '.$evaluation->total_score.'/100.'

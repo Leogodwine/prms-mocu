@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\LoginHistory;
 use App\Models\User;
 use App\Support\Audit;
+use App\Support\StudentWorkflowAssigner;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -162,6 +163,11 @@ class AuthController extends Controller
         ]);
 
         Audit::log($request, 'auth.login', 'User', (string) $user->id);
+
+        if ($user->isStudentUser()) {
+            StudentWorkflowAssigner::syncForUser($user);
+            $user->refresh();
+        }
 
         if ($user->must_change_password) {
             return redirect()->route('password.force.edit');

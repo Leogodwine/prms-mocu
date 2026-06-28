@@ -283,6 +283,10 @@
 @endsection
 
 @push('modals')
+@php
+    $studentRoleValues = ['project_student', 'research_student', 'normal_student'];
+    $createFormFailed = old('form_context') === 'create';
+@endphp
 {{-- ════════════════════════════════════════════════════════════════
      CREATE USER MODAL
    ════════════════════════════════════════════════════════════════ --}}
@@ -298,6 +302,7 @@
             </div>
             <form method="POST" action="{{ route('admin.users.store') }}" novalidate>
                 @csrf
+                <input type="hidden" name="form_context" value="create">
                 <div class="modal-body p-4">
                     <p class="text-muted small mb-4">
                         A random temporary password is generated and sent to the user by <strong>email</strong> and <strong>in-app notification</strong> together with their account identifier (reg. no or staff ID).
@@ -306,70 +311,92 @@
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label for="create_name" class="form-label">Full name</label>
-                            <input id="create_name" type="text" name="name" value="{{ old('name') }}"
-                                   class="form-control @error('name') is-invalid @enderror"
-                                   placeholder="John Doe" required>
-                            @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            <label for="create_name" class="form-label">Full name <span class="text-danger">*</span></label>
+                            <input id="create_name" type="text" name="name" value="{{ $createFormFailed ? old('name') : '' }}"
+                                   class="form-control {{ $createFormFailed && $errors->has('name') ? 'is-invalid' : '' }}"
+                                   placeholder="John Doe">
+                            @if ($createFormFailed && $errors->has('name'))
+                                <div class="invalid-feedback d-block">{{ $errors->first('name') }}</div>
+                            @endif
                         </div>
 
                         <div class="col-md-6">
-                            <label for="create_email" class="form-label">Email address</label>
-                            <input id="create_email" type="email" name="email" value="{{ old('email') }}"
-                                   class="form-control @error('email') is-invalid @enderror"
-                                   placeholder="john.doe@mocu.ac.tz" required autocomplete="off">
-                            @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            <label for="create_email" class="form-label">Email address <span class="text-danger">*</span></label>
+                            <input id="create_email" type="email" name="email" value="{{ $createFormFailed ? old('email') : '' }}"
+                                   class="form-control {{ $createFormFailed && $errors->has('email') ? 'is-invalid' : '' }}"
+                                   placeholder="john.doe@mocu.ac.tz" autocomplete="off">
+                            @if ($createFormFailed && $errors->has('email'))
+                                <div class="invalid-feedback d-block">{{ $errors->first('email') }}</div>
+                            @endif
                         </div>
 
                         <div class="col-md-6">
-                            <label for="create_login_id" class="form-label">Reg. no / Staff ID</label>
-                            <input id="create_login_id" type="text" name="login_id" value="{{ old('login_id') }}"
-                                   class="form-control @error('login_id') is-invalid @enderror"
-                                   placeholder="MoCU/REG/1134/24 or MoCU/STAFF/2024/001" required>
-                            @error('login_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            <label for="create_login_id" class="form-label">Reg. no / Staff ID <span class="text-danger">*</span></label>
+                            <input id="create_login_id" type="text" name="login_id" value="{{ $createFormFailed ? old('login_id') : '' }}"
+                                   class="form-control {{ $createFormFailed && $errors->has('login_id') ? 'is-invalid' : '' }}"
+                                   placeholder="MoCU/REG/1134/24 or MoCU/STAFF/2024/001">
+                            @if ($createFormFailed && $errors->has('login_id'))
+                                <div class="invalid-feedback d-block">{{ $errors->first('login_id') }}</div>
+                            @endif
                         </div>
 
                         <div class="col-md-6">
-                            <label for="create_role" class="form-label">System role</label>
+                            <label for="create_role" class="form-label">System role <span class="text-danger">*</span></label>
                             <select id="create_role" name="role"
-                                    class="form-select @error('role') is-invalid @enderror" required>
-                                <option value="" disabled @selected(! old('role'))>Select role…</option>
+                                    class="form-select {{ $createFormFailed && $errors->has('role') ? 'is-invalid' : '' }}">
+                                <option value="" disabled @selected(! ($createFormFailed && old('role')))>Select role…</option>
                                 @foreach ($roles as $r)
-                                    <option value="{{ $r }}" @selected(old('role') === $r)>
+                                    <option value="{{ $r }}" @selected($createFormFailed && old('role') === $r)>
                                         {{ $roleLabels[$r]['label'] ?? \Illuminate\Support\Str::title(str_replace('_',' ',$r)) }}
                                     </option>
                                 @endforeach
                             </select>
-                            @error('role') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            @if ($createFormFailed && $errors->has('role'))
+                                <div class="invalid-feedback d-block">{{ $errors->first('role') }}</div>
+                            @endif
                         </div>
 
                         <div class="col-md-6">
-                            <label for="create_department" class="form-label">Department</label>
-                            <input id="create_department" type="text" name="department" value="{{ old('department') }}"
-                                   class="form-control" placeholder="e.g. Computing &amp; ICT">
+                            <label for="create_department" class="form-label">Department <span class="text-danger">*</span></label>
+                            <input id="create_department" type="text" name="department" value="{{ $createFormFailed ? old('department') : '' }}"
+                                   class="form-control {{ $createFormFailed && $errors->has('department') ? 'is-invalid' : '' }}"
+                                   placeholder="e.g. Computing &amp; ICT">
+                            @if ($createFormFailed && $errors->has('department'))
+                                <div class="invalid-feedback d-block">{{ $errors->first('department') }}</div>
+                            @endif
                         </div>
 
                         <div class="col-md-6">
-                            <label for="create_programme" class="form-label">Programme</label>
-                            <input id="create_programme" type="text" name="programme" value="{{ old('programme') }}"
-                                   class="form-control" placeholder="e.g. BBICT">
+                            <label for="create_programme" class="form-label">Programme <span class="text-danger">*</span></label>
+                            <input id="create_programme" type="text" name="programme" value="{{ $createFormFailed ? old('programme') : '' }}"
+                                   class="form-control {{ $createFormFailed && $errors->has('programme') ? 'is-invalid' : '' }}"
+                                   placeholder="e.g. BBICT">
+                            @if ($createFormFailed && $errors->has('programme'))
+                                <div class="invalid-feedback d-block">{{ $errors->first('programme') }}</div>
+                            @endif
                         </div>
 
                         @php
-                            $createYear = old('year_of_study');
+                            $createYear = $createFormFailed ? old('year_of_study') : null;
                             $createYear = $createYear === '' || $createYear === null ? null : (int) $createYear;
+                            $createRoleIsStudent = $createFormFailed && in_array(old('role'), $studentRoleValues, true);
                         @endphp
                         <div class="col-md-6">
-                            <label for="create_year_of_study" class="form-label">Year of study</label>
+                            <label for="create_year_of_study" class="form-label" id="create_year_of_study_label">
+                                Year of study
+                                <span class="text-danger create-year-required" @if(! $createRoleIsStudent) hidden @endif>*</span>
+                            </label>
                             <select id="create_year_of_study" name="year_of_study"
-                                    class="form-select @error('year_of_study') is-invalid @enderror">
+                                    class="form-select {{ $createFormFailed && $errors->has('year_of_study') ? 'is-invalid' : '' }}">
                                 <option value="" @selected($createYear === null)>—</option>
-                                @for ($y = 1; $y <= 4; $y++)
+                                @for ($y = 1; $y <= 8; $y++)
                                     <option value="{{ $y }}" @selected($createYear === $y)>Year {{ $y }}</option>
                                 @endfor
                             </select>
-                            @error('year_of_study') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                            <div class="form-text">Most relevant for student accounts (Year 1–4).</div>
+                            @if ($createFormFailed && $errors->has('year_of_study'))
+                                <div class="invalid-feedback d-block">{{ $errors->first('year_of_study') }}</div>
+                            @endif
+                            <div class="form-text">Required for student accounts only.</div>
                         </div>
                     </div>
                 </div>
@@ -400,91 +427,150 @@
                     </h2>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form method="POST" action="{{ route('admin.users.update', $user) }}">
+                <form method="POST" action="{{ route('admin.users.update', $user) }}" novalidate>
                     @csrf
                     @method('PUT')
+                    <input type="hidden" name="form_context" value="edit">
                     <input type="hidden" name="edit_user_id" value="{{ $user->id }}">
+                    @php
+                        $editFormFailed = old('form_context') === 'edit' && (int) old('edit_user_id') === (int) $user->id;
+                        $editName = $editFormFailed ? old('name', $user->name) : $user->name;
+                        $editEmail = $editFormFailed ? old('email', $user->email) : $user->email;
+                        $editLoginId = $editFormFailed ? old('login_id', $user->login_id) : $user->login_id;
+                        $editPhone = $editFormFailed ? old('phone_number', $user->phone_number) : $user->phone_number;
+                        $editRole = $editFormFailed ? old('role', $user->role) : $user->role;
+                        $editStatus = $editFormFailed ? old('account_status', $user->account_status) : $user->account_status;
+                        $editDepartment = $editFormFailed ? old('department', $user->department) : $user->department;
+                        $editProgramme = $editFormFailed ? old('programme', $user->programme) : $user->programme;
+                        $editYearRaw = $editFormFailed ? old('year_of_study', $user->year_of_study) : $user->year_of_study;
+                        $editYear = $editYearRaw === '' || $editYearRaw === null ? null : (int) $editYearRaw;
+                        $editRoleIsStudent = in_array($editRole, $studentRoleValues, true);
+                    @endphp
                     <div class="modal-body p-4">
-                        <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
-                            <span class="d-inline-flex align-items-center justify-content-center bg-brand-soft text-primary rounded-circle fw-bold"
-                                  style="width: 48px; height: 48px;">
-                                {{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($user->name, 0, 1)) }}
-                            </span>
-                            <div>
-                                <div class="fw-semibold text-strong">{{ $user->name }}</div>
-                                <div class="small text-muted">{{ $user->email }}</div>
-                                <code class="text-xs">{{ $user->displayIdentifier() }}</code>
+                        <p class="fw-semibold small text-uppercase text-muted mb-3">Account details</p>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label for="edit_name_{{ $user->id }}" class="form-label">Full name <span class="text-danger">*</span></label>
+                                <input type="text" id="edit_name_{{ $user->id }}" name="name"
+                                       value="{{ $editName }}"
+                                       class="form-control {{ $editFormFailed && $errors->has('name') ? 'is-invalid' : '' }}"
+                                       maxlength="120" placeholder="John Doe">
+                                @if ($editFormFailed && $errors->has('name'))
+                                    <div class="invalid-feedback d-block">{{ $errors->first('name') }}</div>
+                                @endif
+                            </div>
+                            <div class="col-md-6">
+                                <label for="edit_email_{{ $user->id }}" class="form-label">Email address <span class="text-danger">*</span></label>
+                                <input type="email" id="edit_email_{{ $user->id }}" name="email"
+                                       value="{{ $editEmail }}"
+                                       class="form-control {{ $editFormFailed && $errors->has('email') ? 'is-invalid' : '' }}"
+                                       maxlength="255" autocomplete="off">
+                                @if ($editFormFailed && $errors->has('email'))
+                                    <div class="invalid-feedback d-block">{{ $errors->first('email') }}</div>
+                                @endif
+                            </div>
+                            <div class="col-md-6">
+                                <label for="edit_login_id_{{ $user->id }}" class="form-label">Reg. no / Staff ID <span class="text-danger">*</span></label>
+                                <input type="text" id="edit_login_id_{{ $user->id }}" name="login_id"
+                                       value="{{ $editLoginId }}"
+                                       class="form-control {{ $editFormFailed && $errors->has('login_id') ? 'is-invalid' : '' }}"
+                                       maxlength="80">
+                                @if ($editFormFailed && $errors->has('login_id'))
+                                    <div class="invalid-feedback d-block">{{ $errors->first('login_id') }}</div>
+                                @endif
+                            </div>
+                            <div class="col-md-6">
+                                <label for="edit_phone_{{ $user->id }}" class="form-label">Phone number</label>
+                                <input type="text" id="edit_phone_{{ $user->id }}" name="phone_number"
+                                       value="{{ $editPhone }}"
+                                       class="form-control {{ $editFormFailed && $errors->has('phone_number') ? 'is-invalid' : '' }}"
+                                       maxlength="30" placeholder="Optional">
+                                @if ($editFormFailed && $errors->has('phone_number'))
+                                    <div class="invalid-feedback d-block">{{ $errors->first('phone_number') }}</div>
+                                @endif
                             </div>
                         </div>
 
+                        <hr class="my-4">
+                        <p class="fw-semibold small text-uppercase text-muted mb-3">Access &amp; status</p>
                         <div class="mb-3">
-                            <label for="edit_role_{{ $user->id }}" class="form-label">System role</label>
-                            <select id="edit_role_{{ $user->id }}" name="role" class="form-select" required>
+                            <label for="edit_role_{{ $user->id }}" class="form-label">System role <span class="text-danger">*</span></label>
+                            <select id="edit_role_{{ $user->id }}" name="role"
+                                    class="form-select {{ $editFormFailed && $errors->has('role') ? 'is-invalid' : '' }}">
                                 @foreach ($roles as $r)
-                                    <option value="{{ $r }}" @selected($user->role === $r)>
+                                    <option value="{{ $r }}" @selected($editRole === $r)>
                                         {{ $roleLabels[$r]['label'] ?? \Illuminate\Support\Str::title(str_replace('_',' ',$r)) }}
                                     </option>
                                 @endforeach
                             </select>
+                            @if ($editFormFailed && $errors->has('role'))
+                                <div class="invalid-feedback d-block">{{ $errors->first('role') }}</div>
+                            @endif
                         </div>
 
                         <div class="mb-2">
-                            <label for="edit_status_{{ $user->id }}" class="form-label">Account status</label>
-                            <select id="edit_status_{{ $user->id }}" name="account_status" class="form-select" required>
+                            <label for="edit_status_{{ $user->id }}" class="form-label">Account status <span class="text-danger">*</span></label>
+                            <select id="edit_status_{{ $user->id }}" name="account_status"
+                                    class="form-select {{ $editFormFailed && $errors->has('account_status') ? 'is-invalid' : '' }}">
                                 @foreach ($statuses as $s)
-                                    <option value="{{ $s }}" @selected($user->account_status === $s)>
+                                    <option value="{{ $s }}" @selected($editStatus === $s)>
                                         {{ $statusLabels[$s]['label'] ?? \Illuminate\Support\Str::title($s) }}
                                     </option>
                                 @endforeach
                             </select>
+                            @if ($editFormFailed && $errors->has('account_status'))
+                                <div class="invalid-feedback d-block">{{ $errors->first('account_status') }}</div>
+                            @endif
                             <div class="form-text">
                                 Use <strong>Suspended</strong> for temporary holds and <strong>Locked</strong>
                                 for security incidents.
                             </div>
                         </div>
 
-                        @if (auth()->user()->role === 'admin' && $user->isStudentUser())
-                            <hr class="my-4">
-                            <p class="fw-semibold small text-uppercase text-muted mb-3">Academic record (student)</p>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label for="edit_department_{{ $user->id }}" class="form-label">Department</label>
-                                    <input type="text" id="edit_department_{{ $user->id }}" name="department"
-                                           value="{{ (int) old('edit_user_id') === (int) $user->id ? old('department', $user->department) : $user->department }}"
-                                           class="form-control @error('department') is-invalid @enderror"
-                                           maxlength="120" placeholder="Department name">
-                                    @error('department')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="edit_programme_{{ $user->id }}" class="form-label">Programme</label>
-                                    <input type="text" id="edit_programme_{{ $user->id }}" name="programme"
-                                           value="{{ (int) old('edit_user_id') === (int) $user->id ? old('programme', $user->programme) : $user->programme }}"
-                                           class="form-control @error('programme') is-invalid @enderror"
-                                           maxlength="120" placeholder="e.g. BBICT">
-                                    @error('programme')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                                </div>
-                                <div class="col-md-6">
-                                    @php
-                                        $adminYearVal = (int) old('edit_user_id') === (int) $user->id
-                                            ? old('year_of_study', $user->year_of_study)
-                                            : $user->year_of_study;
-                                        $adminYearVal = $adminYearVal === '' || $adminYearVal === null ? null : (int) $adminYearVal;
-                                    @endphp
-                                    <label for="edit_year_{{ $user->id }}" class="form-label">Year of study</label>
-                                    <select id="edit_year_{{ $user->id }}" name="year_of_study"
-                                            class="form-select @error('year_of_study') is-invalid @enderror">
-                                        <option value="" @selected($adminYearVal === null)>—</option>
-                                        @for ($y = 1; $y <= 8; $y++)
-                                            <option value="{{ $y }}" @selected($adminYearVal === $y)>Year {{ $y }}</option>
-                                        @endfor
-                                    </select>
-                                    @error('year_of_study')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                                </div>
+                        <hr class="my-4">
+                        <p class="fw-semibold small text-uppercase text-muted mb-3">Academic record</p>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="edit_department_{{ $user->id }}" class="form-label">Department <span class="text-danger">*</span></label>
+                                <input type="text" id="edit_department_{{ $user->id }}" name="department"
+                                       value="{{ $editDepartment }}"
+                                       class="form-control {{ $editFormFailed && $errors->has('department') ? 'is-invalid' : '' }}"
+                                       maxlength="120" placeholder="Department name">
+                                @if ($editFormFailed && $errors->has('department'))
+                                    <div class="invalid-feedback d-block">{{ $errors->first('department') }}</div>
+                                @endif
                             </div>
-                            <p class="text-muted small mt-3 mb-0">
-                                Students cannot change these fields on their own profile; keep them aligned with official records.
-                            </p>
-                        @endif
+                            <div class="col-md-6">
+                                <label for="edit_programme_{{ $user->id }}" class="form-label">Programme <span class="text-danger">*</span></label>
+                                <input type="text" id="edit_programme_{{ $user->id }}" name="programme"
+                                       value="{{ $editProgramme }}"
+                                       class="form-control {{ $editFormFailed && $errors->has('programme') ? 'is-invalid' : '' }}"
+                                       maxlength="120" placeholder="e.g. BBICT">
+                                @if ($editFormFailed && $errors->has('programme'))
+                                    <div class="invalid-feedback d-block">{{ $errors->first('programme') }}</div>
+                                @endif
+                            </div>
+                            <div class="col-md-6">
+                                <label for="edit_year_{{ $user->id }}" class="form-label" id="edit_year_label_{{ $user->id }}">
+                                    Year of study
+                                    <span class="text-danger edit-year-required-{{ $user->id }}" @if(! $editRoleIsStudent) hidden @endif>*</span>
+                                </label>
+                                <select id="edit_year_{{ $user->id }}" name="year_of_study"
+                                        class="form-select {{ $editFormFailed && $errors->has('year_of_study') ? 'is-invalid' : '' }}">
+                                    <option value="" @selected($editYear === null)>—</option>
+                                    @for ($y = 1; $y <= 8; $y++)
+                                        <option value="{{ $y }}" @selected($editYear === $y)>Year {{ $y }}</option>
+                                    @endfor
+                                </select>
+                                @if ($editFormFailed && $errors->has('year_of_study'))
+                                    <div class="invalid-feedback d-block">{{ $errors->first('year_of_study') }}</div>
+                                @endif
+                                <div class="form-text">Required for student accounts only.</div>
+                            </div>
+                        </div>
+                        <p class="text-muted small mt-3 mb-0">
+                            Students cannot change these fields on their own profile; keep them aligned with official records.
+                        </p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
@@ -607,22 +693,48 @@
 
 @push('scripts')
 <script>
-    // Re-open the create modal automatically if validation failed
-    @if ($errors->any() && old('name'))
-        document.addEventListener('DOMContentLoaded', function () {
-            const modal = document.getElementById('createUserModal');
-            if (modal && window.bootstrap) {
-                bootstrap.Modal.getOrCreateInstance(modal).show();
+    document.addEventListener('DOMContentLoaded', function () {
+        const studentRoles = @json($studentRoleValues);
+
+        function syncStudentYearRequired(roleSelect, yearRequiredMarker) {
+            if (!roleSelect || !yearRequiredMarker) {
+                return;
             }
+            const isStudent = studentRoles.includes(roleSelect.value);
+            yearRequiredMarker.hidden = !isStudent;
+        }
+
+        const createRole = document.getElementById('create_role');
+        const createYearRequired = document.querySelector('#createUserModal .create-year-required');
+        if (createRole) {
+            createRole.addEventListener('change', function () {
+                syncStudentYearRequired(createRole, createYearRequired);
+            });
+            syncStudentYearRequired(createRole, createYearRequired);
+        }
+
+        document.querySelectorAll('[id^="edit_role_"]').forEach(function (roleSelect) {
+            const userId = roleSelect.id.replace('edit_role_', '');
+            const yearRequired = document.querySelector('.edit-year-required-' + userId);
+            roleSelect.addEventListener('change', function () {
+                syncStudentYearRequired(roleSelect, yearRequired);
+            });
+            syncStudentYearRequired(roleSelect, yearRequired);
         });
-    @endif
-    @if ($errors->any() && old('edit_user_id') && ! old('name'))
-        document.addEventListener('DOMContentLoaded', function () {
-            const el = document.getElementById('editUserModal-{{ (int) old('edit_user_id') }}');
-            if (el && window.bootstrap) {
-                bootstrap.Modal.getOrCreateInstance(el).show();
+
+        @if ($errors->any() && old('form_context') === 'create')
+            const createModal = document.getElementById('createUserModal');
+            if (createModal && window.bootstrap) {
+                bootstrap.Modal.getOrCreateInstance(createModal).show();
             }
-        });
-    @endif
+        @endif
+
+        @if ($errors->any() && old('form_context') === 'edit' && old('edit_user_id'))
+            const editModal = document.getElementById('editUserModal-{{ (int) old('edit_user_id') }}');
+            if (editModal && window.bootstrap) {
+                bootstrap.Modal.getOrCreateInstance(editModal).show();
+            }
+        @endif
+    });
 </script>
 @endpush

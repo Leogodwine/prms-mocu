@@ -140,6 +140,10 @@ final class StudentStageProgress
     ): ?string {
         $stageName = trim($stageName);
 
+        if ($proposalBlock = FinalYearWorkflowEngine::executionTrackBlockReason($user, $stageName, $latestByStage)) {
+            return $proposalBlock;
+        }
+
         if (self::isCompleteDocumentStage($stageName)) {
             $track = self::workTypeFromCompleteDocumentStage($stageName);
             $finalChapter = self::finalChapterStageForTrack($track);

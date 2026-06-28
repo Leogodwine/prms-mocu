@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Models\EvaluationRubric;
 use App\Models\ProjectStage;
 use App\Support\Audit;
+use App\Support\PrmsEventNotifier;
 use App\Support\PrmsListFilters;
 use App\Support\PresentationConsentForm;
 use App\Support\RepositoryPublication;
@@ -221,6 +222,8 @@ class CoordinatorController extends Controller
 
         $group->members()->sync($memberIds);
 
+        PrmsEventNotifier::notifyGroupCreated($group->load('members'));
+
         Audit::log(
             $request,
             'coordinator.group_created',
@@ -320,6 +323,8 @@ class CoordinatorController extends Controller
 
                     $group->members()->sync($memberIds);
                     $createdCount++;
+
+                    PrmsEventNotifier::notifyGroupCreated($group->load('members'));
 
                     Audit::log(
                         $request,
@@ -466,6 +471,10 @@ class CoordinatorController extends Controller
             ]
         );
 
+        $group = ProjectGroup::query()->with('members')->findOrFail($validated['project_group_id']);
+        $supervisor = User::query()->findOrFail($validated['supervisor_id']);
+        PrmsEventNotifier::notifySupervisorAssigned($group, $supervisor);
+
         Audit::log(
             $request,
             'coordinator.supervisor_assigned',
@@ -510,6 +519,8 @@ class CoordinatorController extends Controller
                 'project_group_id' => $group->id,
                 'supervisor_id' => $targetSupervisor->id,
             ]);
+
+            PrmsEventNotifier::notifySupervisorAssigned($group->load('members'), $targetSupervisor);
 
             // Increment workload locally so we don't dump everyone on one person in the same loop
             $targetSupervisor->supervisor_assignments_count++;
@@ -558,6 +569,8 @@ class CoordinatorController extends Controller
             $validated,
         );
 
+        PrmsEventNotifier::notifyStageDeadline($deadline);
+
         return redirect()->route('coordinator.deadlines')->with('status', 'Deadline set successfully.');
     }
 
@@ -576,6 +589,8 @@ class CoordinatorController extends Controller
             $old,
             $validated,
         );
+
+        PrmsEventNotifier::notifyStageDeadline($deadline, updated: true);
 
         return redirect()
             ->route('coordinator.deadlines')
@@ -747,6 +762,8 @@ class CoordinatorController extends Controller
             ['pdf_path' => $pdfPath, 'published_count' => $published]
         );
 
+        PrmsEventNotifier::notifyCoordinatorConsentApproved($submission, $coordinator, $published);
+
         $message = 'Supervisor confirmation form signed and finalized successfully.';
         if ($published > 0) {
             $message .= " {$published} related complete document(s) published to the repository.";
@@ -791,6 +808,8 @@ class CoordinatorController extends Controller
 
         RepositoryPublication::tryPublishOnCoordinatorFinalize($submission);
         $submission->refresh();
+
+        PrmsEventNotifier::notifyCoordinatorSubmissionFinalized($submission, $publishedViaConsent);
 
         $message = 'Submission finalized and recorded successfully.';
         if ($submission->repository_published_at !== null) {

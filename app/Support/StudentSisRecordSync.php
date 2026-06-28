@@ -21,7 +21,7 @@ final class StudentSisRecordSync
         }
 
         $yearOfStudy = (int) ($row['year_of_study'] ?? 0);
-        $role = $yearOfStudy >= 3 ? 'project_student' : 'normal_student';
+        $role = 'normal_student';
         $enrollment = strtolower(trim((string) ($row['enrollment_status'] ?? 'inactive')));
         $accountStatus = $enrollment === 'active' ? 'active' : 'inactive';
 
@@ -101,6 +101,8 @@ final class StudentSisRecordSync
         $student->sis_data = self::sisDataSnapshot($row);
         $student->sis_sync_date = now();
         $student->save();
+
+        StudentWorkflowAssigner::syncForUser($user->fresh());
 
         return $student;
     }

@@ -3,12 +3,11 @@
 namespace App\Notifications;
 
 use App\Models\ProjectSubmission;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class SubmissionReviewedNotification extends Notification implements ShouldQueue
+class SubmissionReviewedNotification extends Notification
 {
     use Queueable;
 

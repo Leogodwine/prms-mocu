@@ -13,8 +13,8 @@
     @include('layouts.partials.kaiadmin-styles')
     @php $kai = asset(config('prms.kaiadmin_assets', 'vendor/prms-mocu/assets')); @endphp
     <link rel="stylesheet" href="{{ $kai }}/css/demo.css">
-    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=28">
-    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=25">
+    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=30">
+    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=33">
 
     @stack('styles')
 </head>
@@ -53,19 +53,15 @@
     <div class="main-panel">
         <div class="main-header">
             <div class="main-header-logo">
-                <div class="logo-header">
-                    @include('layouts.partials.prms-sidebar-brand', ['logoClass' => 'prms-brand-logo--header'])
+                <div class="logo-header prms-mobile-toolbar" data-background-color="dark">
                     <div class="nav-toggle">
                         <button type="button" class="btn btn-toggle toggle-sidebar" aria-label="Toggle sidebar">
                             <i class="gg-menu-right"></i>
                         </button>
-                        <button type="button" class="btn btn-toggle sidenav-toggler" aria-label="Minimize sidebar">
+                        <button type="button" class="btn btn-toggle sidenav-toggler" aria-label="Open navigation menu">
                             <i class="gg-menu-left"></i>
                         </button>
                     </div>
-                    <button type="button" class="topbar-toggler more" aria-label="More">
-                        <i class="gg-more-vertical-alt"></i>
-                    </button>
                 </div>
             </div>
 
@@ -141,20 +137,10 @@
 
         <div class="container" id="prms-main">
             <div class="page-inner">
-                <div class="page-header">
-                    <h3 class="page-title mb-0">@yield('title', 'Dashboard')</h3>
-                    <ul class="breadcrumbs ms-auto mb-0">
-                        <li class="nav-home">
-                            <a href="{{ route('dashboard') }}" aria-label="{{ __('Dashboard') }}"><i class="icon-home"></i></a>
-                        </li>
-                        @hasSection('breadcrumb')
-                            @yield('breadcrumb')
-                        @else
-                            <li class="separator"><i class="icon-arrow-right"></i></li>
-                            <li class="nav-item"><span class="text-muted">@yield('title', 'Dashboard')</span></li>
-                        @endif
-                    </ul>
-                </div>
+                @include('layouts.partials.prms-page-header', [
+                    'headerHomeUrl' => route('dashboard'),
+                    'headerDefaultTitle' => 'Dashboard',
+                ])
 
                 <div class="row">
                     <div class="col-12">
@@ -184,6 +170,7 @@
 @stack('modals')
 
 @include('layouts.partials.kaiadmin-scripts', ['full' => true])
+<script src="{{ asset('js/prms-header.js') }}?v=1"></script>
 
 @if (auth()->check())
     <script src="{{ asset('js/prms-quick-nav.js') }}?v=6" defer></script>

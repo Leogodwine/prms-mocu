@@ -20,6 +20,10 @@ class ProgramFactory extends Factory
             'programme_name' => fake()->sentence(3),
             'department_id' => Department::factory(),
             'duration_years' => fake()->numberBetween(3, 4),
+            'academic_level' => 'bachelor',
+            'final_year' => fake()->numberBetween(3, 4),
+            'output_type' => 'RESEARCH_ONLY',
+            'workflow_type' => 'standard',
             'is_project_eligible' => true,
             'project_year' => fake()->numberBetween(3, 4),
         ];

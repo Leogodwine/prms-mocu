@@ -25,6 +25,21 @@ class StudentAcademicRecordSync
 
         $dirty = false;
 
+        if (Schema::hasColumn('students', 'registration_number')) {
+            $profile->registration_number = $user->login_id;
+            $dirty = true;
+        }
+
+        if (Schema::hasColumn('students', 'full_name')) {
+            $profile->full_name = $user->name;
+            $dirty = true;
+        }
+
+        if (Schema::hasColumn('students', 'university_email')) {
+            $profile->university_email = $user->email;
+            $dirty = true;
+        }
+
         if (Schema::hasColumn('students', 'year_of_study') && $user->year_of_study !== null) {
             $profile->year_of_study = (int) $user->year_of_study;
             $dirty = true;

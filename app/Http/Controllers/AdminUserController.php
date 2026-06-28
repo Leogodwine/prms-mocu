@@ -6,13 +6,14 @@ use App\Http\Requests\BulkImportUsersRequest;
 use App\Http\Requests\StoreAdminUserRequest;
 use App\Http\Requests\UpdateAdminUserRequest;
 use App\Models\User;
-use App\Notifications\AccountCreatedNotification;
-use App\Notifications\AdminNewUserCredentialsNotification;
+use App\Support\AdminUserCreatedNotifier;
 use App\Support\Audit;
+use App\Support\PrmsEventNotifier;
 use App\Support\PrmsListFilters;
 use App\Support\StaffProfileProvisioner;
 use App\Support\StudentAcademicRecordSync;
 use App\Support\StudentProfileProvisioner;
+use App\Support\StudentWorkflowAssigner;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -28,43 +29,154 @@ class AdminUserController extends Controller
 
         $file = $request->file('csv_file');
         $handle = fopen($file->getRealPath(), 'r');
-        $header = fgetcsv($handle); // name, email, login_id, role, department, programme
+        $header = array_map(static fn ($col) => trim((string) $col), fgetcsv($handle) ?: []);
 
-        $count = 0;
+        if ($header === []) {
+            fclose($handle);
+
+            return back()->withErrors(['csv_file' => 'The CSV file is empty or has no header row.']);
+        }
+
+        $studentRoles = StoreAdminUserRequest::STUDENT_ROLES;
+        $staffRoles = StaffProfileProvisioner::staffProfileRoles();
+        $imported = 0;
+        $skipped = 0;
+        $rowNumber = 1;
+
         while (($data = fgetcsv($handle)) !== false) {
-            $row = array_combine($header, $data);
-            
-            $user = User::firstOrCreate(
-                ['email' => $row['email']],
-                [
-                    'name' => $row['name'],
-                    'login_id' => $row['login_id'],
-                    'role' => $row['role'] ?? 'student',
-                    'department' => $row['department'] ?? null,
-                    'programme' => $row['programme'] ?? null,
-                    'password' => \Illuminate\Support\Facades\Hash::make('P@ssw0rd123'),
-                    'must_change_password' => true,
-                    'enrollment_status' => 'active',
-                    'account_status' => 'active',
-                ]
-            );
+            $rowNumber++;
 
-            // Create profile
-            if ($user->role === 'student') {
-                \App\Models\Student::firstOrCreate(['user_id' => $user->id], [
-                    'registration_number' => $user->login_id,
-                ]);
-            } elseif (in_array($user->role, ['supervisor', 'coordinator', 'hod'])) {
-                \App\Models\Staff::firstOrCreate(['user_id' => $user->id], [
-                    'staff_number' => $user->login_id,
-                ]);
+            if (count(array_filter($data, static fn ($v) => trim((string) $v) !== '')) === 0) {
+                continue;
             }
 
-            $count++;
+            if (count($data) < count($header)) {
+                $data = array_pad($data, count($header), '');
+            }
+
+            /** @var array<string, string>|false $row */
+            $row = array_combine($header, $data);
+            if ($row === false) {
+                $skipped++;
+
+                continue;
+            }
+
+            $email = trim((string) ($row['email'] ?? ''));
+            $name = trim((string) ($row['name'] ?? ''));
+            $loginId = trim((string) ($row['login_id'] ?? ''));
+
+            if ($email === '' || $name === '' || $loginId === '') {
+                $skipped++;
+
+                continue;
+            }
+
+            if (User::query()->where('email', $email)->exists()) {
+                $skipped++;
+
+                continue;
+            }
+
+            $role = $this->normalizeBulkImportRole(trim((string) ($row['role'] ?? 'normal_student')));
+            $department = trim((string) ($row['department'] ?? '')) ?: null;
+            $programme = trim((string) ($row['programme'] ?? '')) ?: null;
+            $yearOfStudy = in_array($role, $studentRoles, true) ? 1 : null;
+            $tempPassword = Str::password(12);
+
+            try {
+                $user = DB::transaction(function () use (
+                    $request,
+                    $name,
+                    $email,
+                    $loginId,
+                    $role,
+                    $department,
+                    $programme,
+                    $yearOfStudy,
+                    $tempPassword,
+                    $studentRoles,
+                    $staffRoles
+                ): User {
+                    $attributes = [
+                        'name' => $name,
+                        'email' => $email,
+                        'login_id' => $loginId,
+                        'role' => $role,
+                        'department' => $department,
+                        'programme' => $programme,
+                        'year_of_study' => $yearOfStudy,
+                        'enrollment_status' => 'active',
+                        'account_status' => 'active',
+                        'password' => $tempPassword,
+                        'must_change_password' => true,
+                        'notify_email_new_submission' => true,
+                        'notify_email_submission_reviewed' => true,
+                    ];
+
+                    if (Schema::hasColumn('users', 'registration_number') && in_array($role, $studentRoles, true)) {
+                        $attributes['registration_number'] = $loginId;
+                    }
+
+                    if (Schema::hasColumn('users', 'staff_id') && in_array($role, $staffRoles, true)) {
+                        $attributes['staff_id'] = $loginId;
+                    }
+
+                    $user = User::query()->create($attributes);
+
+                    if (in_array($role, $studentRoles, true)) {
+                        StudentProfileProvisioner::ensureStudentProfile($user);
+                    }
+
+                    if (in_array($role, $staffRoles, true)) {
+                        StaffProfileProvisioner::syncFromUser($user);
+                    }
+
+                    Audit::log($request, 'admin.user_created', 'User', (string) $user->id, null, [
+                        'role' => $user->role,
+                        'login_id' => $user->login_id,
+                        'source' => 'bulk_import',
+                    ]);
+
+                    return $user;
+                });
+
+                AdminUserCreatedNotifier::notify($user, $loginId, $tempPassword, $request->user());
+
+                $imported++;
+            } catch (\Throwable $e) {
+                report($e);
+
+                fclose($handle);
+
+                return back()->withErrors([
+                    'csv_file' => "Import stopped at CSV row {$rowNumber}: ".$e->getMessage(),
+                ]);
+            }
         }
+
         fclose($handle);
 
-        return back()->with('status', "Successfully imported {$count} users.");
+        if ($imported === 0 && $skipped === 0) {
+            return back()->withErrors(['csv_file' => 'No valid user rows were found in the CSV file.']);
+        }
+
+        $message = "Successfully imported {$imported} user(s).";
+        if ($skipped > 0) {
+            $message .= " {$skipped} row(s) skipped (duplicate email or missing required fields).";
+        }
+
+        return back()->with('status', $message);
+    }
+
+    private function normalizeBulkImportRole(string $role): string
+    {
+        $role = strtolower(str_replace([' ', '-'], '_', $role));
+
+        return match ($role) {
+            'student' => 'normal_student',
+            default => $role,
+        };
     }
     public function index(Request $request): View|RedirectResponse
     {
@@ -206,6 +318,8 @@ class AdminUserController extends Controller
 
         Audit::log($request, 'admin.user_deleted', 'User', (string) $user->id, $snapshot, null);
 
+        PrmsEventNotifier::notifyAccountDeleted($snapshot, $request->user());
+
         return back()->with('status', "User “{$snapshot['name']}” has been deleted.");
     }
 
@@ -253,28 +367,14 @@ class AdminUserController extends Controller
             return $user;
         });
 
-        $statusMessage = 'User created. Sign-in details were sent to their email and in-app notifications. You also have an in-app notification with the username and temporary password.';
+        $statusMessage = 'User created. Sign-in details were sent to the new user and all administrators received in-app notifications with the username and temporary password.';
 
         try {
-            $user->notify(new AccountCreatedNotification($validated['login_id'], $tempPassword));
+            AdminUserCreatedNotifier::notify($user, $validated['login_id'], $tempPassword, $request->user());
         } catch (\Throwable $e) {
             report($e);
-            $statusMessage = 'User created, but the welcome notification could not be sent. Check mail configuration, or share credentials manually: username '
-                .$validated['login_id'].', temporary password '.$tempPassword.'. You still have an in-app notification with these credentials.';
-        }
-
-        $admin = $request->user();
-        if ($admin !== null) {
-            try {
-                $admin->notify(new AdminNewUserCredentialsNotification(
-                    $validated['name'],
-                    $validated['email'],
-                    $validated['login_id'],
-                    $tempPassword
-                ));
-            } catch (\Throwable $e) {
-                report($e);
-            }
+            $statusMessage = 'User created, but notifications could not be sent. Check mail configuration, or share credentials manually: username '
+                .$validated['login_id'].', temporary password '.$tempPassword.'.';
         }
 
         return back()->with('status', $statusMessage);
@@ -293,6 +393,10 @@ class AdminUserController extends Controller
         }
 
         $old = [
+            'name' => $user->name,
+            'email' => $user->email,
+            'login_id' => $user->login_id,
+            'phone_number' => $user->phone_number,
             'role' => $user->role,
             'account_status' => $user->account_status,
             'department' => $user->department,
@@ -300,10 +404,42 @@ class AdminUserController extends Controller
             'year_of_study' => $user->year_of_study,
         ];
 
+        $user->name = $validated['name'];
+        $user->email = $validated['email'];
+        $user->login_id = $validated['login_id'];
+        $user->phone_number = $validated['phone_number'] ?? null;
         $user->role = $validated['role'];
         $user->account_status = $validated['account_status'];
 
-        if ($request->user()->role === 'admin' && $user->isStudentUser()) {
+        $studentRoles = UpdateAdminUserRequest::STUDENT_ROLES;
+        $staffRoles = StaffProfileProvisioner::staffProfileRoles();
+
+        if (Schema::hasColumn('users', 'registration_number') || Schema::hasColumn('users', 'staff_id')) {
+            if (in_array($validated['role'], $studentRoles, true)) {
+                if (Schema::hasColumn('users', 'registration_number')) {
+                    $user->registration_number = $validated['login_id'];
+                }
+                if (Schema::hasColumn('users', 'staff_id')) {
+                    $user->staff_id = null;
+                }
+            } elseif (in_array($validated['role'], $staffRoles, true)) {
+                if (Schema::hasColumn('users', 'staff_id')) {
+                    $user->staff_id = $validated['login_id'];
+                }
+                if (Schema::hasColumn('users', 'registration_number')) {
+                    $user->registration_number = null;
+                }
+            } else {
+                if (Schema::hasColumn('users', 'registration_number')) {
+                    $user->registration_number = null;
+                }
+                if (Schema::hasColumn('users', 'staff_id')) {
+                    $user->staff_id = null;
+                }
+            }
+        }
+
+        if ($request->user()->role === 'admin') {
             if (Schema::hasColumn('users', 'department')) {
                 $user->department = $validated['department'] ?? null;
             }
@@ -311,23 +447,30 @@ class AdminUserController extends Controller
                 $user->programme = $validated['programme'] ?? null;
             }
             if (Schema::hasColumn('users', 'year_of_study')) {
-                $user->year_of_study = $validated['year_of_study'] ?? null;
+                $user->year_of_study = in_array($validated['role'], $studentRoles, true)
+                    ? ($validated['year_of_study'] ?? null)
+                    : null;
             }
         }
 
         $user->save();
 
-        if ($request->user()->role === 'admin' && $user->isStudentUser()) {
-            StudentProfileProvisioner::ensureStudentProfile($user);
-            $user->refresh();
-            StudentAcademicRecordSync::syncLinkedStudentRowFromUser($user);
-        }
-
         if ($request->user()->role === 'admin') {
             StaffProfileProvisioner::syncFromUser($user->fresh());
         }
 
+        if ($request->user()->role === 'admin' && in_array($validated['role'], $studentRoles, true)) {
+            StudentProfileProvisioner::ensureStudentProfile($user);
+            $user->refresh();
+            StudentAcademicRecordSync::syncLinkedStudentRowFromUser($user);
+            StudentWorkflowAssigner::syncForUser($user->fresh());
+        }
+
         $new = [
+            'name' => $user->name,
+            'email' => $user->email,
+            'login_id' => $user->login_id,
+            'phone_number' => $user->phone_number,
             'role' => $user->role,
             'account_status' => $user->account_status,
             'department' => $user->department,
@@ -336,6 +479,8 @@ class AdminUserController extends Controller
         ];
 
         Audit::log($request, 'admin.user_updated', 'User', (string) $user->id, $old, $new);
+
+        PrmsEventNotifier::notifyAccountUpdated($user, $request->user());
 
         return back()->with('status', 'User updated successfully.');
     }

@@ -11,7 +11,7 @@
 
     @include('layouts.partials.kaiadmin-styles')
     <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=19">
-    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=14">
+    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=33">
 
     @stack('styles')
 </head>
@@ -68,20 +68,10 @@
             <div class="page-inner pt-4">
                 @hasSection('hide_page_header')
                 @else
-                    <div class="page-header">
-                        <h3 class="page-title mb-0">@yield('title', 'Research Repository')</h3>
-                        <ul class="breadcrumbs ms-auto mb-0">
-                            <li class="nav-home">
-                                <a href="{{ route('home') }}" aria-label="{{ __('Home') }}"><i class="icon-home"></i></a>
-                            </li>
-                            @hasSection('breadcrumb')
-                                @yield('breadcrumb')
-                            @else
-                                <li class="separator"><i class="icon-arrow-right"></i></li>
-                                <li class="nav-item"><span class="text-muted">@yield('title', 'Research Repository')</span></li>
-                            @endif
-                        </ul>
-                    </div>
+                    @include('layouts.partials.prms-page-header', [
+                        'headerHomeUrl' => route('home'),
+                        'headerDefaultTitle' => 'Research Repository',
+                    ])
                 @endif
                 <x-prms-flash-messages />
                 @yield('content')

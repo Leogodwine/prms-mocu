@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\AuditLog;
 use App\Models\LoginHistory;
 use App\Models\StudentSisSyncLog;
+use App\Support\Audit;
+use App\Support\PrmsPlatformMonitor;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -16,23 +19,30 @@ class AdminSystemHealthController extends Controller
 {
     public function index(): View
     {
-        $queueFailed = Schema::hasTable('failed_jobs') ? DB::table('failed_jobs')->count() : null;
         $failedJobs = Schema::hasTable('failed_jobs')
             ? DB::table('failed_jobs')->latest('failed_at')->limit(10)->get()
             : collect();
 
-        $latestSisSync = StudentSisSyncLog::query()->latest('sync_timestamp')->first();
-        $latestAudit = AuditLog::query()->latest()->first();
-        $latestLogin = LoginHistory::query()->latest('login_time')->first();
         $heartbeatPath = storage_path('app/health/queue-worker-heartbeat.txt');
         $queueHeartbeat = File::exists($heartbeatPath) ? trim((string) File::get($heartbeatPath)) : null;
 
         return view('admin.system-health', [
-            'queueFailed' => $queueFailed,
+            'monitor' => [
+                'online' => ! PrmsPlatformMonitor::isMaintenanceMode(),
+                'maintenance' => PrmsPlatformMonitor::isMaintenanceMode(),
+                'maintenance_message' => PrmsPlatformMonitor::maintenanceMessage(),
+                'database' => PrmsPlatformMonitor::databaseStatus(),
+                'memory' => PrmsPlatformMonitor::memoryUsage(),
+                'disk' => PrmsPlatformMonitor::diskUsage(),
+                'environment' => PrmsPlatformMonitor::environmentRows(),
+                'log_lines' => PrmsPlatformMonitor::recentLogLines(150),
+                'storage_checks' => PrmsPlatformMonitor::storagePermissionChecks(),
+            ],
+            'queueFailed' => PrmsPlatformMonitor::queueFailedCount(),
             'failedJobs' => $failedJobs,
-            'latestSisSync' => $latestSisSync,
-            'latestAudit' => $latestAudit,
-            'latestLogin' => $latestLogin,
+            'latestSisSync' => StudentSisSyncLog::query()->latest('sync_timestamp')->first(),
+            'latestAudit' => AuditLog::query()->latest()->first(),
+            'latestLogin' => LoginHistory::query()->latest('login_time')->first(),
             'queueHeartbeat' => $queueHeartbeat,
             'recentAuditCount' => AuditLog::query()->where('created_at', '>=', now()->subDay())->count(),
             'recentLoginFailures' => LoginHistory::query()
@@ -40,6 +50,56 @@ class AdminSystemHealthController extends Controller
                 ->where('login_time', '>=', now()->subDay())
                 ->count(),
         ]);
+    }
+
+    public function enableMaintenance(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'maintenance_message' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        Artisan::call('down', [
+            '--retry' => 60,
+            '--refresh' => 15,
+            '--secret' => substr(md5((string) config('app.key')), 0, 16),
+        ]);
+
+        $path = storage_path('framework/down');
+        if (File::exists($path) && filled($validated['maintenance_message'] ?? null)) {
+            $payload = json_decode((string) File::get($path), true) ?: [];
+            $payload['message'] = trim($validated['maintenance_message']);
+            File::put($path, json_encode($payload, JSON_PRETTY_PRINT));
+        }
+
+        Audit::log($request, 'admin.maintenance_enabled', 'System', null);
+
+        return back()->with('status', 'Maintenance mode enabled.');
+    }
+
+    public function disableMaintenance(Request $request): RedirectResponse
+    {
+        Artisan::call('up');
+
+        Audit::log($request, 'admin.maintenance_disabled', 'System', null);
+
+        return back()->with('status', 'Maintenance mode disabled. The application is online.');
+    }
+
+    public function runMaintenanceTask(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'task' => ['required', 'in:optimize,clear,queue-restart'],
+        ]);
+
+        match ($validated['task']) {
+            'optimize' => $this->runArtisanChain(['config:cache', 'route:cache', 'view:cache']),
+            'clear' => $this->runArtisanChain(['cache:clear', 'config:clear', 'route:clear', 'view:clear']),
+            'queue-restart' => Artisan::call('queue:restart'),
+        };
+
+        Audit::log($request, 'admin.maintenance_task', 'System', null, null, ['task' => $validated['task']]);
+
+        return back()->with('status', 'Maintenance task completed: '.$validated['task'].'.');
     }
 
     public function retryFailedJob(int $id): RedirectResponse
@@ -63,7 +123,7 @@ class AdminSystemHealthController extends Controller
     public function heartbeat(): RedirectResponse
     {
         $dir = storage_path('app/health');
-        if (!File::exists($dir)) {
+        if (! File::exists($dir)) {
             File::makeDirectory($dir, 0755, true);
         }
 
@@ -71,5 +131,11 @@ class AdminSystemHealthController extends Controller
 
         return back()->with('info', 'Queue heartbeat updated.');
     }
-}
 
+    private function runArtisanChain(array $commands): void
+    {
+        foreach ($commands as $command) {
+            Artisan::call($command);
+        }
+    }
+}

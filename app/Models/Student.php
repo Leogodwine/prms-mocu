@@ -16,6 +16,10 @@ class Student extends Model
         'full_name',
         'gender',
         'programme_id',
+        'department_id',
+        'academic_level',
+        'workflow_role',
+        'output_track',
         'year_of_study',
         'enrollment_status',
         'university_email',
@@ -42,6 +46,11 @@ class Student extends Model
     public function programme()
     {
         return $this->belongsTo(Program::class, 'programme_id');
+    }
+
+    public function department()
+    {
+        return $this->belongsTo(Department::class, 'department_id');
     }
 
     /**

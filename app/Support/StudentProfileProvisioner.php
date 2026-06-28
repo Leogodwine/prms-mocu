@@ -58,6 +58,8 @@ final class StudentProfileProvisioner
             ]
         );
 
+        StudentWorkflowAssigner::syncForUser($user->fresh());
+
         return $student->wasRecentlyCreated;
     }
 }

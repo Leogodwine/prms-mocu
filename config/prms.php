@@ -40,4 +40,24 @@ return [
         'label' => env('PRMS_HELP_DESK_LABEL', 'ICT Help Desk'),
         'email' => env('PRMS_HELP_DESK_EMAIL', 'icthelpdesk@mocu.ac.tz'),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Final-year workflow defaults
+    |--------------------------------------------------------------------------
+    |
+    | Programme and department rules override these values. Used when a
+    | programme has no explicit final_year / output_type configured.
+    |
+    */
+    'workflow' => [
+        'default_academic_level' => env('PRMS_DEFAULT_ACADEMIC_LEVEL', 'bachelor'),
+        'default_workflow_type' => env('PRMS_DEFAULT_WORKFLOW_TYPE', 'standard'),
+        'default_final_year' => [
+            'diploma' => (int) env('PRMS_FINAL_YEAR_DIPLOMA', 2),
+            'bachelor' => (int) env('PRMS_FINAL_YEAR_BACHELOR', 3),
+            'masters' => (int) env('PRMS_FINAL_YEAR_MASTERS', 2),
+            'phd' => (int) env('PRMS_FINAL_YEAR_PHD', 3),
+        ],
+    ],
 ];

@@ -10,7 +10,9 @@ use Illuminate\Support\Facades\Storage;
 class BackupPrmsCommand extends Command
 {
     protected $signature = 'prms:backup
-                            {--keep=14 : Number of backup folders to retain}';
+                            {--keep=14 : Number of backup folders to retain}
+                            {--trigger=manual : manual or scheduled}
+                            {--user-name=System : Name recorded in the manifest}';
 
     protected $description = 'Create a database and public-storage backup for disaster recovery';
 
@@ -32,6 +34,8 @@ class BackupPrmsCommand extends Command
             'database' => null,
             'storage' => null,
             'status' => 'partial',
+            'trigger' => (string) ($this->option('trigger') ?: 'manual'),
+            'created_by_name' => (string) ($this->option('user-name') ?: 'System'),
         ];
 
         $dbPath = $this->backupDatabase($targetDir);

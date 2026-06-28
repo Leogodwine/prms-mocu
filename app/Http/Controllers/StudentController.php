@@ -9,6 +9,7 @@ use App\Models\ProjectSubmissionScreenshot;
 use App\Models\SupervisorAssignment;
 use App\Notifications\NewSubmissionNotification;
 use App\Support\Audit;
+use App\Support\PrmsEventNotifier;
 use App\Support\SubmissionFileAccess;
 use App\Services\OnlyOfficeService;
 use App\Support\StudentStageProgress;
@@ -350,11 +351,7 @@ class StudentController extends Controller
 
         $submission->update(['submitted_to_coordinator' => true]);
 
-        // Notify Coordinator
-        $coordinator = \App\Models\User::where('role', 'coordinator')->first();
-        if ($coordinator) {
-            // $coordinator->notify(new FinalSubmissionToCoordinatorNotification($submission));
-        }
+        PrmsEventNotifier::notifySubmittedToCoordinator($submission, $user);
 
         return back()->with('status', 'Stage successfully submitted to the coordinator for final review.');
     }

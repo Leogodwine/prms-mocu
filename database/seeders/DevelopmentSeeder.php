@@ -21,6 +21,7 @@ class DevelopmentSeeder extends Seeder
             throw new RuntimeException('DevelopmentSeeder must not run in production.');
         }
 
-        $this->command?->warn('DevelopmentSeeder: no demo datasets are bundled. Use factories or add local seeders here.');
+        $this->command?->warn('DevelopmentSeeder: loading academic structure for local QA.');
+        $this->call(AcademicStructureSeeder::class);
     }
 }

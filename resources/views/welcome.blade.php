@@ -7,7 +7,7 @@
     <section class="hero prms-landing-hero" aria-labelledby="prms-hero-heading">
         <div class="prms-landing-hero-bg" aria-hidden="true"></div>
         <div class="container px-3 px-sm-4">
-            <div class="row align-items-center g-4 g-md-5">
+            <div class="row align-items-center g-3 g-md-5">
                 <div class="col-12">
                     <div class="hero-masthead text-center">
                         <h1 id="prms-hero-heading" class="prms-hero-system-title mb-0">
@@ -44,8 +44,8 @@
                     @csrf
                     <input type="hidden" name="_filter_action" value="apply">
                     <label for="prms-landing-repo-search" class="visually-hidden">{{ __('Search theses, projects, dissertations') }}</label>
-                    <div class="search-box d-flex align-items-center gap-2">
-                        <i class="fas fa-search text-muted ps-3" aria-hidden="true"></i>
+                    <div class="search-box">
+                        <i class="fas fa-search text-muted" aria-hidden="true"></i>
                         <input
                             id="prms-landing-repo-search"
                             name="search"
@@ -56,7 +56,7 @@
                 </form>
             </div>
 
-            <div class="row g-3 g-md-4 mt-2">
+            <div class="row g-3 g-md-4">
                 <div class="col-12 col-md-4 reveal">
                     <article class="info-card h-100">
                         <div class="info-icon" aria-hidden="true">
