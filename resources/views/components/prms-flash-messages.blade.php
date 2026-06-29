@@ -1,5 +1,6 @@
 @php
     $statusMessage = session('status') ?? session('success');
+    $errors = $errors ?? session('errors') ?? new Illuminate\Support\ViewErrorBag();
 @endphp
 
 <div class="prms-flash-region" aria-live="polite" aria-atomic="true">

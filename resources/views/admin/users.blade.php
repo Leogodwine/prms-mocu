@@ -333,6 +333,8 @@
 @php
     use App\Http\Requests\StoreAdminUserRequest;
 
+    $errors = $errors ?? new Illuminate\Support\ViewErrorBag();
+
     $formRoles = StoreAdminUserRequest::FORM_ROLES;
     $studentRoleValues = StoreAdminUserRequest::STUDENT_ROLES;
     $staffFormRoles = StoreAdminUserRequest::STAFF_FORM_ROLES;

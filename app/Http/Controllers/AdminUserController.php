@@ -309,7 +309,11 @@ class AdminUserController extends Controller
             $usersQuery->where('account_status', $statusFilter);
         }
 
-        $users = $usersQuery->with('studentProfile')->latest()->paginate(20)->withQueryString();
+        if (Schema::hasTable('students')) {
+            $usersQuery->with('studentProfile');
+        }
+
+        $users = $usersQuery->latest()->paginate(20)->withQueryString();
 
         $stats = [
             'total'         => User::query()->count(),
