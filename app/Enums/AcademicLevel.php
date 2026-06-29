@@ -4,6 +4,7 @@ namespace App\Enums;
 
 enum AcademicLevel: string
 {
+    case Certificate = 'certificate';
     case Diploma = 'diploma';
     case Bachelor = 'bachelor';
     case Masters = 'masters';
@@ -12,6 +13,7 @@ enum AcademicLevel: string
     public function label(): string
     {
         return match ($this) {
+            self::Certificate => 'Certificate',
             self::Diploma => 'Diploma',
             self::Bachelor => 'Bachelor',
             self::Masters => 'Masters',
@@ -28,7 +30,8 @@ enum AcademicLevel: string
         $normalized = strtolower(str_replace([' ', '-'], '_', trim($value)));
 
         return match ($normalized) {
-            'diploma', 'cert', 'certificate' => self::Diploma,
+            'certificate', 'cert' => self::Certificate,
+            'diploma' => self::Diploma,
             'masters', 'master', 'msc', 'ma', 'mba' => self::Masters,
             'phd', 'doctorate', 'doctoral' => self::Phd,
             default => self::Bachelor,

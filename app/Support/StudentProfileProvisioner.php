@@ -42,7 +42,7 @@ final class StudentProfileProvisioner
         }
 
         $studyYear = (int) ($user->year_of_study ?? 1);
-        if ($studyYear < 1 || $studyYear > 8) {
+        if ($studyYear < 1 || $studyYear > \App\Http\Requests\StoreAdminUserRequest::MAX_YEAR_OF_STUDY) {
             $studyYear = 1;
         }
 

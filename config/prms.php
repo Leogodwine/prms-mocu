@@ -69,5 +69,7 @@ return [
             'masters' => (int) env('PRMS_FINAL_YEAR_MASTERS', 2),
             'phd' => (int) env('PRMS_FINAL_YEAR_PHD', 3),
         ],
+        /** Only this diploma programme code may conduct a PRMS project. */
+        'project_diploma_programme_code' => env('PRMS_PROJECT_DIPLOMA_CODE', 'DBICT'),
     ],
 ];

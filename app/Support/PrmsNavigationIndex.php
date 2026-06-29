@@ -36,6 +36,7 @@ final class PrmsNavigationIndex
         return array_values(array_filter(
             $items,
             fn (array $item) => self::roleAllowed($role, $item['roles'] ?? null)
+                && PrmsUserCapabilities::isNavItemVisible($user, $item)
         ));
     }
 
@@ -60,7 +61,17 @@ final class PrmsNavigationIndex
             return $orderA <=> $orderB;
         });
 
-        return $items;
+        $notifications = [];
+        $other = [];
+        foreach ($items as $item) {
+            if (($item['route_is'] ?? '') === 'notifications.*') {
+                $notifications[] = $item;
+            } else {
+                $other[] = $item;
+            }
+        }
+
+        return array_merge($other, $notifications);
     }
 
     /**
@@ -241,22 +252,23 @@ final class PrmsNavigationIndex
 
         $items = [
             [
-                'label' => 'New project/proposal creation',
+                'label' => 'Register project idea',
                 'url' => route('projects.index'),
                 'icon' => 'fas fa-plus-circle',
                 'group' => 'Student workspace',
-                'keywords' => 'new create project proposal problem statement title',
+                'keywords' => 'new create project proposal problem statement title register idea',
                 'roles' => ['project_student', 'research_student', 'normal_student'],
+                'nav_capability' => 'create_project',
                 'sidebar' => true,
                 'sidebar_order' => 15,
                 'route_is' => 'projects.*',
             ],
             [
-                'label' => 'Research proposal',
+                'label' => 'Research Proposal',
                 'url' => route('student.index', ['type' => 'proposal']),
                 'icon' => 'far fa-file-alt',
                 'group' => 'Student workspace',
-                'keywords' => 'proposal chapter upload submit',
+                'keywords' => 'proposal chapter upload submit research proposal',
                 'roles' => ['project_student', 'research_student', 'normal_student'],
                 'sidebar' => true,
                 'sidebar_order' => 20,
@@ -265,11 +277,11 @@ final class PrmsNavigationIndex
                 'workspace_track' => 'proposal',
             ],
             [
-                'label' => 'Research report',
+                'label' => 'Research Report',
                 'url' => route('student.index', ['type' => 'research']),
                 'icon' => 'fas fa-book-open',
                 'group' => 'Student workspace',
-                'keywords' => 'research thesis dissertation chapter',
+                'keywords' => 'research thesis dissertation chapter report',
                 'roles' => ['project_student', 'research_student', 'normal_student'],
                 'sidebar' => true,
                 'sidebar_order' => 30,
@@ -279,21 +291,19 @@ final class PrmsNavigationIndex
             ],
         ];
 
-        if (in_array($role, ['project_student', 'normal_student'], true)) {
-            $items[] = [
-                'label' => 'Project workspace',
-                'url' => route('student.index', ['type' => 'project']),
-                'icon' => 'fas fa-laptop-code',
-                'group' => 'Student workspace',
-                'keywords' => 'source code showcase demo presentation consent',
-                'roles' => ['project_student', 'normal_student'],
-                'sidebar' => true,
-                'sidebar_order' => 40,
-                'route_is' => 'student.index',
-                'route_query' => ['type' => 'project'],
-                'workspace_track' => 'project',
-            ];
-        }
+        $items[] = [
+            'label' => 'Project Workspace',
+            'url' => route('student.index', ['type' => 'project']),
+            'icon' => 'fas fa-laptop-code',
+            'group' => 'Student workspace',
+            'keywords' => 'source code showcase demo presentation consent',
+            'roles' => ['project_student', 'research_student', 'normal_student'],
+            'sidebar' => true,
+            'sidebar_order' => 40,
+            'route_is' => 'student.index',
+            'route_query' => ['type' => 'project'],
+            'workspace_track' => 'project',
+        ];
 
         return $items;
     }
@@ -316,12 +326,19 @@ final class PrmsNavigationIndex
             }
 
             $item['collapse_id'] = 'nav-ws-'.$track;
-            $item['children'] = StudentStageProgress::stagesForTrack($stages, $track)
-                ->map(function (ProjectStage $stage) use ($track, $latestByStage) {
+            $item['children'] = StudentStageProgress::stagesForNavTrack($stages, $track)
+                ->values()
+                ->map(function (ProjectStage $stage, int $index) use ($track, $latestByStage) {
                     $navMeta = StudentStageProgress::navStatusMeta($latestByStage->get($stage->stage_name));
+                    $label = StudentStageProgress::shortStageLabel($stage->stage_name);
+                    $step = null;
+                    if (preg_match('/^Chapter\s+(\d+)$/i', $label, $matches)) {
+                        $step = (int) $matches[1];
+                    }
 
                     return [
-                        'label' => StudentStageProgress::shortStageLabel($stage->stage_name),
+                        'label' => $label,
+                        'step' => $step,
                         'url' => route('student.index', ['type' => $track, 'stage_id' => $stage->id]),
                         'route_is' => 'student.index',
                         'route_query' => [
@@ -331,8 +348,8 @@ final class PrmsNavigationIndex
                         'status' => $navMeta,
                     ];
                 })
-                ->values()
                 ->all();
+            $item['overview_label'] = StudentStageProgress::navTrackOverviewLabel($track);
 
             return $item;
         }, $items);
@@ -641,7 +658,7 @@ final class PrmsNavigationIndex
 
         if (in_array($role, ['project_student', 'research_student', 'normal_student'], true)) {
             $items[] = [
-                'label' => 'Public repository',
+                'label' => 'Public Repository',
                 'url' => route('public.research.index'),
                 'icon' => 'fas fa-globe',
                 'group' => 'Library',
@@ -674,7 +691,7 @@ final class PrmsNavigationIndex
             }
 
             $items[] = [
-                'label' => 'Public repository',
+                'label' => 'Public Repository',
                 'url' => route('public.research.index'),
                 'icon' => 'fas fa-globe',
                 'group' => 'Library',

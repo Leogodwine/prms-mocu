@@ -19,6 +19,8 @@ class AdminNewUserCredentialsNotification extends Notification
         public string $temporaryPassword,
         public ?string $createdByName = null,
         public ?int $createdByUserId = null,
+        public string $source = 'manual',
+        public bool $isStudent = false,
     ) {}
 
     /**
@@ -36,30 +38,40 @@ class AdminNewUserCredentialsNotification extends Notification
     {
         $title = 'Account created: '.$this->newUserName;
 
-        $credentials = 'Reg. no / Staff ID: '.$this->loginId.'. Temporary password: '.$this->temporaryPassword.'.';
+        $identifierLabel = $this->isStudent ? 'Reg. no' : 'Staff ID';
+        $credentials = $identifierLabel.': '.$this->loginId.'. Temporary password: '.$this->temporaryPassword.'.';
 
         $isCreator = $this->createdByUserId !== null
             && (int) $notifiable->id === $this->createdByUserId;
 
+        $viaBulkImport = $this->source === 'bulk_import';
+        $actionVerb = $viaBulkImport ? 'imported' : 'created';
+
         if ($isCreator) {
-            $message = 'You created an account for '.$this->newUserName.' ('.$this->newUserEmail.'). '
+            $message = 'You '.$actionVerb.' an account for '.$this->newUserName.' ('.$this->newUserEmail.'). '
                 .$credentials.' The user was notified by email and in-app message where delivery succeeded.';
         } elseif ($this->createdByName) {
-            $message = $this->createdByName.' created an account for '.$this->newUserName.' ('.$this->newUserEmail.'). '
+            $message = $this->createdByName.' '.$actionVerb.' an account for '.$this->newUserName.' ('.$this->newUserEmail.'). '
                 .$credentials;
         } else {
-            $message = 'A new account was created for '.$this->newUserName.' ('.$this->newUserEmail.'). '
+            $message = 'A new account was '.$actionVerb.' for '.$this->newUserName.' ('.$this->newUserEmail.'). '
                 .$credentials;
+        }
+
+        if ($viaBulkImport) {
+            $title = 'Bulk import: '.$this->newUserName;
         }
 
         return [
             'title' => $title,
             'message' => $message,
             'login_id' => $this->loginId,
+            'identifier_label' => $identifierLabel,
             'temporary_password' => $this->temporaryPassword,
             'new_user_email' => $this->newUserEmail,
             'created_by_user_id' => $this->createdByUserId,
             'created_by_name' => $this->createdByName,
+            'source' => $this->source,
         ];
     }
 }

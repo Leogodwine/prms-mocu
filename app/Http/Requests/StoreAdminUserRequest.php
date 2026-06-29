@@ -21,6 +21,8 @@ class StoreAdminUserRequest extends FormRequest
     /** @var list<string> Roles allowed in CSV bulk import (students and staff only — not admin). */
     public const BULK_IMPORT_ROLES = ['hod', 'coordinator', 'supervisor', self::FORM_STUDENT_ROLE];
 
+    public const MAX_YEAR_OF_STUDY = 4;
+
     public static function isStudentFormRole(string $role): bool
     {
         return $role === self::FORM_STUDENT_ROLE || in_array($role, self::STUDENT_ROLES, true);
@@ -77,7 +79,7 @@ class StoreAdminUserRequest extends FormRequest
                 Rule::requiredIf($isStudent),
                 'nullable',
                 'integer',
-                'between:1,8',
+                'between:1,'.self::MAX_YEAR_OF_STUDY,
             ],
         ];
     }
@@ -95,5 +97,10 @@ class StoreAdminUserRequest extends FormRequest
             'programme.required' => 'Programme is required for student accounts.',
             'year_of_study.required' => 'Year of study is required for student accounts.',
         ];
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return route('admin.users.index');
     }
 }

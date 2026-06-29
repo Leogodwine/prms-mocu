@@ -70,8 +70,19 @@ return new class extends Migration
                 'final_stage_definition' => 'Final semester / year of diploma programme',
                 'workflow_complexity' => 'simplified',
                 'output_rules' => json_encode([
-                    'default_output_type' => 'PROJECT_ONLY',
-                    'supports_project' => true,
+                    'default_output_type' => 'NONE',
+                    'supports_project' => false,
+                    'supports_research' => false,
+                ]),
+            ],
+            [
+                'academic_level' => 'certificate',
+                'final_year_default' => 1,
+                'final_stage_definition' => 'Certificate programme (no PRMS research or project)',
+                'workflow_complexity' => 'simplified',
+                'output_rules' => json_encode([
+                    'default_output_type' => 'NONE',
+                    'supports_project' => false,
                     'supports_research' => false,
                 ]),
             ],

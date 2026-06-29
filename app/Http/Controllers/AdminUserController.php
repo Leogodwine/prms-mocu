@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\BulkDeleteUsersRequest;
 use App\Http\Requests\BulkImportUsersRequest;
 use App\Http\Requests\StoreAdminUserRequest;
 use App\Http\Requests\UpdateAdminUserRequest;
@@ -9,7 +10,6 @@ use App\Models\User;
 use App\Support\AdminUserCreatedNotifier;
 use App\Support\Audit;
 use App\Support\PrmsEventNotifier;
-use App\Support\PrmsListFilters;
 use App\Support\StaffProfileProvisioner;
 use App\Support\StudentAcademicRecordSync;
 use App\Support\StudentProfileProvisioner;
@@ -40,6 +40,9 @@ class AdminUserController extends Controller
         $staffRoles = StaffProfileProvisioner::staffProfileRoles();
         $imported = 0;
         $skipped = 0;
+        $userInAppNotified = 0;
+        $userEmailNotified = 0;
+        $userNotifyFailed = 0;
         $rowNumber = 1;
 
         while (($data = fgetcsv($handle)) !== false) {
@@ -91,7 +94,7 @@ class AdminUserController extends Controller
             $yearOfStudy = $yearOfStudyRaw !== '' ? (int) $yearOfStudyRaw : null;
 
             if ($isStudent) {
-                if ($department === null || $programme === null || $yearOfStudy === null || $yearOfStudy < 1) {
+                if ($department === null || $programme === null || $yearOfStudy === null || $yearOfStudy < 1 || $yearOfStudy > StoreAdminUserRequest::MAX_YEAR_OF_STUDY) {
                     $skipped++;
 
                     continue;
@@ -168,7 +171,23 @@ class AdminUserController extends Controller
                     return $user->fresh();
                 });
 
-                AdminUserCreatedNotifier::notify($user, $loginId, $tempPassword, $request->user());
+                $notifyResult = AdminUserCreatedNotifier::notify(
+                    $user,
+                    $loginId,
+                    $tempPassword,
+                    $request->user(),
+                    AdminUserCreatedNotifier::SOURCE_BULK_IMPORT,
+                );
+
+                if ($notifyResult['user_in_app']) {
+                    $userInAppNotified++;
+                }
+                if ($notifyResult['user_email']) {
+                    $userEmailNotified++;
+                }
+                if (! $notifyResult['user_in_app'] && ! $notifyResult['user_email']) {
+                    $userNotifyFailed++;
+                }
 
                 $imported++;
             } catch (\Throwable $e) {
@@ -189,6 +208,14 @@ class AdminUserController extends Controller
         }
 
         $message = "Successfully imported {$imported} user(s).";
+        if ($imported > 0) {
+            $message .= " Each imported user received individual temporary credentials by in-app notification ({$userInAppNotified} succeeded)"
+                ." and email ({$userEmailNotified} succeeded).";
+            $message .= ' Every active administrator received individual in-app alerts in the notification panel.';
+        }
+        if ($userNotifyFailed > 0) {
+            $message .= " {$userNotifyFailed} user(s) could not be notified — check mail configuration or share credentials manually.";
+        }
         if ($skipped > 0) {
             $message .= " {$skipped} row(s) skipped (duplicate account, invalid role, or missing required fields).";
         }
@@ -208,14 +235,7 @@ class AdminUserController extends Controller
     }
     public function index(Request $request): View|RedirectResponse
     {
-        if ($request->boolean('apply_pending')) {
-            session()->flash(PrmsListFilters::sessionKey('admin.users'), [
-                'q' => '',
-                'role' => '',
-                'status' => '',
-                'must_change_password' => '1',
-            ]);
-
+        if ($request->boolean('reset_filters')) {
             return redirect()->route('admin.users.index');
         }
 
@@ -226,41 +246,13 @@ class AdminUserController extends Controller
             'must_change_password' => '',
         ];
 
-        if ($request->filled('apply_status')) {
-            $status = (string) $request->query('apply_status');
-            $allowedStatuses = ['active', 'inactive', 'suspended', 'locked', 'suspended_locked'];
-            $current = PrmsListFilters::peek($request, 'admin.users', $defaults);
-            session()->flash(PrmsListFilters::sessionKey('admin.users'), array_merge($current, [
-                'status' => in_array($status, $allowedStatuses, true) ? $status : '',
-                'must_change_password' => '',
-            ]));
+        $filters = $this->sanitizeAdminUserFilters([
+            'q' => $request->query('q', ''),
+            'role' => $request->query('role', ''),
+            'status' => $request->query('status', ''),
+            'must_change_password' => $request->query('must_change_password', ''),
+        ]);
 
-            return redirect()->route('admin.users.index');
-        }
-
-        if ($request->filled('apply_q')) {
-            $current = PrmsListFilters::peek($request, 'admin.users', $defaults);
-            session()->flash(PrmsListFilters::sessionKey('admin.users'), array_merge($current, [
-                'q' => trim((string) $request->query('apply_q')),
-            ]));
-
-            return redirect()->route('admin.users.index');
-        }
-
-        $resolved = PrmsListFilters::resolve(
-            $request,
-            'admin.users',
-            $defaults,
-            'admin.users.index',
-            [],
-            fn (array $filters) => $this->sanitizeAdminUserFilters($filters)
-        );
-
-        if ($resolved['redirect'] !== null) {
-            return $resolved['redirect'];
-        }
-
-        $filters = $resolved['filters'];
         $search = $filters['q'];
         $roleFilter = $filters['role'];
         $statusFilter = $filters['status'];
@@ -274,8 +266,32 @@ class AdminUserController extends Controller
         if ($search !== '') {
             $usersQuery->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('login_id', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('login_id', 'like', "%{$search}%");
+
+                if (Schema::hasColumn('users', 'registration_number')) {
+                    $q->orWhere('registration_number', 'like', "%{$search}%");
+                }
+                if (Schema::hasColumn('users', 'staff_id')) {
+                    $q->orWhere('staff_id', 'like', "%{$search}%");
+                }
+                if (Schema::hasColumn('users', 'department')) {
+                    $q->orWhere('department', 'like', "%{$search}%");
+                }
+                if (Schema::hasColumn('users', 'programme')) {
+                    $q->orWhere('programme', 'like', "%{$search}%");
+                }
+                if (Schema::hasColumn('users', 'phone_number')) {
+                    $q->orWhere('phone_number', 'like', "%{$search}%");
+                }
+
+                if (Schema::hasTable('students')) {
+                    $q->orWhereHas('studentProfile', function ($studentQuery) use ($search) {
+                        $studentQuery->where('registration_number', 'like', "%{$search}%")
+                            ->orWhere('full_name', 'like', "%{$search}%")
+                            ->orWhere('university_email', 'like', "%{$search}%");
+                    });
+                }
             });
         }
 
@@ -293,7 +309,7 @@ class AdminUserController extends Controller
             $usersQuery->where('account_status', $statusFilter);
         }
 
-        $users = $usersQuery->with('studentProfile')->latest()->paginate(20);
+        $users = $usersQuery->with('studentProfile')->latest()->paginate(20)->withQueryString();
 
         $stats = [
             'total'         => User::query()->count(),
@@ -302,6 +318,11 @@ class AdminUserController extends Controller
             'pending_reset' => User::query()->where('must_change_password', true)->count(),
         ];
 
+        $hasActiveFilters = $filters['q'] !== ''
+            || $filters['role'] !== ''
+            || $filters['status'] !== ''
+            || $pendingPasswordFilter;
+
         return view('admin.users', [
             'users' => $users,
             'roles' => $allowedRoles,
@@ -309,7 +330,8 @@ class AdminUserController extends Controller
             'statuses' => $allowedStatuses,
             'stats' => $stats,
             'filters' => $filters,
-            'filterResetUrl' => PrmsListFilters::resetUrl('admin.users.index'),
+            'hasActiveFilters' => $hasActiveFilters,
+            'filterResetUrl' => route('admin.users.index', ['reset_filters' => 1]),
         ]);
     }
 
@@ -350,6 +372,73 @@ class AdminUserController extends Controller
         PrmsEventNotifier::notifyAccountDeleted($snapshot, $request->user());
 
         return back()->with('status', "User “{$snapshot['name']}” has been deleted.");
+    }
+
+    public function bulkDestroy(BulkDeleteUsersRequest $request): RedirectResponse
+    {
+        $validated = $request->validated();
+        $deleted = 0;
+        $skippedMissing = 0;
+        $failed = 0;
+        $deletedNames = [];
+
+        foreach ($validated['user_ids'] as $userId) {
+            $userId = (int) $userId;
+
+            $user = User::query()->find($userId);
+            if ($user === null) {
+                $skippedMissing++;
+
+                continue;
+            }
+
+            $snapshot = [
+                'name' => $user->name,
+                'email' => $user->email,
+                'login_id' => $user->login_id,
+                'role' => $user->role,
+            ];
+
+            try {
+                DB::transaction(function () use ($user): void {
+                    $user->delete();
+                });
+
+                Audit::log($request, 'admin.user_deleted', 'User', (string) $userId, $snapshot, [
+                    'source' => 'bulk_delete',
+                ]);
+
+                $deletedNames[] = (string) $snapshot['name'];
+                $deleted++;
+            } catch (\Throwable $e) {
+                report($e);
+                $failed++;
+            }
+        }
+
+        if ($deleted > 0) {
+            PrmsEventNotifier::notifyBulkAccountsDeleted($deletedNames, $request->user());
+        }
+
+        if ($deleted === 0) {
+            $message = $failed > 0
+                ? 'No users were deleted. One or more accounts could not be removed because they are linked to other records.'
+                : 'No users were deleted.';
+
+            return redirect()->route('admin.users.index', $request->only(['q', 'role', 'status', 'must_change_password']))
+                ->withErrors(['delete' => $message]);
+        }
+
+        $message = "Deleted {$deleted} user(s).";
+        if ($skippedMissing > 0) {
+            $message .= " {$skippedMissing} selected user(s) were already removed.";
+        }
+        if ($failed > 0) {
+            $message .= " {$failed} account(s) could not be deleted.";
+        }
+
+        return redirect()->route('admin.users.index', $request->only(['q', 'role', 'status', 'must_change_password']))
+            ->with('status', $message);
     }
 
     public function store(StoreAdminUserRequest $request): RedirectResponse
@@ -421,12 +510,18 @@ class AdminUserController extends Controller
 
         $statusMessage = 'User created. Sign-in details were sent to the new user and all administrators received in-app notifications with the username and temporary password.';
 
-        try {
-            AdminUserCreatedNotifier::notify($user, $validated['login_id'], $tempPassword, $request->user());
-        } catch (\Throwable $e) {
-            report($e);
+        $notifyResult = AdminUserCreatedNotifier::notify(
+            $user,
+            $validated['login_id'],
+            $tempPassword,
+            $request->user(),
+        );
+
+        if (! $notifyResult['user_in_app'] && ! $notifyResult['user_email']) {
             $statusMessage = 'User created, but notifications could not be sent. Check mail configuration, or share credentials manually: username '
                 .$validated['login_id'].', temporary password '.$tempPassword.'.';
+        } elseif (! $notifyResult['user_email']) {
+            $statusMessage = 'User created. In-app credentials were delivered, but email could not be sent. Check mail configuration, or share credentials manually if needed.';
         }
 
         return back()->with('status', $statusMessage);

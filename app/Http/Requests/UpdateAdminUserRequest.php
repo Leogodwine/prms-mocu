@@ -80,7 +80,7 @@ class UpdateAdminUserRequest extends FormRequest
                 Rule::requiredIf($isStudent),
                 'nullable',
                 'integer',
-                'between:1,8',
+                'between:1,'.StoreAdminUserRequest::MAX_YEAR_OF_STUDY,
             ];
         }
 
@@ -101,5 +101,10 @@ class UpdateAdminUserRequest extends FormRequest
             'programme.required' => 'Programme is required for student accounts.',
             'year_of_study.required' => 'Year of study is required for student accounts.',
         ];
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return route('admin.users.index');
     }
 }

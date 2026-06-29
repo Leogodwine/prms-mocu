@@ -92,6 +92,7 @@ final class StudentWorkflowAssigner
 
         $outputType = FinalYearWorkflowEngine::resolveOutputType($user);
         $allowed = match ($outputType) {
+            ProgramOutputType::None => false,
             ProgramOutputType::BothAllowed => true,
             ProgramOutputType::ResearchOnly => $track === OutputTrack::Research,
             ProgramOutputType::ProjectOnly => $track === OutputTrack::Project,

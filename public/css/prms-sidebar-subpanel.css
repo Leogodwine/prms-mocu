@@ -207,7 +207,7 @@
   margin-bottom: 0.55rem;
   border-radius: 0.5rem;
   background: rgba(255, 255, 255, 0.06);
-  font-weight: 600;
+  font-weight: 400;
   font-size: var(--prms-sub-font-nav);
   color: #ffffff !important;
   transition: background 0.15s ease, color 0.15s ease;
@@ -243,7 +243,7 @@
 
 .prms-sidebar-sub--workspace .prms-workspace-overview .prms-ws-label {
   font-size: var(--prms-sub-font-nav);
-  font-weight: 600;
+  font-weight: 400;
   text-transform: none;
 }
 
@@ -276,7 +276,7 @@
 .prms-sidebar-sub--workspace .prms-workspace-track-title {
   flex: 1;
   font-size: var(--prms-sub-font-header);
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: normal;
   font-variant: normal;
   text-transform: none;
@@ -349,11 +349,11 @@
   text-overflow: ellipsis;
   color: inherit;
   font-size: var(--prms-sub-font-nav);
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .prms-sidebar-sub--workspace .prms-workspace-chapter.active .prms-ws-label {
-  font-weight: 600;
+  font-weight: 400;
 }
 
 /* Backdrop: mobile only */

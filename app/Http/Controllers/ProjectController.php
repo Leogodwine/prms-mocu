@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Notifications\ProjectNotification;
 use App\Support\Audit;
 use App\Support\ProjectSimilarityQueue;
+use App\Support\PrmsUserCapabilities;
 use App\Support\StudentResearchEligibility;
 use App\Support\StudentWorkflowAssigner;
 use App\Services\Similarity\ProjectSimilarityAnalyzer;
@@ -65,6 +66,7 @@ class ProjectController extends Controller
             [
                 'title' => 'Projects',
                 'projects' => $projects,
+                'canCreateProjects' => PrmsUserCapabilities::canEnterStudentWorkflow($user),
             ],
             $this->createProjectFormData()
         ));
@@ -78,18 +80,31 @@ class ProjectController extends Controller
     {
         $this->authorizeResearchProjectAccess($request->user(), $researchProject);
 
-        $researchProject->load(['student', 'supervisor']);
+        $researchProject->load(['student', 'supervisor', 'contributors']);
 
         $isAdmin = $request->user()->role === 'admin';
         $similarProjects = $isAdmin && Schema::hasTable('project_similarities')
             ? app(ProjectSimilarityAnalyzer::class)->similarProjectsFor($researchProject)
             : collect();
 
+        $user = $request->user();
+        $projectGroup = $user->projectGroups()->with('members')->first();
+        $existingContributorIds = $researchProject->contributors->pluck('id')->all();
+        $eligibleContributors = collect();
+
+        if (PrmsUserCapabilities::canManageProjectContributors($user, $researchProject) && $projectGroup) {
+            $eligibleContributors = $projectGroup->members
+                ->reject(fn ($member) => (int) $member->id === (int) $user->id
+                    || in_array((int) $member->id, $existingContributorIds, true));
+        }
+
         return view('projects.show', [
             'project' => $researchProject,
             'similarProjects' => $similarProjects,
             'showSimilarityPanel' => $isAdmin,
             'ollamaReachable' => $isAdmin ? app(\App\Services\Ollama\OllamaClient::class)->isReachable() : true,
+            'canManageContributors' => PrmsUserCapabilities::canManageProjectContributors($user, $researchProject),
+            'eligibleContributors' => $eligibleContributors,
         ]);
     }
 
@@ -417,6 +432,11 @@ class ProjectController extends Controller
             }
         }
 
+        $projectGroup = $user->projectGroups()->first();
+        if ($projectGroup && Schema::hasColumn('research_projects', 'project_group_id')) {
+            $payload['project_group_id'] = $projectGroup->id;
+        }
+
         $project = ResearchProject::create($payload);
 
         ProjectSimilarityQueue::dispatchFor($project);
@@ -504,6 +524,11 @@ class ProjectController extends Controller
         }
 
         if ((int) $project->student_id === (int) $user->id) {
+            return;
+        }
+
+        if (Schema::hasTable('research_project_contributors')
+            && PrmsUserCapabilities::isProjectContributor($user, $project)) {
             return;
         }
 

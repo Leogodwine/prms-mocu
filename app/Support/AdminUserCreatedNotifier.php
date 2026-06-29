@@ -11,10 +11,46 @@ use App\Notifications\AdminNewUserCredentialsNotification;
  */
 final class AdminUserCreatedNotifier
 {
-    public static function notify(User $newUser, string $loginId, string $tempPassword, ?User $actor = null): void
-    {
+    public const SOURCE_MANUAL = 'manual';
+
+    public const SOURCE_BULK_IMPORT = 'bulk_import';
+
+    /**
+     * @return array{user_in_app: bool, user_email: bool, admin_in_app: int}
+     */
+    public static function notify(
+        User $newUser,
+        string $loginId,
+        string $tempPassword,
+        ?User $actor = null,
+        string $source = self::SOURCE_MANUAL,
+    ): array {
+        $result = [
+            'user_in_app' => false,
+            'user_email' => false,
+            'admin_in_app' => 0,
+        ];
+
         try {
-            $newUser->notify(new AccountCreatedNotification($loginId, $tempPassword));
+            $newUser->notify(new AccountCreatedNotification(
+                $loginId,
+                $tempPassword,
+                ['database'],
+                $source,
+            ));
+            $result['user_in_app'] = true;
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        try {
+            $newUser->notify(new AccountCreatedNotification(
+                $loginId,
+                $tempPassword,
+                ['mail'],
+                $source,
+            ));
+            $result['user_email'] = true;
         } catch (\Throwable $e) {
             report($e);
         }
@@ -26,7 +62,15 @@ final class AdminUserCreatedNotifier
             ->where('role', 'admin')
             ->where('account_status', 'active')
             ->orderBy('id')
-            ->each(function (User $admin) use ($newUser, $loginId, $tempPassword, $actorId, $actorName): void {
+            ->each(function (User $admin) use (
+                $newUser,
+                $loginId,
+                $tempPassword,
+                $actorId,
+                $actorName,
+                $source,
+                &$result,
+            ): void {
                 try {
                     $admin->notify(new AdminNewUserCredentialsNotification(
                         $newUser->name,
@@ -35,10 +79,15 @@ final class AdminUserCreatedNotifier
                         $tempPassword,
                         $actorName,
                         $actorId,
+                        $source,
+                        $newUser->isStudentUser(),
                     ));
+                    $result['admin_in_app']++;
                 } catch (\Throwable $e) {
                     report($e);
                 }
             });
+
+        return $result;
     }
 }

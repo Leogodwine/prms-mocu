@@ -66,6 +66,10 @@ final class StudentResearchEligibility
 
         $outputType = ProgramOutputType::tryFromMixed($programme->output_type ?? null);
 
+        if ($outputType === ProgramOutputType::None) {
+            return false;
+        }
+
         if ($outputType === ProgramOutputType::ProjectOnly || $outputType === ProgramOutputType::BothAllowed) {
             return true;
         }

@@ -12,6 +12,7 @@ use App\Models\Program;
 use App\Models\User;
 use App\Support\Audit;
 use App\Support\FinalYearWorkflowEngine;
+use App\Support\ProgrammeWorkflowPolicy;
 use App\Support\StudentWorkflowAssigner;
 use App\Support\WorkflowSettingsCatalog;
 use Illuminate\Http\RedirectResponse;
@@ -258,7 +259,7 @@ class AdminAcademicConfigurationController extends Controller
         $outputType = ProgramOutputType::tryFromMixed($validated['output_type']);
         $years = $this->parseYearList($validated['allowed_project_years'] ?? null);
 
-        return [
+        return ProgrammeWorkflowPolicy::applyToProgrammePayload([
             'programme_code' => strtoupper(trim($validated['programme_code'])),
             'programme_name' => trim($validated['programme_name']),
             'department_id' => $validated['department_id'],
@@ -269,10 +270,12 @@ class AdminAcademicConfigurationController extends Controller
             'allowed_project_years' => $years !== [] ? $years : null,
             'output_type' => $validated['output_type'],
             'workflow_type' => $validated['workflow_type'],
-            'is_project_eligible' => $request->boolean('is_project_eligible')
+            'is_project_eligible' => $outputType !== ProgramOutputType::None && (
+                $request->boolean('is_project_eligible')
                 || $outputType === ProgramOutputType::ProjectOnly
-                || $outputType === ProgramOutputType::BothAllowed,
-        ];
+                || $outputType === ProgramOutputType::BothAllowed
+            ),
+        ]);
     }
 
     /**

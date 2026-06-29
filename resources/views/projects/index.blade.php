@@ -5,10 +5,12 @@
 @section('content')
 
 <x-prms-greeting-banner subtitle="Create a new project or proposal, define your problem statement, and track each submission through supervision.">
+@if (! empty($canCreateProjects))
     <button type="button" class="btn btn-primary rounded-pill px-4 fw-semibold" data-bs-toggle="modal" data-bs-target="#createProjectModal">
         <i class="fas fa-plus-circle me-2" aria-hidden="true"></i>
         New project/proposal creation
     </button>
+@endif
     <a href="{{ route('dashboard') }}" class="btn btn-light border rounded-pill px-3">
         <i class="fas fa-arrow-left me-1" aria-hidden="true"></i> Dashboard
     </a>
@@ -23,11 +25,15 @@
                     <i class="fas fa-project-diagram text-muted" aria-hidden="true" style="font-size: 1.6rem;"></i>
                 </div>
                 <h3 class="h6 fw-bold text-strong">No projects yet</h3>
-                <p class="text-muted small mb-3">Create your first project to start tracking submissions and supervision.</p>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createProjectModal">
-                    <i class="fas fa-plus me-1" aria-hidden="true"></i>
-                    Create a project
-                </button>
+                @if (! empty($canCreateProjects))
+                    <p class="text-muted small mb-3">Create your first project to start tracking submissions and supervision.</p>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createProjectModal">
+                        <i class="fas fa-plus me-1" aria-hidden="true"></i>
+                        Create a project
+                    </button>
+                @else
+                    <p class="text-muted small mb-0">You do not have access to create projects or proposals in PRMS yet.</p>
+                @endif
             </div>
         @else
             <div class="table-responsive">
@@ -89,7 +95,9 @@
     </div>
 </div>
 
-@include('projects.partials.create-project-modal')
+@if (! empty($canCreateProjects))
+    @include('projects.partials.create-project-modal')
+@endif
 
 @endsection
 

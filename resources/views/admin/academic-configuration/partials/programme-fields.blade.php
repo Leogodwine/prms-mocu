@@ -58,6 +58,7 @@
                 </option>
             @endforeach
         </select>
+        <div class="form-text">Certificate programmes and all diplomas except DBICT are saved as no research or project. Only DBICT may conduct a project.</div>
     </div>
     <div class="col-md-6">
         <label class="form-label">Workflow type</label>

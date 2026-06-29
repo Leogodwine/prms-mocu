@@ -8,6 +8,7 @@ use App\Http\Controllers\ForcePasswordController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationPreferenceController;
+use App\Http\Controllers\ProjectContributorController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectSimilarityController;
 use App\Http\Controllers\PresentationConsentController;
@@ -69,8 +70,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/force-password-change', [ForcePasswordController::class, 'edit'])->name('password.force.edit');
     Route::put('/force-password-change', [ForcePasswordController::class, 'update'])->name('password.force.update');
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
-    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::post('/notifications/bulk-read', [NotificationController::class, 'bulkMarkRead'])->name('notifications.bulk-read');
+    Route::post('/notifications/bulk-delete', [NotificationController::class, 'bulkDestroy'])->name('notifications.bulk-delete');
+    Route::get('/notifications/bulk-delete', fn () => redirect()->route('notifications.index'));
+    Route::get('/notifications/bulk-read', fn () => redirect()->route('notifications.index'));
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
     Route::put('/notifications/preferences', [NotificationPreferenceController::class, 'update'])->name('notifications.preferences.update');
     Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
 });
@@ -94,6 +100,14 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
     Route::get('/projects/{researchProject}', [ProjectController::class, 'show'])
         ->whereNumber('researchProject')
         ->name('projects.show');
+    Route::post('/projects/{researchProject}/contributors', [ProjectContributorController::class, 'store'])
+        ->whereNumber('researchProject')
+        ->middleware('role:project_student,normal_student')
+        ->name('projects.contributors.store');
+    Route::delete('/projects/{researchProject}/contributors/{contributor}', [ProjectContributorController::class, 'destroy'])
+        ->whereNumber(['researchProject', 'contributor'])
+        ->middleware('role:project_student,normal_student')
+        ->name('projects.contributors.destroy');
 
     // User profile (view, edit, update).
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
@@ -208,9 +222,11 @@ Route::middleware(['auth', 'password.changed', 'role:supervisor'])->prefix('repo
 });
 
 Route::middleware(['auth', 'password.changed', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::match(['get', 'post'], '/users', [AdminUserController::class, 'index'])->name('users.index');
+    Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
     Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
     Route::post('/users/bulk-import', [AdminUserController::class, 'bulkImport'])->name('users.bulk-import');
+    Route::post('/users/bulk-delete', [AdminUserController::class, 'bulkDestroy'])->name('users.bulk-delete');
+    Route::get('/users/bulk-delete', fn () => redirect()->route('admin.users.index'));
     Route::put('/users/{user}', [AdminUserController::class, 'update'])->name('users.update');
     Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
 });

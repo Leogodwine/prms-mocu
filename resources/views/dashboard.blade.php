@@ -9,7 +9,7 @@
 @endphp
 
 <x-prms-greeting-banner :subtitle="\App\Support\PrmsGreeting::subtitleForRole($user->role ?? null)">
-    @if ($isStudentWorkspace)
+    @if ($isStudentWorkspace && ($canCreateProjects ?? false))
         <button type="button" class="btn btn-primary rounded-pill px-4 fw-semibold" data-bs-toggle="modal" data-bs-target="#prmsNewProposalModal">
             <i class="fas fa-plus-circle me-2" aria-hidden="true"></i>
             New project/proposal creation
@@ -37,7 +37,7 @@
     @endif
 </x-prms-greeting-banner>
 
-@if ($isStudentWorkspace)
+@if ($isStudentWorkspace && ($canCreateProjects ?? false))
     {{-- Initial problem / title submission for supervisor review --}}
     <div class="modal fade" id="prmsNewProposalModal" tabindex="-1" aria-labelledby="prmsNewProposalModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -235,7 +235,15 @@
 
 {{-- ────────── Student progress ────────── --}}
 @if ($isStudentWorkspace)
+    @if (! empty($workflowBlockReason) && empty($availableTracks))
+        <div class="alert alert-info border-0 shadow-sm mb-4" role="status">
+            <i class="fas fa-info-circle me-2" aria-hidden="true"></i>
+            {{ $workflowBlockReason }}
+        </div>
+    @endif
+
     <div class="row g-4 mb-4">
+    @if (! empty($availableTracks))
         <div class="col-12 col-lg-8">
             <h3 class="h5 fw-bold text-strong mb-3">Your progress</h3>
 
@@ -328,8 +336,9 @@
                 </div>
             </div>
         </div>
+    @endif
 
-        <div class="col-12 col-lg-4">
+        <div class="col-12 {{ ! empty($availableTracks) ? 'col-lg-4' : '' }}">
             <h3 class="h5 fw-bold text-strong mb-3">Mentorship</h3>
 
             <div class="card">

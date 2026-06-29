@@ -130,7 +130,7 @@
                                 <select id="hod_year_{{ $student->id }}" name="year_of_study"
                                         class="form-select @error('year_of_study') is-invalid @enderror">
                                     <option value="" @selected($hodYearVal === null)>—</option>
-                                    @for ($y = 1; $y <= 8; $y++)
+                                    @for ($y = 1; $y <= \App\Http\Requests\StoreAdminUserRequest::MAX_YEAR_OF_STUDY; $y++)
                                         <option value="{{ $y }}" @selected($hodYearVal === $y)>Year {{ $y }}</option>
                                     @endfor
                                 </select>

@@ -10,6 +10,7 @@ use App\Models\DepartmentWorkflowRule;
 use App\Models\Program;
 use App\Models\SystemConfiguration;
 use App\Support\Audit;
+use App\Support\ProgrammeWorkflowPolicy;
 use App\Support\StudentWorkflowAssigner;
 use App\Support\WorkflowSettingsCatalog;
 use Illuminate\Http\RedirectResponse;
@@ -113,11 +114,13 @@ class AdminConfigurationController extends Controller
         ]);
 
         $outputType = ProgramOutputType::tryFromMixed($validated['output_type']);
-        $isProjectEligible = $request->boolean('is_project_eligible')
+        $isProjectEligible = $outputType !== ProgramOutputType::None && (
+            $request->boolean('is_project_eligible')
             || $outputType === ProgramOutputType::ProjectOnly
-            || $outputType === ProgramOutputType::BothAllowed;
+            || $outputType === ProgramOutputType::BothAllowed
+        );
 
-        $program->update([
+        $payload = ProgrammeWorkflowPolicy::applyToProgrammePayload([
             'academic_level' => $validated['academic_level'],
             'duration_years' => $validated['duration_years'] ?? $validated['final_year'],
             'final_year' => $validated['final_year'],
@@ -125,7 +128,9 @@ class AdminConfigurationController extends Controller
             'output_type' => $validated['output_type'],
             'workflow_type' => $validated['workflow_type'],
             'is_project_eligible' => $isProjectEligible,
-        ]);
+        ], $program->programme_code);
+
+        $program->update($payload);
 
         Audit::log($request, 'admin.programme_workflow_updated', 'Program', (string) $program->id, null, [
             'programme_code' => $program->programme_code,
@@ -147,7 +152,10 @@ class AdminConfigurationController extends Controller
             ],
             [
                 'final_year' => $validated['final_year'],
-                'output_type' => $validated['output_type'],
+                'output_type' => ProgrammeWorkflowPolicy::normalizeDepartmentRuleOutputType(
+                    $validated['academic_level'],
+                    $validated['output_type'],
+                ),
                 'workflow_type' => $validated['workflow_type'],
                 'is_active' => $request->boolean('is_active', true),
             ]
@@ -166,7 +174,10 @@ class AdminConfigurationController extends Controller
             'department_id' => $validated['department_id'],
             'academic_level' => $validated['academic_level'],
             'final_year' => $validated['final_year'],
-            'output_type' => $validated['output_type'],
+            'output_type' => ProgrammeWorkflowPolicy::normalizeDepartmentRuleOutputType(
+                $validated['academic_level'],
+                $validated['output_type'],
+            ),
             'workflow_type' => $validated['workflow_type'],
             'is_active' => $request->boolean('is_active', true),
         ]);

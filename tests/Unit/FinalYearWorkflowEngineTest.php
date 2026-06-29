@@ -127,4 +127,102 @@ class FinalYearWorkflowEngineTest extends TestCase
 
         $this->assertSame(StudentWorkflowRole::NoAccess, FinalYearWorkflowEngine::determineWorkflowRole($user));
     }
+
+    public function test_dbi_ct_diploma_final_year_gets_project_track(): void
+    {
+        $department = Department::factory()->create(['department_code' => 'CICT']);
+        $programme = Program::factory()->create([
+            'department_id' => $department->id,
+            'programme_code' => 'DBICT',
+            'academic_level' => 'diploma',
+            'duration_years' => 2,
+            'final_year' => 2,
+            'output_type' => ProgramOutputType::ProjectOnly->value,
+            'is_project_eligible' => true,
+            'project_year' => 2,
+        ]);
+
+        $user = User::factory()->create([
+            'role' => 'normal_student',
+            'programme' => 'DBICT',
+            'year_of_study' => 2,
+            'account_status' => 'active',
+        ]);
+
+        Student::factory()->create([
+            'user_id' => $user->id,
+            'programme_id' => $programme->id,
+            'year_of_study' => 2,
+            'enrollment_status' => 'active',
+        ]);
+
+        $this->assertSame(ProgramOutputType::ProjectOnly, FinalYearWorkflowEngine::resolveOutputType($user));
+        $this->assertSame(StudentWorkflowRole::ProjectCandidate, FinalYearWorkflowEngine::determineWorkflowRole($user));
+        $this->assertEquals(['proposal', 'project'], FinalYearWorkflowEngine::availableTracks($user));
+    }
+
+    public function test_non_dbi_ct_diploma_final_year_is_viewer_only(): void
+    {
+        $department = Department::factory()->create(['department_code' => 'HRM']);
+        $programme = Program::factory()->create([
+            'department_id' => $department->id,
+            'programme_code' => 'DHRM',
+            'academic_level' => 'diploma',
+            'duration_years' => 2,
+            'final_year' => 2,
+            'output_type' => ProgramOutputType::None->value,
+            'is_project_eligible' => false,
+        ]);
+
+        $user = User::factory()->create([
+            'role' => 'normal_student',
+            'programme' => 'DHRM',
+            'year_of_study' => 2,
+            'account_status' => 'active',
+        ]);
+
+        Student::factory()->create([
+            'user_id' => $user->id,
+            'programme_id' => $programme->id,
+            'year_of_study' => 2,
+            'enrollment_status' => 'active',
+        ]);
+
+        $this->assertSame(ProgramOutputType::None, FinalYearWorkflowEngine::resolveOutputType($user));
+        $this->assertSame(StudentWorkflowRole::ViewerOnly, FinalYearWorkflowEngine::determineWorkflowRole($user));
+        $this->assertSame([], FinalYearWorkflowEngine::availableTracks($user));
+        $this->assertStringContainsString('not part of', (string) FinalYearWorkflowEngine::workflowBlockReason($user));
+    }
+
+    public function test_certificate_student_has_no_research_or_project_workflow(): void
+    {
+        $department = Department::factory()->create(['department_code' => 'LAW']);
+        $programme = Program::factory()->create([
+            'department_id' => $department->id,
+            'programme_code' => 'CL',
+            'academic_level' => 'certificate',
+            'duration_years' => 1,
+            'final_year' => 1,
+            'output_type' => ProgramOutputType::None->value,
+            'is_project_eligible' => false,
+        ]);
+
+        $user = User::factory()->create([
+            'role' => 'normal_student',
+            'programme' => 'CL',
+            'year_of_study' => 1,
+            'account_status' => 'active',
+        ]);
+
+        Student::factory()->create([
+            'user_id' => $user->id,
+            'programme_id' => $programme->id,
+            'year_of_study' => 1,
+            'enrollment_status' => 'active',
+        ]);
+
+        $this->assertSame(ProgramOutputType::None, FinalYearWorkflowEngine::resolveOutputType($user));
+        $this->assertSame(StudentWorkflowRole::ViewerOnly, FinalYearWorkflowEngine::determineWorkflowRole($user));
+        $this->assertSame([], FinalYearWorkflowEngine::availableTracks($user));
+    }
 }

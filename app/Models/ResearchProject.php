@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ResearchProject extends Model
@@ -80,6 +81,18 @@ class ResearchProject extends Model
     public function projectGroup(): BelongsTo
     {
         return $this->belongsTo(ProjectGroup::class, 'project_group_id');
+    }
+
+    public function contributors(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'research_project_contributors', 'research_project_id', 'user_id')
+            ->withPivot(['contribution_role', 'added_by'])
+            ->withTimestamps();
+    }
+
+    public function isComputerBasedProject(): bool
+    {
+        return str_contains(strtolower((string) $this->project_type), 'project');
     }
 
     public function documents(): HasMany

@@ -42,7 +42,15 @@
         </div>
     @endif
 
-    @if ($errors->any() && ! in_array(old('form_context'), ['create', 'edit'], true))
+    @if ($errors->has('delete'))
+        <div class="alert alert-danger alert-dismissible fade show d-flex align-items-start gap-2 mb-4" role="alert">
+            <i class="fas fa-exclamation-circle mt-1 flex-shrink-0" aria-hidden="true"></i>
+            <div class="flex-grow-1">{{ $errors->first('delete') }}</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Dismiss error message"></button>
+        </div>
+    @endif
+
+    @if ($errors->any() && ! in_array(old('form_context'), ['create', 'edit'], true) && ! $errors->has('delete'))
         <div class="alert alert-danger d-flex align-items-start gap-2 mb-4" role="alert">
             <i class="fas fa-exclamation-circle mt-1 flex-shrink-0" aria-hidden="true"></i>
             <div class="flex-grow-1">

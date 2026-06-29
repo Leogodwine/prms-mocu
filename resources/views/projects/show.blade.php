@@ -69,6 +69,80 @@
                 </div>
             @endif
 
+            @if (($project->contributors ?? collect())->isNotEmpty() || ! empty($canManageContributors))
+                <div class="card mt-3 border-0 shadow-sm">
+                    <div class="card-header bg-transparent border-bottom py-3 d-flex align-items-center justify-content-between gap-2">
+                        <h3 class="h6 fw-bold text-strong mb-0">Contributors</h3>
+                        @if (! empty($canManageContributors))
+                            <span class="badge bg-light text-muted border rounded-pill">Group project</span>
+                        @endif
+                    </div>
+                    <div class="card-body">
+                        @if (session('status'))
+                            <div class="alert alert-success small py-2 mb-3">{{ session('status') }}</div>
+                        @endif
+
+                        @if ($errors->any())
+                            <div class="alert alert-danger small py-2 mb-3">
+                                <ul class="mb-0 ps-3">
+                                    @foreach ($errors->all() as $err)
+                                        <li>{{ $err }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
+                        @if (($project->contributors ?? collect())->isEmpty())
+                            <p class="text-muted small mb-3">No contributors listed yet. Add group members who helped build this project.</p>
+                        @else
+                            <ul class="list-unstyled mb-3">
+                                @foreach ($project->contributors as $contributor)
+                                    <li class="d-flex align-items-center justify-content-between gap-2 py-2{{ $loop->last ? '' : ' border-bottom' }}">
+                                        <div class="min-w-0">
+                                            <div class="fw-semibold small text-strong">{{ $contributor->name }}</div>
+                                            <div class="text-muted small text-truncate">{{ $contributor->email }}</div>
+                                        </div>
+                                        @if (! empty($canManageContributors))
+                                            <form action="{{ route('projects.contributors.destroy', [$project, $contributor]) }}" method="POST" class="flex-shrink-0">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove contributor">
+                                                    <i class="fas fa-times" aria-hidden="true"></i>
+                                                    <span class="visually-hidden">Remove</span>
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endif
+
+                        @if (! empty($canManageContributors))
+                            @if (($eligibleContributors ?? collect())->isEmpty())
+                                <p class="text-muted small mb-0">All group members are already listed, or your group has no other students.</p>
+                            @else
+                                <form action="{{ route('projects.contributors.store', $project) }}" method="POST" class="d-flex flex-column gap-2">
+                                    @csrf
+                                    <label class="form-label small fw-semibold mb-0" for="contributor-user-id">Add group member</label>
+                                    <div class="input-group input-group-sm">
+                                        <select id="contributor-user-id" name="user_id" class="form-select" required>
+                                            <option value="" selected disabled>Select a student…</option>
+                                            @foreach ($eligibleContributors as $candidate)
+                                                <option value="{{ $candidate->id }}">{{ $candidate->name }}</option>
+                                            @endforeach
+                                        </select>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-user-plus" aria-hidden="true"></i>
+                                            Add
+                                        </button>
+                                    </div>
+                                </form>
+                            @endif
+                        @endif
+                    </div>
+                </div>
+            @endif
+
             <div class="card mt-3 border-0 shadow-sm">
                 <div class="card-header bg-transparent border-bottom py-3">
                     <h3 class="h6 fw-bold text-strong mb-0">Record</h3>

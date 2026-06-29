@@ -4,9 +4,9 @@
     $sidebarStages = \App\Models\ProjectStage::orderBy('stage_order')->get();
     $sidebarLatest = \App\Support\StudentStageProgress::latestSubmissionByStage($user, $sidebarGroup);
     $sidebarTracks = \App\Support\StudentResearchEligibility::availableTracks($user);
-    $sidebarProposal = \App\Support\StudentStageProgress::stagesForTrack($sidebarStages, 'proposal');
-    $sidebarProject = \App\Support\StudentStageProgress::stagesForTrack($sidebarStages, 'project');
-    $sidebarResearch = \App\Support\StudentStageProgress::stagesForTrack($sidebarStages, 'research');
+    $sidebarProposal = \App\Support\StudentStageProgress::stagesForNavTrack($sidebarStages, 'proposal');
+    $sidebarProject = \App\Support\StudentStageProgress::stagesForNavTrack($sidebarStages, 'project');
+    $sidebarResearch = \App\Support\StudentStageProgress::stagesForNavTrack($sidebarStages, 'research');
     $onWorkspace = request()->routeIs('student.index');
     $workspaceType = request()->query('type', 'overview');
     $workspaceStageId = (int) request()->query('stage_id');
@@ -46,7 +46,7 @@
                 </li>
 
                 @include('layouts.partials.prms-sidebar-workspace-track', [
-                    'trackLabel' => __('Proposal'),
+                    'trackLabel' => __('Research proposal'),
                     'trackIcon' => 'far fa-file-alt',
                     'trackType' => 'proposal',
                     'stages' => $sidebarProposal,
@@ -58,7 +58,7 @@
 
                 @if (in_array('research', $sidebarTracks, true))
                     @include('layouts.partials.prms-sidebar-workspace-track', [
-                        'trackLabel' => __('Research'),
+                        'trackLabel' => __('Research report'),
                         'trackIcon' => 'fas fa-book-open',
                         'trackType' => 'research',
                         'stages' => $sidebarResearch,
@@ -71,7 +71,7 @@
 
                 @if (in_array('project', $sidebarTracks, true))
                     @include('layouts.partials.prms-sidebar-workspace-track', [
-                        'trackLabel' => __('Project'),
+                        'trackLabel' => __('Project workspace'),
                         'trackIcon' => 'fas fa-laptop-code',
                         'trackType' => 'project',
                         'stages' => $sidebarProject,

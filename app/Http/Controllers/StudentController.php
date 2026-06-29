@@ -37,7 +37,8 @@ class StudentController extends Controller
     public function index(Request $request): View
     {
         $user = $request->user();
-        abort_if(!in_array($user->role, ['project_student', 'research_student', 'student', 'coordinator']), 403, 'Unauthorized.');
+        $isStudent = $user->isStudentUser();
+        abort_unless($isStudent || $user->role === 'coordinator', 403, 'Unauthorized.');
         $type = $request->query('type', 'overview');
         if (strtolower((string) $type) === 'presentation') {
             return redirect()->route('student.index', array_filter([
@@ -59,7 +60,7 @@ class StudentController extends Controller
 
         if ($projectGroup) {
             $supervisorAssignment = $projectGroup->supervisorAssignment()->with('supervisor')->first();
-        } elseif (in_array($user->role, ['project_student', 'research_student', 'student'], true)) {
+        } elseif ($isStudent) {
             $supervisorAssignment = SupervisorAssignment::query()
                 ->with('supervisor')
                 ->where('student_id', $user->id)
@@ -69,13 +70,13 @@ class StudentController extends Controller
         $allStages = $this->getOrderedStages();
         $latestByStage = StudentStageProgress::latestSubmissionByStage($user, $projectGroup);
 
-        $proposalStages = StudentStageProgress::stagesForTrack($allStages, 'proposal');
-        $projectStages = StudentStageProgress::stagesForTrack($allStages, 'project');
-        $researchStages = StudentStageProgress::stagesForTrack($allStages, 'research');
+        $proposalStages = StudentStageProgress::stagesForNavTrack($allStages, 'proposal');
+        $projectStages = StudentStageProgress::stagesForNavTrack($allStages, 'project');
+        $researchStages = StudentStageProgress::stagesForNavTrack($allStages, 'research');
 
         $filteredStages = $isOverview
             ? collect()
-            : StudentStageProgress::stagesForTrack($allStages, strtolower((string) $type));
+            : StudentStageProgress::stagesForNavTrack($allStages, strtolower((string) $type));
 
         $submissionsQuery = ProjectSubmission::query()
             ->with(['feedback.supervisor', 'interfaceScreenshots'])

@@ -39,7 +39,7 @@
         @csrf
 
         <div class="mb-4">
-            <label for="login_id" class="form-label prms-auth-label">Email or registration number</label>
+            <label for="login_id" class="form-label prms-auth-label">University email or registration number</label>
             <div class="input-group prms-auth-input-group">
                 <span class="input-group-text" id="login_id-addon"><i class="far fa-user" aria-hidden="true"></i></span>
                 <input
@@ -48,7 +48,7 @@
                     name="login_id"
                     class="form-control @error('login_id') is-invalid @enderror"
                     value="{{ old('login_id') }}"
-                    placeholder="you@mocu.ac.tz or MoCU/REG/1134/24"
+                    placeholder="Staff: you@mocu.ac.tz · Students: MoCU/REG/1134/24"
                     required
                     autofocus
                     autocomplete="username"

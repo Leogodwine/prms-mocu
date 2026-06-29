@@ -62,13 +62,20 @@ final class WorkflowSettingsCatalog
     public static function defaultFinalYearForLevel(AcademicLevel $level): int
     {
         $key = match ($level) {
+            AcademicLevel::Certificate => self::KEY_FINAL_YEAR_DIPLOMA,
             AcademicLevel::Diploma => self::KEY_FINAL_YEAR_DIPLOMA,
             AcademicLevel::Bachelor => self::KEY_FINAL_YEAR_BACHELOR,
             AcademicLevel::Masters => self::KEY_FINAL_YEAR_MASTERS,
             AcademicLevel::Phd => self::KEY_FINAL_YEAR_PHD,
         };
 
-        $fallback = (int) config("prms.workflow.default_final_year.{$level->value}", 3);
+        $fallback = (int) config("prms.workflow.default_final_year.{$level->value}", match ($level) {
+            AcademicLevel::Certificate => 1,
+            AcademicLevel::Diploma => 2,
+            AcademicLevel::Bachelor => 3,
+            AcademicLevel::Masters => 2,
+            AcademicLevel::Phd => 3,
+        });
 
         return max(1, min(8, (int) self::configValue($key, (string) $fallback)));
     }

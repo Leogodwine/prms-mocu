@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\ProjectStage;
 use App\Models\SupervisorAssignment;
+use App\Support\FinalYearWorkflowEngine;
+use App\Support\PrmsUserCapabilities;
 use App\Support\StudentStageProgress;
 use App\Support\StudentResearchEligibility;
 use App\Support\SupervisorAssignmentScope;
@@ -53,6 +55,8 @@ class DashboardController extends Controller
             'supervisorAssignment' => $supervisorAssignment,
             'supervisorAssignments' => $supervisorAssignments,
             'availableTracks' => StudentResearchEligibility::availableTracks($user),
+            'canCreateProjects' => PrmsUserCapabilities::canEnterStudentWorkflow($user),
+            'workflowBlockReason' => FinalYearWorkflowEngine::workflowBlockReason($user),
             'studentAcademic' => StudentResearchEligibility::academicContext($user),
             'proposalProgress' => $proposalSummary['percent'],
             'researchProgress' => $researchSummary['percent'],

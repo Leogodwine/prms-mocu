@@ -471,36 +471,47 @@ final class StudentStageProgress
      */
     public static function shortStageLabel(string $stageName): string
     {
-        $lower = strtolower($stageName);
+        $trimmed = trim($stageName);
+        $lower = strtolower($trimmed);
+
+        $known = [
+            'Complete Proposal Document' => 'Complete Proposal',
+            'Complete Research Document' => 'Complete Research',
+            'Complete Project Document' => 'Complete Project',
+            'Complete System' => 'Complete System',
+            RepositoryPublication::consentStageName() => 'Consent Letter',
+            'Final Presentation' => 'Final Presentation',
+            'Progress Presentation 1' => 'Progress Presentation 1',
+            'Progress Presentation 2' => 'Progress Presentation 2',
+            'Progress Presentation 3' => 'Progress Presentation 3',
+        ];
+
+        if (isset($known[$trimmed])) {
+            return $known[$trimmed];
+        }
 
         if (str_contains($lower, 'consent')) {
-            return 'Consent letter';
+            return 'Consent Letter';
         }
 
         if (str_contains($lower, 'presentation')) {
             if (self::isFinalPresentationStage($stageName)) {
-                return 'Final presentation';
+                return 'Final Presentation';
             }
 
             if (preg_match('/presentation\s*(\d+)/i', $stageName, $matches)) {
-                return 'Presentation '.$matches[1];
+                return 'Progress Presentation '.$matches[1];
             }
 
             return 'Presentation';
         }
 
         if (self::isCompleteSystemStage($stageName)) {
-            return 'Complete system';
+            return 'Complete System';
         }
 
         if (str_contains($lower, 'complete')) {
-            return match (trim($stageName)) {
-                'Complete Proposal Document' => 'Complete proposal',
-                'Complete Research Document' => 'Complete research',
-                'Complete Project Document' => 'Complete project',
-                'Complete System' => 'Complete system',
-                default => 'Complete document',
-            };
+            return 'Complete document';
         }
 
         if (preg_match('/chapter\s*(\d+)/i', $stageName, $matches)) {
@@ -512,6 +523,101 @@ final class StudentStageProgress
         }
 
         return $stageName;
+    }
+
+    /**
+     * Project workspace stages shown in sidebar navigation (display order).
+     *
+     * @return list<string>
+     */
+    public static function projectNavStageNames(): array
+    {
+        return [
+            'Progress Presentation 1',
+            'Progress Presentation 2',
+            'Progress Presentation 3',
+            RepositoryPublication::consentStageName(),
+            'Final Presentation',
+            'Complete Project Document',
+        ];
+    }
+
+    public static function isProjectNavStage(string $stageName): bool
+    {
+        return in_array(trim($stageName), self::projectNavStageNames(), true);
+    }
+
+    /**
+     * Student-facing sort order for workspace chapter links (display only).
+     *
+     * @return Collection<int, ProjectStage>
+     */
+    public static function stagesForNavTrack(Collection $allStagesOrdered, string $track): Collection
+    {
+        $stages = self::stagesForTrack($allStagesOrdered, $track);
+
+        if (strtolower($track) === 'project') {
+            $stages = $stages->filter(
+                fn (ProjectStage $stage) => self::isProjectNavStage($stage->stage_name)
+            );
+        }
+
+        return $stages
+            ->sortBy(fn (ProjectStage $stage) => self::navStageSortOrder($stage->stage_name, $track))
+            ->values();
+    }
+
+    public static function navStageSortOrder(string $stageName, string $track): int
+    {
+        $name = trim($stageName);
+        $track = strtolower($track);
+
+        if ($track === 'proposal') {
+            if (preg_match('/chapter\s*(\d+)/i', $name, $matches)) {
+                return (int) $matches[1];
+            }
+
+            if ($name === 'Complete Proposal Document') {
+                return 100;
+            }
+        }
+
+        if ($track === 'research') {
+            if (preg_match('/chapter\s*(\d+)/i', $name, $matches)) {
+                return (int) $matches[1];
+            }
+
+            if ($name === 'Complete Research Document') {
+                return 100;
+            }
+        }
+
+        if ($track === 'project') {
+            if (self::isConsentLetterStage($name)) {
+                return 40;
+            }
+
+            return match ($name) {
+                'Progress Presentation 1' => 10,
+                'Progress Presentation 2' => 20,
+                'Progress Presentation 3' => 30,
+                'Final Presentation' => 50,
+                'Complete Project Document' => 60,
+                default => 999,
+            };
+        }
+
+        return 999;
+    }
+
+    public static function navTrackOverviewLabel(string $track): string
+    {
+        return match (strtolower($track)) {
+            'proposal' => 'Proposal overview',
+            'research' => 'Report overview',
+            'project' => 'Project overview',
+            default => 'Overview',
+        };
     }
 
     public static function completeStageShortLabel(string $track): string

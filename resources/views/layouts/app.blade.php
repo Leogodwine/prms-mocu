@@ -14,7 +14,7 @@
     @php $kai = asset(config('prms.kaiadmin_assets', 'vendor/prms-mocu/assets')); @endphp
     <link rel="stylesheet" href="{{ $kai }}/css/demo.css">
     <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=31">
-    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=35">
+    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=39">
 
     @stack('styles')
 </head>
@@ -81,7 +81,10 @@
                             </li>
 
                             <li class="nav-item topbar-icon">
-                                <a href="{{ route('notifications.index') }}" class="nav-link position-relative" aria-label="Notifications">
+                                <a href="{{ route('notifications.index') }}"
+                                   class="nav-link position-relative @if (request()->routeIs('notifications.*')) active @endif"
+                                   aria-label="Notifications"
+                                   @if (request()->routeIs('notifications.*')) aria-current="page" @endif>
                                     <i class="far fa-bell"></i>
                                     @php $unread = auth()->user()->unreadNotifications()->count(); @endphp
                                     @if ($unread > 0)

@@ -68,8 +68,27 @@ class AuthController extends Controller
         $idValue = trim($credentials['login_id']);
         $password = $credentials['password'];
 
-        // Staff (admin, HoD, coordinator, supervisor) must sign in with university email only — not Staff ID / staff_id.
+        // Staff sign in with university email only; students sign in with registration number only.
         if ($this->looksLikeEmail($idValue)) {
+            $userByEmail = User::query()->where('email', $idValue)->first();
+            if ($userByEmail?->isStudentUser()) {
+                LoginHistory::create([
+                    'user_id' => $userByEmail->id,
+                    'login_time' => now(),
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                    'success' => false,
+                    'failure_reason' => 'student_email_login_blocked',
+                    'session_id' => $request->session()->getId(),
+                ]);
+
+                return back()
+                    ->withErrors([
+                        'login_id' => 'Student accounts must sign in using your registration number, not your email address.',
+                    ])
+                    ->onlyInput('login_id');
+            }
+
             $attempted = Auth::attempt(['email' => $idValue, 'password' => $password], $remember);
         } else {
             if ($this->staffAccountUsesNonEmailIdentifier($idValue)) {
@@ -121,6 +140,44 @@ class AuthController extends Controller
 
         $user = $request->user();
 
+        if ($user->isStudentUser() && $this->looksLikeEmail($idValue)) {
+            LoginHistory::create([
+                'user_id' => $user->id,
+                'login_time' => now(),
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'success' => false,
+                'failure_reason' => 'student_email_login_blocked',
+                'session_id' => $request->session()->getId(),
+            ]);
+            Auth::logout();
+
+            return back()
+                ->withErrors([
+                    'login_id' => 'Student accounts must sign in using your registration number, not your email address.',
+                ])
+                ->onlyInput('login_id');
+        }
+
+        if (in_array($user->role, $this->staffRoles(), true) && ! $this->looksLikeEmail($idValue)) {
+            LoginHistory::create([
+                'user_id' => $user->id,
+                'login_time' => now(),
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'success' => false,
+                'failure_reason' => 'staff_non_email_login_blocked',
+                'session_id' => $request->session()->getId(),
+            ]);
+            Auth::logout();
+
+            return back()
+                ->withErrors([
+                    'login_id' => 'Staff accounts must sign in using your university email address, not your Staff ID or staff number.',
+                ])
+                ->onlyInput('login_id');
+        }
+
         if ($user->account_status !== 'active') {
             LoginHistory::create([
                 'user_id' => $user->id,
@@ -137,7 +194,7 @@ class AuthController extends Controller
                 ->onlyInput('login_id');
         }
 
-        if (in_array($user->role, ['project_student', 'research_student', 'normal_student'], true) && $user->enrollment_status !== 'active') {
+        if ($user->isStudentUser() && $user->enrollment_status !== 'active') {
             LoginHistory::create([
                 'user_id' => $user->id,
                 'login_time' => now(),

@@ -96,7 +96,7 @@ class HodController extends Controller
             'edit_user_id' => ['nullable', 'integer'],
             'department' => ['required', 'string', 'max:120'],
             'programme' => ['nullable', 'string', 'max:120'],
-            'year_of_study' => ['nullable', 'integer', 'between:1,8'],
+            'year_of_study' => ['nullable', 'integer', 'between:1,'.\App\Http\Requests\StoreAdminUserRequest::MAX_YEAR_OF_STUDY],
         ]);
 
         $dept = $request->user()->staffProfile?->department;

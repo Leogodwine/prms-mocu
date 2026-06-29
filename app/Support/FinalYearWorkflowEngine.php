@@ -199,10 +199,30 @@ final class FinalYearWorkflowEngine
 
     public static function resolveOutputType(User $user): ProgramOutputType
     {
+        $programme = self::resolveProgramme($user);
+
+        if (ProgrammeWorkflowPolicy::excludesResearchAndProject($programme)) {
+            return ProgramOutputType::None;
+        }
+
+        if (self::academicLevel($user) === AcademicLevel::Certificate) {
+            return ProgramOutputType::None;
+        }
+
+        if (self::academicLevel($user) === AcademicLevel::Diploma && ! ProgrammeWorkflowPolicy::isProjectDiplomaProgramme($programme)) {
+            return ProgramOutputType::None;
+        }
+
         $department = self::resolveDepartment($user);
         $departmentRule = self::resolveDepartmentRule($user);
         $levelSetting = self::resolveLevelSetting($user);
-        $programme = self::resolveProgramme($user);
+
+        if ($programme !== null && filled($programme->output_type)) {
+            $programmeOutput = ProgramOutputType::tryFromMixed($programme->output_type);
+            if ($programmeOutput === ProgramOutputType::None) {
+                return ProgramOutputType::None;
+            }
+        }
 
         $outputType = null;
 
@@ -216,6 +236,10 @@ final class FinalYearWorkflowEngine
             $outputType = ProgramOutputType::BothAllowed;
         } else {
             $outputType = ProgramOutputType::ResearchOnly;
+        }
+
+        if ($outputType === ProgramOutputType::None) {
+            return ProgramOutputType::None;
         }
 
         if ($department !== null) {
@@ -299,6 +323,7 @@ final class FinalYearWorkflowEngine
         $outputType = self::resolveOutputType($user);
 
         return match ($outputType) {
+            ProgramOutputType::None => null,
             ProgramOutputType::ResearchOnly => OutputTrack::Research,
             ProgramOutputType::ProjectOnly => OutputTrack::Project,
             ProgramOutputType::BothAllowed => null,
@@ -321,6 +346,10 @@ final class FinalYearWorkflowEngine
             return StudentWorkflowRole::NoAccess;
         }
 
+        if (self::resolveOutputType($user) === ProgramOutputType::None) {
+            return StudentWorkflowRole::ViewerOnly;
+        }
+
         if (! self::isFinalYearEligible($user)) {
             return StudentWorkflowRole::ViewerOnly;
         }
@@ -336,6 +365,7 @@ final class FinalYearWorkflowEngine
         }
 
         return match (self::resolveOutputType($user)) {
+            ProgramOutputType::None => StudentWorkflowRole::ViewerOnly,
             ProgramOutputType::ResearchOnly => StudentWorkflowRole::ResearchCandidate,
             ProgramOutputType::ProjectOnly => StudentWorkflowRole::ProjectCandidate,
             ProgramOutputType::BothAllowed => StudentWorkflowRole::FinalYearStudent,
@@ -397,6 +427,13 @@ final class FinalYearWorkflowEngine
         }
 
         if ($role === StudentWorkflowRole::ViewerOnly) {
+            if (self::resolveOutputType($user) === ProgramOutputType::None) {
+                $programme = self::resolveProgramme($user);
+                $programmeLabel = $programme?->programme_name ?? 'your programme';
+
+                return "Final-year research and project work is not part of {$programmeLabel} in PRMS.";
+            }
+
             $programme = self::resolveProgramme($user);
             $expectedYear = self::resolveFinalYear($user);
             $currentYear = self::yearOfStudy($user);

@@ -24,7 +24,7 @@
     ];
 @endphp
 
-<x-prms-greeting-banner subtitle="Provision accounts, assign roles, monitor access, and bulk-import users from the Student Information System.">
+<x-prms-greeting-banner subtitle="Provision accounts, assign roles, monitor access, bulk-import users, or delete multiple accounts at once.">
     <button type="button" class="btn btn-primary rounded-pill px-4 fw-semibold" data-bs-toggle="modal" data-bs-target="#createUserModal">
         <i class="fas fa-user-plus me-2" aria-hidden="true"></i>
         Create account
@@ -46,17 +46,10 @@
     $fRole = $filters['role'] ?? '';
     $fStatus = $filters['status'] ?? '';
     $fPendingPw = ! empty($filters['must_change_password']);
-    $preserveGet = [];
-    if ($fQ !== '') {
-        $preserveGet['q'] = $fQ;
-    }
-    if ($fRole !== '') {
-        $preserveGet['role'] = $fRole;
-    }
     $isCohortTotal = ($fQ === '' && $fRole === '' && $fStatus === '' && ! $fPendingPw);
-    $isCohortActive = ($fStatus === 'active' && ! $fPendingPw);
-    $isCohortSuspended = ($fStatus === 'suspended_locked');
-    $isCohortPending = $fPendingPw;
+    $isCohortActive = ($fStatus === 'active' && $fQ === '' && $fRole === '' && ! $fPendingPw);
+    $isCohortSuspended = ($fStatus === 'suspended_locked' && $fQ === '' && $fRole === '' && ! $fPendingPw);
+    $isCohortPending = ($fPendingPw && $fQ === '' && $fRole === '' && $fStatus === '');
 @endphp
 <div class="row g-3 mb-4">
     <div class="col-6 col-lg-3">
@@ -75,7 +68,7 @@
         </a>
     </div>
     <div class="col-6 col-lg-3">
-        <a href="{{ route('admin.users.index', ['apply_status' => 'active']) }}"
+        <a href="{{ route('admin.users.index', ['status' => 'active']) }}"
            class="prms-stat-card prms-stat-card--clickable text-reset text-decoration-none d-block h-100 @if ($isCohortActive) prms-stat-card--selected @endif"
            style="--prms-primary: var(--prms-color-success-500); --prms-stat-ring: var(--prms-color-success-500);"
            @if ($isCohortActive) aria-current="page" @endif>
@@ -90,7 +83,7 @@
         </a>
     </div>
     <div class="col-6 col-lg-3">
-        <a href="{{ route('admin.users.index', ['apply_status' => 'suspended_locked']) }}"
+        <a href="{{ route('admin.users.index', ['status' => 'suspended_locked']) }}"
            class="prms-stat-card prms-stat-card--clickable text-reset text-decoration-none d-block h-100 @if ($isCohortSuspended) prms-stat-card--selected @endif"
            style="--prms-primary: var(--prms-color-warning-500); --prms-stat-ring: var(--prms-color-warning-500);"
            @if ($isCohortSuspended) aria-current="page" @endif>
@@ -105,7 +98,7 @@
         </a>
     </div>
     <div class="col-6 col-lg-3">
-        <a href="{{ route('admin.users.index', ['apply_pending' => 1]) }}"
+        <a href="{{ route('admin.users.index', ['must_change_password' => 1]) }}"
            class="prms-stat-card prms-stat-card--clickable text-reset text-decoration-none d-block h-100 @if ($isCohortPending) prms-stat-card--selected @endif"
            style="--prms-primary: var(--prms-color-info-500); --prms-stat-ring: var(--prms-color-info-500);"
            @if ($isCohortPending) aria-current="page" @endif>
@@ -132,21 +125,17 @@
                 </h3>
             </div>
             <div class="col-md-7">
-                <form method="POST" action="{{ route('admin.users.index') }}" class="d-flex flex-wrap gap-2 justify-content-md-end">
-                    @csrf
-                    <input type="hidden" name="_filter_action" value="apply">
-                    @if (! empty($filters['must_change_password']))
-                        <input type="hidden" name="must_change_password" value="1">
-                    @endif
-                    <div class="position-relative flex-grow-1" style="min-width: 180px;">
+                <form method="GET" action="{{ route('admin.users.index') }}" id="prmsUserFilterForm" class="d-flex flex-wrap gap-2 justify-content-md-end align-items-center">
+                    <div class="position-relative flex-grow-1" style="min-width: 200px;">
                         <i class="fas fa-search position-absolute text-muted" aria-hidden="true"
                            style="left: 0.85rem; top: 50%; transform: translateY(-50%); pointer-events: none;"></i>
-                        <input type="text" name="q" value="{{ $filters['q'] }}"
+                        <input type="search" name="q" value="{{ $filters['q'] }}"
                                class="form-control form-control-sm ps-4"
-                               placeholder="Search name, email, or reg. no…"
-                               aria-label="Search users">
+                               placeholder="Name, email, reg. no., staff ID, dept…"
+                               aria-label="Search users"
+                               autocomplete="off">
                     </div>
-                    <select name="role" class="form-select form-select-sm" style="max-width: 160px;" aria-label="Filter by role">
+                    <select name="role" class="form-select form-select-sm prms-user-filter-auto" style="max-width: 160px;" aria-label="Filter by role">
                         <option value="">All roles</option>
                         @foreach ($roles as $r)
                             <option value="{{ $r }}" @selected($filters['role'] === $r)>
@@ -154,7 +143,7 @@
                             </option>
                         @endforeach
                     </select>
-                    <select name="status" class="form-select form-select-sm" style="max-width: 180px;" aria-label="Filter by status">
+                    <select name="status" class="form-select form-select-sm prms-user-filter-auto" style="max-width: 180px;" aria-label="Filter by status">
                         <option value="">All statuses</option>
                         <option value="suspended_locked" @selected(($filters['status'] ?? '') === 'suspended_locked')>Suspended or locked</option>
                         @foreach ($statuses as $s)
@@ -163,16 +152,64 @@
                             </option>
                         @endforeach
                     </select>
+                    @if (! empty($filters['must_change_password']))
+                        <input type="hidden" name="must_change_password" value="1">
+                    @endif
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        <i class="fas fa-filter me-1" aria-hidden="true"></i>
+                        Apply
+                    </button>
+                    @if ($hasActiveFilters ?? false)
+                        <a href="{{ $filterResetUrl }}" class="btn btn-sm btn-light border">
+                            Clear
+                        </a>
+                    @endif
                 </form>
             </div>
         </div>
+        @if ($hasActiveFilters ?? false)
+            <div class="px-3 pb-2 d-flex flex-wrap gap-2 align-items-center small">
+                <span class="text-muted">Showing filtered results:</span>
+                @if ($filters['q'] !== '')
+                    <span class="badge bg-light text-dark border">Search: {{ $filters['q'] }}</span>
+                @endif
+                @if ($filters['role'] !== '')
+                    <span class="badge bg-light text-dark border">Role: {{ $roleLabels[$filters['role']]['label'] ?? $filters['role'] }}</span>
+                @endif
+                @if ($filters['status'] !== '')
+                    <span class="badge bg-light text-dark border">
+                        Status: {{ $filters['status'] === 'suspended_locked' ? 'Suspended or locked' : ($statusLabels[$filters['status']]['label'] ?? $filters['status']) }}
+                    </span>
+                @endif
+                @if (! empty($filters['must_change_password']))
+                    <span class="badge bg-light text-dark border">Awaiting password reset</span>
+                @endif
+            </div>
+        @endif
     </div>
 
     <div class="card-body p-0">
+        <div id="prmsBulkUserActions" class="d-none align-items-center justify-content-between flex-wrap gap-2 px-3 py-2 border-bottom bg-surface-soft">
+            <span class="small text-muted">
+                <span id="prmsSelectedUserCount">0</span> selected
+            </span>
+            <button type="button"
+                    id="prmsBulkDeleteUsersBtn"
+                    class="btn btn-sm btn-outline-danger"
+                    data-bs-toggle="modal"
+                    data-bs-target="#bulkDeleteUsersModal"
+                    disabled>
+                <i class="fas fa-trash-alt me-1" aria-hidden="true"></i>
+                Delete selected
+            </button>
+        </div>
         <div class="table-responsive">
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
+                        <th scope="col" style="width: 42px;">
+                            <input type="checkbox" class="form-check-input" id="prmsSelectAllUsers" aria-label="Select all users on this page">
+                        </th>
                         <th scope="col">User</th>
                         <th scope="col">Reg. no / Staff ID</th>
                         <th scope="col">Role</th>
@@ -187,6 +224,15 @@
                             $status = $statusLabels[$user->account_status] ?? ['label' => \Illuminate\Support\Str::title($user->account_status), 'tone' => 'bg-secondary'];
                         @endphp
                         <tr>
+                            <td>
+                                @if ((int) auth()->id() !== (int) $user->id)
+                                    <input type="checkbox"
+                                           class="form-check-input prms-user-select"
+                                           name="user_ids[]"
+                                           value="{{ $user->id }}"
+                                           aria-label="Select {{ $user->name }}">
+                                @endif
+                            </td>
                             <td>
                                 <div class="d-flex align-items-center gap-3">
                                     <span class="d-inline-flex align-items-center justify-content-center bg-brand-soft text-primary rounded-circle fw-bold flex-shrink-0"
@@ -246,7 +292,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center py-5">
+                            <td colspan="6" class="text-center py-5">
                                 <div class="d-inline-flex align-items-center justify-content-center bg-surface-soft rounded-circle mb-3"
                                      style="width: 64px; height: 64px;">
                                     <i class="fas fa-user-slash text-muted" aria-hidden="true" style="font-size: 1.4rem;"></i>
@@ -365,7 +411,8 @@
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label for="create_registration_number" class="form-label">Registration number <span class="text-danger">*</span></label>
-                                    <input id="create_registration_number" type="text" name="login_id"
+                                    <input id="create_registration_number" type="text"
+                                           @if ($createRoleIsStudent) name="login_id" @endif
                                            value="{{ $createFormFailed && $createRoleIsStudent ? old('login_id') : '' }}"
                                            class="form-control prms-student-login-id {{ $createFormFailed && $errors->has('login_id') ? 'is-invalid' : '' }}"
                                            placeholder="MoCU/REG/1134/24"
@@ -407,7 +454,7 @@
                                     <select id="create_year_of_study" name="year_of_study"
                                             class="form-select {{ $createFormFailed && $errors->has('year_of_study') ? 'is-invalid' : '' }}">
                                         <option value="" @selected($createYear === null)>—</option>
-                                        @for ($y = 1; $y <= 8; $y++)
+                                        @for ($y = 1; $y <= StoreAdminUserRequest::MAX_YEAR_OF_STUDY; $y++)
                                             <option value="{{ $y }}" @selected($createYear === $y)>Year {{ $y }}</option>
                                         @endfor
                                     </select>
@@ -428,7 +475,8 @@
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label for="create_staff_id" class="form-label">Staff ID <span class="text-danger">*</span></label>
-                                    <input id="create_staff_id" type="text" name="login_id"
+                                    <input id="create_staff_id" type="text"
+                                           @if ($createRoleIsStaff) name="login_id" @endif
                                            value="{{ $createFormFailed && $createRoleIsStaff ? old('login_id') : '' }}"
                                            class="form-control prms-staff-login-id {{ $createFormFailed && $errors->has('login_id') ? 'is-invalid' : '' }}"
                                            placeholder="MoCU/STAFF/2024/001"
@@ -558,7 +606,8 @@
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label for="edit_registration_number_{{ $user->id }}" class="form-label">Registration number <span class="text-danger">*</span></label>
-                                    <input type="text" id="edit_registration_number_{{ $user->id }}" name="login_id"
+                                    <input type="text" id="edit_registration_number_{{ $user->id }}"
+                                           @if ($editRoleIsStudent) name="login_id" @endif
                                            value="{{ $editLoginId }}"
                                            class="form-control prms-student-login-id {{ $editFormFailed && $errors->has('login_id') ? 'is-invalid' : '' }}"
                                            maxlength="80" placeholder="MoCU/REG/1134/24"
@@ -595,7 +644,7 @@
                                             class="form-select {{ $editFormFailed && $errors->has('year_of_study') ? 'is-invalid' : '' }}"
                                             @if(! $editRoleIsStudent) disabled @endif>
                                         <option value="" @selected($editYear === null)>—</option>
-                                        @for ($y = 1; $y <= 8; $y++)
+                                        @for ($y = 1; $y <= StoreAdminUserRequest::MAX_YEAR_OF_STUDY; $y++)
                                             <option value="{{ $y }}" @selected($editYear === $y)>Year {{ $y }}</option>
                                         @endfor
                                     </select>
@@ -614,7 +663,8 @@
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label for="edit_staff_id_{{ $user->id }}" class="form-label">Staff ID <span class="text-danger">*</span></label>
-                                    <input type="text" id="edit_staff_id_{{ $user->id }}" name="login_id"
+                                    <input type="text" id="edit_staff_id_{{ $user->id }}"
+                                           @if ($editRoleIsStaff) name="login_id" @endif
                                            value="{{ $editLoginId }}"
                                            class="form-control prms-staff-login-id {{ $editFormFailed && $errors->has('login_id') ? 'is-invalid' : '' }}"
                                            maxlength="80" placeholder="MoCU/STAFF/2024/001"
@@ -737,11 +787,13 @@
                             <code class="d-block mb-3">name, email, login_id, role, department, programme, year_of_study</code>
 
                             <p class="mb-1 fw-semibold">Staff</p>
-                            <code class="d-block mb-0">name, email, login_id, role, department</code>
+                            <code class="d-block mb-3">name, email, login_id, role, department</code>
+
+                            <p class="mb-0 text-muted">Each imported user receives individual temporary credentials by email and in-app notification. Every active administrator receives a separate in-app alert per imported account.</p>
                         </div>
                     </div>
 
-                    <div class="mb-3">
+                    <div class="mb-3 mt-3">
                         <label for="csv_file" class="form-label">CSV file</label>
                         <input id="csv_file" type="file" name="csv_file"
                                class="form-control @error('csv_file') is-invalid @enderror"
@@ -754,6 +806,43 @@
                     <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-upload me-1" aria-hidden="true"></i> Start import
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- Bulk delete modal --}}
+<div class="modal fade" id="bulkDeleteUsersModal" tabindex="-1" aria-labelledby="bulkDeleteUsersModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0">
+            <div class="modal-header bg-surface-soft">
+                <h2 class="modal-title h5 fw-bold text-strong" id="bulkDeleteUsersModalTitle" style="color: var(--prms-color-danger-500);">
+                    <i class="fas fa-trash-alt me-2" aria-hidden="true"></i>
+                    Delete selected users
+                </h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="prmsBulkDeleteUsersForm" method="POST" action="{{ route('admin.users.bulk-delete') }}">
+                @csrf
+                @foreach (request()->only(['q', 'role', 'status', 'must_change_password']) as $filterKey => $filterValue)
+                    @if ($filterValue !== null && $filterValue !== '')
+                        <input type="hidden" name="{{ $filterKey }}" value="{{ $filterValue }}">
+                    @endif
+                @endforeach
+                <div class="modal-body p-4">
+                    <p class="mb-2">
+                        You are about to permanently delete <strong id="prmsBulkDeleteCount">0</strong> account(s).
+                    </p>
+                    <p class="text-muted small mb-3">This action cannot be undone. Your own account is never included.</p>
+                    <div id="prmsBulkDeleteUserList" class="small bg-surface-soft rounded p-3 mb-0" style="max-height: 200px; overflow-y: auto;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash-alt me-1" aria-hidden="true"></i>
+                        Yes, delete selected
                     </button>
                 </div>
             </form>
@@ -785,6 +874,35 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        const filterForm = document.getElementById('prmsUserFilterForm');
+        if (filterForm) {
+            const searchInput = filterForm.querySelector('input[name="q"]');
+            let searchTimer = null;
+
+            filterForm.querySelectorAll('.prms-user-filter-auto').forEach(function (select) {
+                select.addEventListener('change', function () {
+                    filterForm.submit();
+                });
+            });
+
+            if (searchInput) {
+                searchInput.addEventListener('input', function () {
+                    window.clearTimeout(searchTimer);
+                    searchTimer = window.setTimeout(function () {
+                        filterForm.submit();
+                    }, 450);
+                });
+
+                searchInput.addEventListener('keydown', function (event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        window.clearTimeout(searchTimer);
+                        filterForm.submit();
+                    }
+                });
+            }
+        }
+
         const studentFormRole = @json(\App\Http\Requests\StoreAdminUserRequest::FORM_STUDENT_ROLE);
         const staffFormRoles = @json($staffFormRoles);
 
@@ -930,6 +1048,92 @@
                 bootstrap.Modal.getOrCreateInstance(editModal).show();
             }
         @endif
+
+        const selectAllUsers = document.getElementById('prmsSelectAllUsers');
+        const userCheckboxes = Array.from(document.querySelectorAll('.prms-user-select'));
+        const bulkActions = document.getElementById('prmsBulkUserActions');
+        const selectedCountEl = document.getElementById('prmsSelectedUserCount');
+        const bulkDeleteBtn = document.getElementById('prmsBulkDeleteUsersBtn');
+        const bulkDeleteForm = document.getElementById('prmsBulkDeleteUsersForm');
+        const bulkDeleteCount = document.getElementById('prmsBulkDeleteCount');
+        const bulkDeleteUserList = document.getElementById('prmsBulkDeleteUserList');
+        const bulkDeleteModal = document.getElementById('bulkDeleteUsersModal');
+
+        function selectedUserCheckboxes() {
+            return userCheckboxes.filter(function (checkbox) {
+                return checkbox.checked;
+            });
+        }
+
+        function syncBulkUserSelection() {
+            const selected = selectedUserCheckboxes();
+            const count = selected.length;
+
+            if (bulkActions) {
+                bulkActions.classList.toggle('d-none', count === 0);
+                bulkActions.classList.toggle('d-flex', count > 0);
+            }
+            if (selectedCountEl) {
+                selectedCountEl.textContent = String(count);
+            }
+            if (bulkDeleteBtn) {
+                bulkDeleteBtn.disabled = count === 0;
+            }
+            if (selectAllUsers && userCheckboxes.length > 0) {
+                selectAllUsers.checked = count > 0 && count === userCheckboxes.length;
+                selectAllUsers.indeterminate = count > 0 && count < userCheckboxes.length;
+            }
+        }
+
+        userCheckboxes.forEach(function (checkbox) {
+            checkbox.addEventListener('change', syncBulkUserSelection);
+        });
+
+        if (selectAllUsers) {
+            selectAllUsers.addEventListener('change', function () {
+                userCheckboxes.forEach(function (checkbox) {
+                    checkbox.checked = selectAllUsers.checked;
+                });
+                syncBulkUserSelection();
+            });
+        }
+
+        if (bulkDeleteModal && bulkDeleteForm) {
+            bulkDeleteModal.addEventListener('show.bs.modal', function () {
+                bulkDeleteForm.querySelectorAll('input[type="hidden"][name="user_ids[]"]').forEach(function (input) {
+                    input.remove();
+                });
+
+                const selected = selectedUserCheckboxes();
+                if (bulkDeleteCount) {
+                    bulkDeleteCount.textContent = String(selected.length);
+                }
+                if (bulkDeleteUserList) {
+                    bulkDeleteUserList.innerHTML = '';
+                }
+
+                selected.forEach(function (checkbox) {
+                    const row = checkbox.closest('tr');
+                    const nameCell = row ? row.querySelector('.fw-semibold') : null;
+                    const label = nameCell ? nameCell.textContent.trim() : ('User #' + checkbox.value);
+
+                    const hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'user_ids[]';
+                    hidden.value = checkbox.value;
+                    bulkDeleteForm.appendChild(hidden);
+
+                    if (bulkDeleteUserList) {
+                        const item = document.createElement('div');
+                        item.className = 'mb-1';
+                        item.textContent = label;
+                        bulkDeleteUserList.appendChild(item);
+                    }
+                });
+            });
+        }
+
+        syncBulkUserSelection();
     });
 </script>
 @endpush

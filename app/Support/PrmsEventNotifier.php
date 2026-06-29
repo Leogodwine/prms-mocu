@@ -288,6 +288,40 @@ final class PrmsEventNotifier
         );
     }
 
+    /**
+     * @param  list<string>  $deletedNames
+     */
+    public static function notifyBulkAccountsDeleted(array $deletedNames, User $actor): void
+    {
+        $count = count($deletedNames);
+        if ($count === 0) {
+            return;
+        }
+
+        if ($count === 1) {
+            self::notifyAdmins(
+                'User account deleted',
+                $actor->name.' removed 1 account ('.$deletedNames[0].') via bulk delete.',
+                route('admin.users.index'),
+                'User management'
+            );
+
+            return;
+        }
+
+        $preview = implode(', ', array_slice($deletedNames, 0, 5));
+        if ($count > 5) {
+            $preview .= ', and '.($count - 5).' more';
+        }
+
+        self::notifyAdmins(
+            'Bulk user deletion',
+            $actor->name.' removed '.$count.' accounts via bulk delete: '.$preview.'.',
+            route('admin.users.index'),
+            'User management'
+        );
+    }
+
     public static function notifyStudentAcademicUpdated(User $student, ?User $actor = null): void
     {
         $actorNote = $actor ? ' by '.$actor->name : '';
