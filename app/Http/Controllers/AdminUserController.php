@@ -484,7 +484,11 @@ class AdminUserController extends Controller
                 StudentProfileProvisioner::ensureStudentProfile($user);
                 $user->refresh();
                 StudentAcademicRecordSync::syncLinkedStudentRowFromUser($user);
-                StudentWorkflowAssigner::syncForUser($user->fresh());
+                try {
+                    StudentWorkflowAssigner::syncForUser($user->fresh());
+                } catch (\Throwable $e) {
+                    report($e);
+                }
             } elseif (in_array($formRole, StaffProfileProvisioner::staffProfileRoles(), true)) {
                 if (Schema::hasColumn('users', 'staff_id')) {
                     $user->staff_id = $validated['login_id'];
@@ -528,7 +532,9 @@ class AdminUserController extends Controller
             $statusMessage = 'User created. In-app credentials were delivered, but email could not be sent. Check mail configuration, or share credentials manually if needed.';
         }
 
-        return back()->with('status', $statusMessage);
+        return redirect()
+            ->route('admin.users.index')
+            ->with('status', $statusMessage);
     }
 
     public function update(UpdateAdminUserRequest $request, User $user): RedirectResponse
