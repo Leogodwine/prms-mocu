@@ -19,7 +19,7 @@ final class PrmsEventNotifier
         try {
             $user->notify(new ProjectNotification($title, $message, $actionUrl, $actionText));
         } catch (\Throwable $e) {
-            report($e);
+            SafeReport::call($e);
         }
     }
 

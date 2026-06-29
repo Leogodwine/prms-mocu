@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Support\AdminUserCreatedNotifier;
 use App\Support\Audit;
 use App\Support\PrmsEventNotifier;
+use App\Support\SafeReport;
 use App\Support\StaffProfileProvisioner;
 use App\Support\StudentAcademicRecordSync;
 use App\Support\StudentProfileProvisioner;
@@ -191,7 +192,7 @@ class AdminUserController extends Controller
 
                 $imported++;
             } catch (\Throwable $e) {
-                report($e);
+                SafeReport::call($e);
 
                 fclose($handle);
 
@@ -374,13 +375,13 @@ class AdminUserController extends Controller
         try {
             Audit::log($request, 'admin.user_deleted', 'User', (string) $user->id, $snapshot, null);
         } catch (\Throwable $e) {
-            report($e);
+            SafeReport::call($e);
         }
 
         try {
             PrmsEventNotifier::notifyAccountDeleted($snapshot, $request->user());
         } catch (\Throwable $e) {
-            report($e);
+            SafeReport::call($e);
         }
 
         return back()->with('status', "User “{$snapshot['name']}” has been deleted.");
@@ -422,13 +423,13 @@ class AdminUserController extends Controller
                             'source' => 'bulk_delete',
                         ]);
                     } catch (\Throwable $e) {
-                        report($e);
+                        SafeReport::call($e);
                     }
 
                     $deletedNames[] = (string) $snapshot['name'];
                     $deleted++;
                 } catch (\Throwable $e) {
-                    report($e);
+                    SafeReport::call($e);
                     $failed++;
                 }
             }
@@ -437,7 +438,7 @@ class AdminUserController extends Controller
                 try {
                     PrmsEventNotifier::notifyBulkAccountsDeleted($deletedNames, $request->user());
                 } catch (\Throwable $e) {
-                    report($e);
+                    SafeReport::call($e);
                 }
             }
 
@@ -461,7 +462,7 @@ class AdminUserController extends Controller
             return redirect()->route('admin.users.index', $request->only(['q', 'role', 'status', 'must_change_password']))
                 ->with('status', $message);
         } catch (\Throwable $e) {
-            report($e);
+            SafeReport::call($e);
 
             return redirect()->route('admin.users.index', $request->only(['q', 'role', 'status', 'must_change_password']))
                 ->withErrors(['delete' => 'Bulk delete failed. Check that migrations are up to date and review storage/logs/laravel.log for details.']);
@@ -473,7 +474,7 @@ class AdminUserController extends Controller
         try {
             return $this->createAdminUser($request);
         } catch (\Throwable $e) {
-            report($e);
+            SafeReport::call($e);
 
             return back()
                 ->withInput()
@@ -523,7 +524,7 @@ class AdminUserController extends Controller
                 try {
                     StudentWorkflowAssigner::syncForUser($user->fresh());
                 } catch (\Throwable $e) {
-                    report($e);
+                    SafeReport::call($e);
                 }
             } elseif (in_array($formRole, StaffProfileProvisioner::staffProfileRoles(), true)) {
                 if (Schema::hasColumn('users', 'staff_id')) {
@@ -550,7 +551,7 @@ class AdminUserController extends Controller
                     'login_id' => $user->login_id,
                 ]);
             } catch (\Throwable $e) {
-                report($e);
+                SafeReport::call($e);
             }
 
             return $user->fresh();

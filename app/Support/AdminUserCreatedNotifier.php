@@ -40,7 +40,7 @@ final class AdminUserCreatedNotifier
             ));
             $result['user_in_app'] = true;
         } catch (\Throwable $e) {
-            report($e);
+            SafeReport::call($e);
         }
 
         try {
@@ -52,7 +52,7 @@ final class AdminUserCreatedNotifier
             ));
             $result['user_email'] = true;
         } catch (\Throwable $e) {
-            report($e);
+            SafeReport::call($e);
         }
 
         $actorId = $actor !== null ? (int) $actor->id : null;
@@ -84,7 +84,7 @@ final class AdminUserCreatedNotifier
                     ));
                     $result['admin_in_app']++;
                 } catch (\Throwable $e) {
-                    report($e);
+                    SafeReport::call($e);
                 }
             });
 
