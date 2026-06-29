@@ -22,7 +22,7 @@ Schedule::call(function (): void {
         '--trigger' => 'scheduled',
         '--user-name' => 'Scheduler',
     ]);
-})->dailyAt(PrmsBackupCatalog::scheduledTime())
+})->dailyAt('03:00')
     ->when(fn () => PrmsBackupCatalog::autoBackupEnabled() && PrmsBackupCatalog::settings()['schedule'] === 'daily')
     ->name('prms-backup-daily');
 
@@ -38,6 +38,6 @@ Schedule::call(function (): void {
         '--trigger' => 'scheduled',
         '--user-name' => 'Scheduler',
     ]);
-})->weeklyOn(0, PrmsBackupCatalog::scheduledTime())
+})->weeklyOn(0, '03:00')
     ->when(fn () => PrmsBackupCatalog::autoBackupEnabled() && PrmsBackupCatalog::settings()['schedule'] === 'weekly')
     ->name('prms-backup-weekly');

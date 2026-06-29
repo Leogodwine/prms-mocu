@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Enums\AcademicLevel;
 use App\Enums\WorkflowType;
 use App\Models\SystemConfiguration;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Global final-year workflow defaults stored in system_configurations.
@@ -105,6 +106,10 @@ final class WorkflowSettingsCatalog
 
     private static function configValue(string $key, string $default): string
     {
+        if (! Schema::hasTable('system_configurations')) {
+            return $default;
+        }
+
         $row = SystemConfiguration::query()->where('config_key', $key)->first();
 
         if ($row === null || $row->config_value === null || $row->config_value === '') {

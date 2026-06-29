@@ -371,81 +371,117 @@ class AdminUserController extends Controller
 
         $user->delete();
 
-        Audit::log($request, 'admin.user_deleted', 'User', (string) $user->id, $snapshot, null);
+        try {
+            Audit::log($request, 'admin.user_deleted', 'User', (string) $user->id, $snapshot, null);
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
-        PrmsEventNotifier::notifyAccountDeleted($snapshot, $request->user());
+        try {
+            PrmsEventNotifier::notifyAccountDeleted($snapshot, $request->user());
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         return back()->with('status', "User “{$snapshot['name']}” has been deleted.");
     }
 
     public function bulkDestroy(BulkDeleteUsersRequest $request): RedirectResponse
     {
-        $validated = $request->validated();
-        $deleted = 0;
-        $skippedMissing = 0;
-        $failed = 0;
-        $deletedNames = [];
+        try {
+            $validated = $request->validated();
+            $deleted = 0;
+            $skippedMissing = 0;
+            $failed = 0;
+            $deletedNames = [];
 
-        foreach ($validated['user_ids'] as $userId) {
-            $userId = (int) $userId;
+            foreach ($validated['user_ids'] as $userId) {
+                $userId = (int) $userId;
 
-            $user = User::query()->find($userId);
-            if ($user === null) {
-                $skippedMissing++;
+                $user = User::query()->find($userId);
+                if ($user === null) {
+                    $skippedMissing++;
 
-                continue;
+                    continue;
+                }
+
+                $snapshot = [
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'login_id' => $user->login_id,
+                    'role' => $user->role,
+                ];
+
+                try {
+                    DB::transaction(function () use ($user): void {
+                        $user->delete();
+                    });
+
+                    try {
+                        Audit::log($request, 'admin.user_deleted', 'User', (string) $userId, $snapshot, [
+                            'source' => 'bulk_delete',
+                        ]);
+                    } catch (\Throwable $e) {
+                        report($e);
+                    }
+
+                    $deletedNames[] = (string) $snapshot['name'];
+                    $deleted++;
+                } catch (\Throwable $e) {
+                    report($e);
+                    $failed++;
+                }
             }
 
-            $snapshot = [
-                'name' => $user->name,
-                'email' => $user->email,
-                'login_id' => $user->login_id,
-                'role' => $user->role,
-            ];
-
-            try {
-                DB::transaction(function () use ($user): void {
-                    $user->delete();
-                });
-
-                Audit::log($request, 'admin.user_deleted', 'User', (string) $userId, $snapshot, [
-                    'source' => 'bulk_delete',
-                ]);
-
-                $deletedNames[] = (string) $snapshot['name'];
-                $deleted++;
-            } catch (\Throwable $e) {
-                report($e);
-                $failed++;
+            if ($deleted > 0) {
+                try {
+                    PrmsEventNotifier::notifyBulkAccountsDeleted($deletedNames, $request->user());
+                } catch (\Throwable $e) {
+                    report($e);
+                }
             }
-        }
 
-        if ($deleted > 0) {
-            PrmsEventNotifier::notifyBulkAccountsDeleted($deletedNames, $request->user());
-        }
+            if ($deleted === 0) {
+                $message = $failed > 0
+                    ? 'No users were deleted. One or more accounts could not be removed because they are linked to other records.'
+                    : 'No users were deleted.';
 
-        if ($deleted === 0) {
-            $message = $failed > 0
-                ? 'No users were deleted. One or more accounts could not be removed because they are linked to other records.'
-                : 'No users were deleted.';
+                return redirect()->route('admin.users.index', $request->only(['q', 'role', 'status', 'must_change_password']))
+                    ->withErrors(['delete' => $message]);
+            }
+
+            $message = "Deleted {$deleted} user(s).";
+            if ($skippedMissing > 0) {
+                $message .= " {$skippedMissing} selected user(s) were already removed.";
+            }
+            if ($failed > 0) {
+                $message .= " {$failed} account(s) could not be deleted.";
+            }
 
             return redirect()->route('admin.users.index', $request->only(['q', 'role', 'status', 'must_change_password']))
-                ->withErrors(['delete' => $message]);
-        }
+                ->with('status', $message);
+        } catch (\Throwable $e) {
+            report($e);
 
-        $message = "Deleted {$deleted} user(s).";
-        if ($skippedMissing > 0) {
-            $message .= " {$skippedMissing} selected user(s) were already removed.";
+            return redirect()->route('admin.users.index', $request->only(['q', 'role', 'status', 'must_change_password']))
+                ->withErrors(['delete' => 'Bulk delete failed. Check that migrations are up to date and review storage/logs/laravel.log for details.']);
         }
-        if ($failed > 0) {
-            $message .= " {$failed} account(s) could not be deleted.";
-        }
-
-        return redirect()->route('admin.users.index', $request->only(['q', 'role', 'status', 'must_change_password']))
-            ->with('status', $message);
     }
 
     public function store(StoreAdminUserRequest $request): RedirectResponse
+    {
+        try {
+            return $this->createAdminUser($request);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()
+                ->withInput()
+                ->withErrors(['error' => 'Account creation failed. Check that migrations are up to date and review storage/logs/laravel.log for details.']);
+        }
+    }
+
+    private function createAdminUser(StoreAdminUserRequest $request): RedirectResponse
     {
         $validated = $request->validated();
         $formRole = (string) $validated['role'];
@@ -508,10 +544,14 @@ class AdminUserController extends Controller
                 $user->save();
             }
 
-            Audit::log($request, 'admin.user_created', 'User', (string) $user->id, null, [
-                'role' => $user->role,
-                'login_id' => $user->login_id,
-            ]);
+            try {
+                Audit::log($request, 'admin.user_created', 'User', (string) $user->id, null, [
+                    'role' => $user->role,
+                    'login_id' => $user->login_id,
+                ]);
+            } catch (\Throwable $e) {
+                report($e);
+            }
 
             return $user->fresh();
         });

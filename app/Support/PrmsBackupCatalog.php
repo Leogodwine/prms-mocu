@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Facades\Schema;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 final class PrmsBackupCatalog
@@ -272,6 +273,10 @@ final class PrmsBackupCatalog
 
     private static function configValue(string $key, string $default): string
     {
+        if (! Schema::hasTable('system_configurations')) {
+            return $default;
+        }
+
         $row = SystemConfiguration::query()->where('config_key', $key)->first();
 
         return filled($row?->config_value) ? (string) $row->config_value : $default;
