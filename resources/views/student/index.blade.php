@@ -479,12 +479,16 @@
                             default    => 'My submissions',
                         });
 
+                $submissionSource = $submissions instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator
+                    ? $submissions->getCollection()
+                    : collect($submissions);
+
                 if ($isOverview ?? false) {
                     $submissionSections = collect($availableTracks ?? \App\Support\StudentStageProgress::tracksForUser($user))
                         ->mapWithKeys(fn (string $track) => [
                             $track => [
                                 'label' => \App\Support\StudentStageProgress::trackNavLabel($track),
-                                'items' => \App\Support\StudentStageProgress::filterSubmissionsForTrack($submissions, $track),
+                                'items' => \App\Support\StudentStageProgress::filterSubmissionsForTrack($submissionSource, $track),
                             ],
                         ])
                         ->filter(fn (array $section) => $section['items']->isNotEmpty());
@@ -493,10 +497,13 @@
                         (string) $workspaceType => [
                             'label' => $submissionsHeading,
                             'items' => $submissions,
+                            'total' => method_exists($submissions, 'total') ? $submissions->total() : $submissions->count(),
                         ],
                     ]);
                 }
             @endphp
+
+            <x-prms-table-pagination-toolbar :paginator="$submissions" noun="submissions" />
 
             @foreach ($submissionSections as $sectionTrack => $section)
                 <div class="d-flex align-items-center justify-content-between mb-3 {{ ! $loop->first ? 'mt-4 pt-2' : '' }}">
@@ -505,8 +512,8 @@
                         {{ $section['label'] }}
                     </h3>
                     <span class="badge bg-secondary">
-                        {{ $section['items']->count() }}
-                        {{ $section['items']->count() === 1 ? 'submission' : 'submissions' }}
+                        {{ $section['total'] ?? $section['items']->count() }}
+                        {{ ($section['total'] ?? $section['items']->count()) === 1 ? 'submission' : 'submissions' }}
                     </span>
                 </div>
 
@@ -558,6 +565,8 @@
             @endforelse
             @endif
             @endforeach
+
+            <x-prms-table-pagination-footer :paginator="$submissions" />
 
             @if (($isOverview ?? false) && $submissionSections->isEmpty())
                 <div class="card">

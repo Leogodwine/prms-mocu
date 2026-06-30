@@ -15,6 +15,7 @@ use App\Notifications\ProjectNotification;
 use App\Support\Audit;
 use App\Support\ProjectSimilarityQueue;
 use App\Support\PrmsUserCapabilities;
+use App\Support\PrmsTablePagination;
 use App\Support\StudentResearchEligibility;
 use App\Support\StudentWorkflowAssigner;
 use App\Services\Similarity\ProjectSimilarityAnalyzer;
@@ -40,7 +41,7 @@ class ProjectController extends Controller
 {
     private const CREATOR_ROLES = ['project_student', 'research_student', 'normal_student'];
 
-    public function index(): View
+    public function index(Request $request): View
     {
         $user = Auth::user();
 
@@ -60,7 +61,8 @@ class ProjectController extends Controller
                 }
             })
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate(PrmsTablePagination::perPage($request))
+            ->withQueryString();
 
         return view('projects.index', array_merge(
             [

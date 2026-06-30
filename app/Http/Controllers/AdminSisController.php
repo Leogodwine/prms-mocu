@@ -3,15 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\StudentSisSyncLog;
+use App\Support\PrmsTablePagination;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\View\View;
 
 class AdminSisController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $logs = StudentSisSyncLog::query()->latest('sync_timestamp')->paginate(20);
+        $logs = StudentSisSyncLog::query()
+            ->latest('sync_timestamp')
+            ->paginate(PrmsTablePagination::perPage($request))
+            ->withQueryString();
 
         return view('admin.sis-sync', [
             'logs' => $logs,

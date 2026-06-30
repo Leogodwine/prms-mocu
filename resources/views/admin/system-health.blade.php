@@ -176,6 +176,7 @@
                     @endif
                 </div>
                 <div class="card-body p-0">
+                    <x-prms-table-pagination-toolbar :paginator="$failedJobs" noun="jobs" />
                     @forelse ($failedJobs as $job)
                         <div class="border-bottom p-3 d-flex justify-content-between align-items-start gap-2">
                             <div>
@@ -190,6 +191,7 @@
                     @empty
                         <div class="p-4 text-muted small text-center">No failed jobs.</div>
                     @endforelse
+                    <x-prms-table-pagination-footer :paginator="$failedJobs" />
                 </div>
                 <div class="card-footer small text-muted">Worker heartbeat: {{ $queueHeartbeat ?: 'Unknown' }}</div>
             </div>

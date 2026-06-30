@@ -7,6 +7,7 @@ use App\Models\LoginHistory;
 use App\Models\StudentSisSyncLog;
 use App\Support\Audit;
 use App\Support\PrmsPlatformMonitor;
+use App\Support\PrmsTablePagination;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
@@ -17,11 +18,13 @@ use Illuminate\View\View;
 
 class AdminSystemHealthController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $failedJobs = Schema::hasTable('failed_jobs')
-            ? DB::table('failed_jobs')->latest('failed_at')->limit(10)->get()
-            : collect();
+            ? DB::table('failed_jobs')->latest('failed_at')
+                ->paginate(PrmsTablePagination::perPage($request), ['*'], 'failed_jobs_page')
+                ->withQueryString()
+            : new \Illuminate\Pagination\LengthAwarePaginator([], 0, PrmsTablePagination::DEFAULT);
 
         $heartbeatPath = storage_path('app/health/queue-worker-heartbeat.txt');
         $queueHeartbeat = File::exists($heartbeatPath) ? trim((string) File::get($heartbeatPath)) : null;

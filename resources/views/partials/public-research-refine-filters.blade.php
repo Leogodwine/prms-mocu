@@ -7,6 +7,10 @@
     $activeSort = $filters['sort'] ?? 'recent';
     $showClearLink = $showClearLink ?? true;
     $hideDepartmentAuthorFilters = $hideDepartmentAuthorFilters ?? false;
+    $plainLinks = $plainLinks ?? false;
+    $filterBtnClass = $plainLinks
+        ? 'public-research-plain-filter-link public-quick-filter-btn'
+        : 'btn btn-link btn-sm text-start px-0 py-1 public-quick-filter-btn';
 @endphp
 
 <div class="public-refine-filters">
@@ -32,7 +36,7 @@
                             ],
                         ])
                         <button type="submit"
-                                class="btn btn-link btn-sm text-start px-0 py-1 public-quick-filter-btn {{ $activeSinceYear === $value ? 'active' : '' }}">
+                                class="{{ $filterBtnClass }} {{ $activeSinceYear === $value ? 'active' : '' }}">
                             {{ $label }}
                         </button>
                     </form>
@@ -81,7 +85,7 @@
                             'override' => ['sort' => $value],
                         ])
                         <button type="submit"
-                                class="btn btn-link btn-sm text-start px-0 py-1 public-quick-filter-btn {{ $activeSort === $value ? 'active' : '' }}">
+                                class="{{ $filterBtnClass }} {{ $activeSort === $value ? 'active' : '' }}">
                             {{ $label }}
                         </button>
                     </form>
@@ -102,7 +106,7 @@
                         'override' => ['department_id' => ''],
                     ])
                     <button type="submit"
-                            class="btn btn-link btn-sm text-start px-0 py-1 public-quick-filter-btn {{ $activeDepartment === 0 ? 'active' : '' }}">
+                            class="{{ $filterBtnClass }} {{ $activeDepartment === 0 ? 'active' : '' }}">
                         All departments
                     </button>
                 </form>
@@ -117,7 +121,7 @@
                             'override' => ['department_id' => $department->id],
                         ])
                         <button type="submit"
-                                class="btn btn-link btn-sm text-start px-0 py-1 public-quick-filter-btn {{ $activeDepartment === (int) $department->id ? 'active' : '' }}">
+                                class="{{ $filterBtnClass }} {{ $activeDepartment === (int) $department->id ? 'active' : '' }}">
                             {{ $department->department_name }}
                         </button>
                     </form>
@@ -137,7 +141,7 @@
                         'override' => ['author' => ''],
                     ])
                     <button type="submit"
-                            class="btn btn-link btn-sm text-start px-0 py-1 public-quick-filter-btn {{ $activeAuthor === '' ? 'active' : '' }}">
+                            class="{{ $filterBtnClass }} {{ $activeAuthor === '' ? 'active' : '' }}">
                         All authors
                     </button>
                 </form>
@@ -152,7 +156,7 @@
                             'override' => ['author' => $authorName],
                         ])
                         <button type="submit"
-                                class="btn btn-link btn-sm text-start px-0 py-1 public-quick-filter-btn {{ $activeAuthor === $authorName ? 'active' : '' }}">
+                                class="{{ $filterBtnClass }} {{ $activeAuthor === $authorName ? 'active' : '' }}">
                             {{ $authorName }}
                         </button>
                     </form>

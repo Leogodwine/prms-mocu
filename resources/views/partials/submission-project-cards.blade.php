@@ -10,6 +10,10 @@
         $groupedSubmissions = \App\Support\StudentStageProgress::groupSubmissionsForDisplay($submissions);
     @endphp
 
+    @if (method_exists($submissions, 'total'))
+        <x-prms-table-pagination-toolbar :paginator="$submissions" :noun="$paginationNoun ?? 'submissions'" class="card border-0 shadow-sm border-bottom rounded-0 rounded-top" />
+    @endif
+
     @foreach ($groupedSubmissions as $group)
         @include('partials.submission-project-grid-group', [
             'group' => $group,
@@ -18,9 +22,9 @@
         ])
     @endforeach
 
-    @if (method_exists($submissions, 'hasPages') && $submissions->hasPages())
-        <div class="d-flex justify-content-center mt-2 px-2">
-            {{ $submissions->withQueryString()->links() }}
+    @if (method_exists($submissions, 'hasPages'))
+        <div class="d-flex justify-content-center mt-2 px-2 pb-2">
+            <x-prms-table-pagination-footer :paginator="$submissions" />
         </div>
     @endif
 @endif

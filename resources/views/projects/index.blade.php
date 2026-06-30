@@ -36,6 +36,7 @@
                 @endif
             </div>
         @else
+            <x-prms-table-pagination-toolbar :paginator="$projects" noun="projects" />
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
                     <thead>
@@ -90,6 +91,9 @@
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+            <div class="card-footer bg-transparent border-top py-3">
+                <x-prms-table-pagination-footer :paginator="$projects" />
             </div>
         @endif
     </div>

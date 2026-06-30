@@ -43,12 +43,13 @@
                 <input type="hidden" name="_filter_action" value="apply">
                 <div class="row g-2 align-items-end">
                     <div class="col-md-6 col-lg-4">
-                        <label for="coord-final-q" class="form-label small text-muted mb-1">Search</label>
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text bg-transparent"><i class="fas fa-search text-muted" aria-hidden="true"></i></span>
-                            <input id="coord-final-q" name="q" value="{{ $filters['q'] ?? '' }}"
-                                   placeholder="Title, student, group, or stage…" class="form-control">
-                        </div>
+                        <x-prms-search-field
+                            name="q"
+                            id="coord-final-q"
+                            label="Search"
+                            :value="$filters['q'] ?? ''"
+                            placeholder="Title, student, group, or stage…"
+                        />
                     </div>
                     <div class="col-md-6 col-lg-2">
                         <label for="coord-final-type" class="form-label small text-muted mb-1">Category</label>

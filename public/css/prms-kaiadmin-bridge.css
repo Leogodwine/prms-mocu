@@ -1297,103 +1297,91 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
   }
 }
 
-/* ── Mobile shell: icon rail visible by default; menu toggles full sidebar ── */
+/* ── Mobile shell: sidebar hidden by default; hamburger opens full overlay menu ── */
 @media screen and (max-width: 991.98px) {
   html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-logo {
     display: block !important;
   }
 
-  /* Persistent icon rail (default collapsed) */
   html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) {
     position: fixed;
     left: 0 !important;
     top: 0;
     bottom: 0;
-    width: 75px !important;
-    transform: translate3d(0, 0, 0) !important;
+    width: 250px !important;
+    max-width: min(250px, 85vw);
+    transform: translate3d(-100%, 0, 0) !important;
     margin-top: 0;
-    transition: width 0.3s ease;
-    z-index: 1031;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    z-index: 1032;
+    box-shadow: none;
   }
 
   html.prms-mobile-shell.prms-mobile-sidebar-expanded .wrapper > .sidebar:not(.prms-sidebar-sub) {
-    width: 250px !important;
+    transform: translate3d(0, 0, 0) !important;
+    box-shadow: 0 0 24px rgba(0, 0, 0, 0.22);
   }
 
   html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper {
-    width: 75px !important;
-    transition: width 0.3s ease;
-  }
-
-  html.prms-mobile-shell.prms-mobile-sidebar-expanded .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper {
-    width: 250px !important;
+    width: 100% !important;
   }
 
   html.prms-mobile-shell .main-panel,
   html.prms-mobile-shell .main-header {
-    width: calc(100% - 75px) !important;
+    width: 100% !important;
     transform: none !important;
-    float: right;
-    transition: width 0.3s ease;
+    float: none;
   }
 
-  html.prms-mobile-shell.prms-mobile-sidebar-expanded .main-panel,
-  html.prms-mobile-shell.prms-mobile-sidebar-expanded .main-header {
-    width: calc(100% - 250px) !important;
+  html.prms-mobile-shell.prms-mobile-sidebar-expanded {
+    overflow: hidden !important;
   }
 
-  /* Disable Kaiadmin off-canvas nav_open slide on mobile shell */
+  html.prms-mobile-shell.prms-mobile-sidebar-expanded::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 1031;
+    pointer-events: auto;
+  }
+
   html.prms-mobile-shell.nav_open {
-    overflow: visible !important;
+    overflow: hidden !important;
   }
 
   html.prms-mobile-shell.nav_open .wrapper {
-    overflow: visible !important;
+    overflow: hidden !important;
   }
 
   html.prms-mobile-shell.nav_open .wrapper > .sidebar:not(.prms-sidebar-sub),
-  html.prms-mobile-shell.nav_open .main-panel {
+  html.prms-mobile-shell.nav_open .main-panel,
+  html.prms-mobile-shell.nav_open .main-header {
     transform: none !important;
   }
 
   html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-logo .logo-header {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 75px !important;
-    height: auto !important;
-    min-height: 4.5rem;
-    padding: 0.4rem 0.25rem !important;
-    gap: 0.15rem;
-    transition: width 0.3s ease;
-  }
-
-  html.prms-mobile-shell.prms-mobile-sidebar-expanded .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-logo .logo-header {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    width: 250px !important;
+    width: 100% !important;
+    max-width: 100% !important;
     min-height: 3.25rem;
     padding: 0 0.75rem !important;
     gap: 0.5rem;
+    box-sizing: border-box;
   }
 
   html.prms-mobile-shell .sidebar .sidebar-logo .logo-header .logo {
     position: static !important;
     transform: none !important;
     opacity: 1 !important;
-    flex: 0 0 auto;
-    width: 100%;
-    min-width: 0;
-    justify-content: center !important;
-    gap: 0;
-  }
-
-  html.prms-mobile-shell.prms-mobile-sidebar-expanded .sidebar .sidebar-logo .logo-header .logo {
-    width: auto;
     flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
     justify-content: flex-start !important;
+    gap: 0.625rem;
   }
 
   html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-logo .logo-header .logo img,
@@ -1407,125 +1395,81 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
 
   html.prms-mobile-shell .sidebar .sidebar-logo .prms-sidebar-brand-name {
     display: block !important;
-    white-space: normal;
-    text-align: center;
-    font-size: 0.6875rem;
-    line-height: 1.15;
-    letter-spacing: 0.02em;
-    max-width: 4.5rem;
-    word-break: break-word;
-  }
-
-  html.prms-mobile-shell.prms-mobile-sidebar-expanded .sidebar .sidebar-logo .prms-sidebar-brand-name {
     text-align: left;
     font-size: 0.8125rem;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
     max-width: none;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  /* Collapsed: icon-only nav */
-  html.prms-mobile-shell:not(.prms-mobile-sidebar-expanded) .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a {
-    justify-content: center;
-    padding: 0.5rem 0 !important;
-  }
-
-  html.prms-mobile-shell:not(.prms-mobile-sidebar-expanded) .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a i {
-    display: inline-block !important;
-    float: none !important;
-    margin: 0 !important;
-    width: auto;
-    font-size: 1.125rem;
-    line-height: 1;
-  }
-
-  html.prms-mobile-shell:not(.prms-mobile-sidebar-expanded) .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a p,
-  html.prms-mobile-shell:not(.prms-mobile-sidebar-expanded) .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a .caret,
-  html.prms-mobile-shell:not(.prms-mobile-sidebar-expanded) .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a .badge {
-    display: none !important;
-  }
-
-  html.prms-mobile-shell:not(.prms-mobile-sidebar-expanded) .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item:not(.submenu) > a.prms-nav-link--has-badge {
-    position: relative;
-  }
-
-  html.prms-mobile-shell:not(.prms-mobile-sidebar-expanded) .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item:not(.submenu) > a .prms-nav-icon-badge {
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-    top: 0.15rem;
-    right: 0.35rem;
-    min-width: 1rem;
-    height: 1rem;
-    padding: 0 0.2rem;
-    border-radius: 999px;
-    background-color: var(--prms-musaris-danger) !important;
-    color: #fff !important;
-    font-size: 0.55rem;
-    font-weight: 700;
-    line-height: 1;
-    z-index: 2;
-    pointer-events: none;
-  }
-
-  html.prms-mobile-shell.prms-mobile-sidebar-expanded .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a .prms-nav-icon-badge {
-    display: none !important;
-  }
-
-  html.prms-mobile-shell:not(.prms-mobile-sidebar-expanded) .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item.submenu .nav-collapse,
-  html.prms-mobile-shell:not(.prms-mobile-sidebar-expanded) .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item.active .nav-collapse {
-    display: none !important;
-  }
-
-  /* Expanded: full labels and submenus */
-  html.prms-mobile-shell.prms-mobile-sidebar-expanded .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a {
+  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a {
     justify-content: flex-start;
     padding: 0.55rem 1rem !important;
   }
 
-  html.prms-mobile-shell.prms-mobile-sidebar-expanded .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a i {
+  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a i {
     display: inline-block !important;
     float: left !important;
     margin-right: 0.65rem !important;
     font-size: 1.05rem;
   }
 
-  html.prms-mobile-shell.prms-mobile-sidebar-expanded .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a p,
-  html.prms-mobile-shell.prms-mobile-sidebar-expanded .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a .caret,
-  html.prms-mobile-shell.prms-mobile-sidebar-expanded .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a .badge {
+  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a p,
+  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a .caret,
+  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a .badge {
     display: inline-flex !important;
   }
 
-  html.prms-mobile-shell.prms-mobile-sidebar-expanded .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item.submenu .nav-collapse,
-  html.prms-mobile-shell.prms-mobile-sidebar-expanded .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item.active .nav-collapse {
+  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a .prms-nav-icon-badge {
+    display: none !important;
+  }
+
+  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item.submenu .nav-collapse,
+  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item.active .nav-collapse {
     display: block !important;
   }
 
-  /* Top bar: single menu control + MoCU-PRMS name */
-  html.prms-mobile-shell .main-header .main-header-logo .logo-header.prms-mobile-toolbar .logo,
-  html.prms-mobile-shell .main-header .main-header-logo .logo-header .logo,
+  /* Top bar: hamburger + MoCU-PRMS + right icons */
   html.prms-mobile-shell .main-header .main-header-logo .logo-header .logo img,
   html.prms-mobile-shell .main-header .main-header-logo .logo-header .logo .prms-brand-logo {
     display: none !important;
   }
 
-  html.prms-mobile-shell .main-header .main-header-logo .logo-header .prms-sidebar-brand-name:not(.prms-mobile-toolbar-brand) {
-    display: none !important;
+  html.prms-mobile-shell .main-header .main-header-logo .logo-header .logo {
+    display: flex !important;
+    position: static !important;
+    transform: none !important;
+    left: auto !important;
+    opacity: 1 !important;
+    flex: 1 1 auto;
+    order: 2;
+    min-width: 0;
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    justify-content: flex-start !important;
+    align-items: center;
+    gap: 0;
+    text-decoration: none;
   }
 
+  html.prms-mobile-shell .main-header .main-header-logo .logo-header .logo .prms-sidebar-brand-name,
   html.prms-mobile-shell .main-header .main-header-logo .logo-header .prms-mobile-toolbar-brand {
-    display: inline !important;
-    font-size: 0.8125rem;
-    font-weight: 700;
-    letter-spacing: 0.03em;
-    white-space: nowrap;
-    color: #fff;
+    display: block !important;
     flex: 1 1 auto;
     min-width: 0;
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    color: #fff !important;
+    line-height: 1.2;
   }
 
   html.prms-mobile-shell .main-header .main-header-logo .logo-header .topbar-toggler.more,
@@ -1533,11 +1477,17 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     display: none !important;
   }
 
-  /* Kaiadmin hides .toggle-sidebar on mobile — keep one visible hamburger control */
+  html.prms-mobile-shell .main-header .main-header-logo .logo-header .nav-toggle {
+    order: 1;
+  }
+
   html.prms-mobile-shell .main-header .main-header-logo .logo-header .nav-toggle .toggle-sidebar {
     display: inline-flex !important;
     align-items: center;
     justify-content: center;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    -webkit-tap-highlight-color: transparent;
   }
 
   html.prms-mobile-shell .main-header .main-header-logo .logo-header .nav-toggle .sidenav-toggler {
@@ -1551,58 +1501,51 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
   }
 
   html.prms-mobile-shell .main-header {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    align-items: stretch;
+    position: relative;
+    display: block;
+    width: 100% !important;
+    min-height: 3.5rem;
   }
 
   html.prms-mobile-shell .main-header .main-header-logo {
-    width: auto;
-    flex: 0 1 auto;
-    max-width: 52%;
-    min-width: 9.5rem;
+    display: block !important;
+    width: 100% !important;
+    max-width: none;
+    min-width: 0;
   }
 
-  html.prms-mobile-shell .main-header .main-header-logo .logo-header.prms-mobile-toolbar {
-    display: flex;
+  html.prms-mobile-shell .main-header .main-header-logo .logo-header.prms-mobile-toolbar,
+  html.prms-mobile-shell .main-header .main-header-logo .logo-header {
+    display: -webkit-box !important;
+    display: flex !important;
+    -webkit-box-align: center;
     align-items: center;
+    -webkit-box-pack: start;
     justify-content: flex-start;
     flex-wrap: nowrap;
-    gap: 0.25rem;
-    min-height: 3.25rem;
-    height: 100%;
-    padding: 0 0.35rem 0 0.5rem;
-    width: 100%;
-    max-width: 100%;
-    overflow: visible;
-  }
-
-  html.prms-mobile-shell .main-header .main-header-logo .logo-header .prms-mobile-toolbar-brand {
-    display: inline !important;
-    font-size: 0.8125rem;
-    font-weight: 700;
-    letter-spacing: 0.03em;
-    white-space: nowrap;
-    color: #fff;
-    flex: 1 1 auto;
-    min-width: 0;
+    gap: 0.35rem;
+    width: 100% !important;
+    min-height: 3.5rem;
+    height: 3.5rem;
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-left: max(0.5rem, env(safe-area-inset-left, 0px));
+    padding-right: max(5.5rem, calc(5.5rem + env(safe-area-inset-right, 0px)));
+    box-sizing: border-box;
     overflow: hidden;
-    text-overflow: ellipsis;
+    position: relative;
+    text-align: left;
   }
 
   html.prms-mobile-shell .main-header .main-header-logo .logo-header .prms-mobile-back {
+    order: 0;
     flex-shrink: 0;
     color: #fff;
     opacity: 0.92;
-    padding: 0.35rem 0.45rem;
+    padding: 0.35rem 0.4rem;
     line-height: 1;
-  }
-
-  html.prms-mobile-shell .main-header .main-header-logo .logo-header .prms-mobile-back:hover,
-  html.prms-mobile-shell .main-header .main-header-logo .logo-header .prms-mobile-back:focus {
-    color: #fff;
-    opacity: 1;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
   }
 
   html.prms-mobile-shell .main-header .main-header-logo .logo-header .nav-toggle {
@@ -1611,23 +1554,47 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     right: auto !important;
     margin: 0;
     flex: 0 0 auto;
+    display: -webkit-box !important;
     display: flex !important;
+    -webkit-box-align: center;
     align-items: center;
+    -webkit-box-pack: center;
     justify-content: center;
+    height: 3.5rem;
+    width: auto;
   }
 
   html.prms-mobile-shell .main-header .navbar-header {
-    position: relative !important;
-    transform: none !important;
-    flex: 1 1 auto;
+    position: absolute !important;
+    top: 0;
+    right: 0;
+    left: auto;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
     width: auto !important;
-    min-height: 3.25rem;
-    border-top: none !important;
+    max-width: 46%;
+    min-height: 3.5rem;
+    height: 3.5rem;
+    -webkit-transform: none !important;
+    transform: none !important;
+    border: none !important;
+    background: transparent !important;
+    z-index: 3;
+    pointer-events: none;
+    padding-right: max(0.25rem, env(safe-area-inset-right, 0px));
+  }
+
+  html.prms-mobile-shell .main-header .navbar-header .container-fluid,
+  html.prms-mobile-shell .main-header .navbar-header .navbar-nav,
+  html.prms-mobile-shell .main-header .navbar-header .nav-link,
+  html.prms-mobile-shell .main-header .navbar-header .dropdown-toggle {
+    pointer-events: auto;
   }
 
   html.prms-mobile-shell .main-header .navbar-header .container-fluid {
-    padding-left: 0.25rem;
-    padding-right: 0.75rem;
+    padding-left: 0;
+    padding-right: 0.25rem;
     height: 100%;
   }
 
@@ -1636,20 +1603,38 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     width: 100%;
     margin-left: 0 !important;
     flex-wrap: nowrap;
-    gap: 0.15rem;
-    min-height: 3.25rem;
+    gap: 0;
+    min-height: 3.5rem;
+    height: 100%;
+    -webkit-box-align: center;
+    align-items: center;
   }
 
   html.prms-mobile-shell .main-header .navbar-header .topbar-icon .nav-link,
   html.prms-mobile-shell .main-header .navbar-header .topbar-user .profile-pic {
-    padding-top: 0.35rem;
-    padding-bottom: 0.35rem;
+    padding: 0.35rem 0.4rem;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+    -webkit-tap-highlight-color: transparent;
   }
 
   html.prms-mobile-shell .main-panel > .container,
   html.prms-mobile-shell .main-panel > .container-full,
   html.prms-mobile-shell.topbar_open .main-panel > .container,
   html.prms-mobile-shell.topbar_open .main-panel > .container-full {
-    margin-top: 3.25rem !important;
+    margin-top: 3.5rem !important;
+  }
+
+  @media screen and (max-width: 400px) {
+    html.prms-mobile-shell .main-header .main-header-logo .logo-header .logo .prms-sidebar-brand-name,
+    html.prms-mobile-shell .main-header .main-header-logo .logo-header .prms-mobile-toolbar-brand {
+      font-size: 0.8125rem;
+    }
+
+    html.prms-mobile-shell .main-header .main-header-logo .logo-header.prms-mobile-toolbar,
+    html.prms-mobile-shell .main-header .main-header-logo .logo-header {
+      padding-right: max(5rem, calc(5rem + env(safe-area-inset-right, 0px)));
+      gap: 0.2rem;
+    }
   }
 }

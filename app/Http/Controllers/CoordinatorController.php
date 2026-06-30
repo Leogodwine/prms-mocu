@@ -14,6 +14,7 @@ use App\Models\ProjectStage;
 use App\Support\Audit;
 use App\Support\PrmsEventNotifier;
 use App\Support\PrmsListFilters;
+use App\Support\PrmsTablePagination;
 use App\Support\PresentationConsentForm;
 use App\Support\RepositoryPublication;
 use App\Support\StudentStageProgress;
@@ -90,7 +91,11 @@ class CoordinatorController extends Controller
 
         StaffProfileProvisioner::syncAllSupervisorStaffProfiles();
 
-        $eligibleStudents = $this->eligibleStudentsQuery($deptId, $progId, $year)->get();
+        $eligibleStudentsAll = $this->eligibleStudentsQuery($deptId, $progId, $year)->get();
+
+        $eligibleStudents = $this->eligibleStudentsQuery($deptId, $progId, $year)
+            ->paginate(PrmsTablePagination::perPage($request), ['*'], 'students_page')
+            ->withQueryString();
 
         $supervisors = \App\Models\Staff::query()
             ->with(['user', 'department'])
@@ -99,11 +104,16 @@ class CoordinatorController extends Controller
             ->orderBy('full_name')
             ->get();
 
-        $groups = ProjectGroup::query()
+        $groupsQuery = ProjectGroup::query()
             ->with(['members', 'supervisorAssignment.supervisor'])
             ->where('coordinator_id', $coordinator->id)
-            ->latest()
-            ->get();
+            ->latest();
+
+        $groups = (clone $groupsQuery)->get();
+
+        $recentGroups = (clone $groupsQuery)
+            ->paginate(PrmsTablePagination::perPage($request), ['*'], 'groups_page')
+            ->withQueryString();
 
         $departments = \App\Models\Department::all();
         $programmes = \App\Models\Program::all();
@@ -111,7 +121,9 @@ class CoordinatorController extends Controller
 
         return view('coordinator.index', [
             'eligibleStudents' => $eligibleStudents,
+            'eligibleStudentsAll' => $eligibleStudentsAll,
             'groups' => $groups,
+            'recentGroups' => $recentGroups,
             'supervisors' => $supervisors,
             'departments' => $departments,
             'programmes' => $programmes,
@@ -545,11 +557,27 @@ class CoordinatorController extends Controller
             'project_source_code'
         ];
 
-        $deadlines = \App\Models\StageDeadline::with('projectGroup')->latest()->get();
+        $deadlines = \App\Models\StageDeadline::with('projectGroup')
+            ->latest()
+            ->paginate(PrmsTablePagination::perPage($request))
+            ->withQueryString();
+
+        $statsRows = \App\Models\StageDeadline::query()->get(['start_time', 'end_time']);
+        $now = now();
+        $deadlineStats = [
+            'total' => $statsRows->count(),
+            'active' => $statsRows->filter(fn ($d) => $d->end_time && $now->between(
+                $d->start_time ?? $now->copy()->subYear(),
+                $d->end_time,
+            ))->count(),
+            'upcoming' => $statsRows->filter(fn ($d) => $d->start_time && $now->isBefore($d->start_time))->count(),
+            'closed' => $statsRows->filter(fn ($d) => $d->end_time && $now->isAfter($d->end_time))->count(),
+        ];
 
         return view('coordinator.deadlines', [
             'stages' => $stages,
             'deadlines' => $deadlines,
+            'deadlineStats' => $deadlineStats,
             'groups' => ProjectGroup::where('coordinator_id', $request->user()->id)->get(),
         ]);
     }
@@ -655,7 +683,8 @@ class CoordinatorController extends Controller
             $filters
         )
             ->latest()
-            ->get();
+            ->paginate(PrmsTablePagination::perPage($request))
+            ->withQueryString();
 
         return view('coordinator.submissions', [
             'submissions' => $submissions,

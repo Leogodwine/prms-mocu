@@ -33,14 +33,14 @@
         <div class="col-md-4">
             <div class="prms-stat-card py-3 px-4 h-100">
                 <div class="stat-label">Programmes configured</div>
-                <div class="stat-value">{{ $programmes->count() }}</div>
+                <div class="stat-value">{{ $programmesTotal ?? $programmes->total() }}</div>
                 <div class="small text-muted">Each programme defines final year and output type.</div>
             </div>
         </div>
         <div class="col-md-4">
             <div class="prms-stat-card py-3 px-4 h-100">
                 <div class="stat-label">Department overrides</div>
-                <div class="stat-value">{{ $departmentRules->count() }}</div>
+                <div class="stat-value">{{ $departmentRulesTotal ?? $departmentRules->total() }}</div>
                 <div class="small text-muted">Optional rules by department + academic level.</div>
             </div>
         </div>
@@ -119,6 +119,7 @@
                     <code>php artisan db:seed --class=AcademicStructureSeeder</code>
                 </p>
             @else
+                <x-prms-table-pagination-toolbar :paginator="$programmes" noun="programmes" />
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
@@ -157,6 +158,7 @@
                         </tbody>
                     </table>
                 </div>
+                <x-prms-table-pagination-footer :paginator="$programmes" />
             @endif
         </div>
     </div>
@@ -173,6 +175,7 @@
             @if ($departmentRules->isEmpty())
                 <p class="p-4 mb-0 text-muted small">No department overrides. Programme rules apply unless you add a department-level rule here.</p>
             @else
+                <x-prms-table-pagination-toolbar :paginator="$departmentRules" noun="rules" />
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
@@ -216,6 +219,7 @@
                         </tbody>
                     </table>
                 </div>
+                <x-prms-table-pagination-footer :paginator="$departmentRules" />
             @endif
         </div>
     </div>

@@ -17,6 +17,7 @@
     @endif
 
     <div class="card border-0 shadow-sm">
+        <x-prms-table-pagination-toolbar :paginator="$programmes" noun="programmes" />
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
@@ -56,6 +57,9 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
+        <div class="card-footer bg-transparent border-top py-3">
+            <x-prms-table-pagination-footer :paginator="$programmes" />
         </div>
     </div>
 @endsection

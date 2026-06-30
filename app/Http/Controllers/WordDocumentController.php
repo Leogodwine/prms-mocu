@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\WordDocument;
 use App\Services\OnlyOfficeService;
 use App\Support\Audit;
+use App\Support\PrmsTablePagination;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,7 +24,8 @@ class WordDocumentController extends Controller
         $documents = WordDocument::query()
             ->where('user_id', $request->user()->id)
             ->latest('updated_at')
-            ->paginate(12);
+            ->paginate(PrmsTablePagination::perPage($request))
+            ->withQueryString();
 
         return view('word-documents.index', [
             'documents' => $documents,

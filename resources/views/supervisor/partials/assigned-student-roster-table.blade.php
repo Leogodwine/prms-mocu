@@ -1,7 +1,9 @@
 @php
-    $sortedStudents = $students instanceof \Illuminate\Support\Collection
-        ? $students->sortBy('name')->values()
-        : collect($students)->sortBy('name')->values();
+    $sortedStudents = $students instanceof \Illuminate\Contracts\Pagination\Paginator
+        ? $students->getCollection()->sortBy('name')->values()
+        : ($students instanceof \Illuminate\Support\Collection
+            ? $students->sortBy('name')->values()
+            : collect($students)->sortBy('name')->values());
 @endphp
 
 <div class="table-responsive">

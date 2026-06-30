@@ -1,4 +1,7 @@
 <div class="card border-0 shadow-sm">
+    @if (isset($submissions) && method_exists($submissions, 'total'))
+        <x-prms-table-pagination-toolbar :paginator="$submissions" :noun="$paginationNoun ?? 'rows'" />
+    @endif
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0 submission-registry-table">
             <thead class="table-light">
@@ -34,9 +37,9 @@
             </tbody>
         </table>
     </div>
-    @if (isset($submissions) && method_exists($submissions, 'hasPages') && $submissions->hasPages())
-        <div class="card-footer bg-transparent border-top py-3 d-flex justify-content-center">
-            {{ $submissions->withQueryString()->links() }}
+    @if (isset($submissions) && method_exists($submissions, 'hasPages'))
+        <div class="card-footer bg-transparent border-top py-3">
+            <x-prms-table-pagination-footer :paginator="$submissions" />
         </div>
     @endif
 </div>

@@ -7,6 +7,7 @@ use App\Models\ProjectSubmission;
 use App\Models\User;
 use App\Support\Audit;
 use App\Support\PrmsListFilters;
+use App\Support\PrmsTablePagination;
 use App\Support\RepositoryPublication;
 use App\Support\StudentStageProgress;
 use Illuminate\Database\Eloquent\Builder;
@@ -72,7 +73,7 @@ class ArchiveController extends Controller
         $query = $this->applyArchiveFilters(clone $baseQuery, $user, $stage, $search, $workType, $statusFilter);
 
         $submissions = (clone $query)->latest()->paginate(
-            in_array($user->role, ['supervisor', 'coordinator', 'hod'], true) ? 25 : 12
+            PrmsTablePagination::perPage($request)
         )->withQueryString();
 
         $stages = $this->stageOptions($workType);

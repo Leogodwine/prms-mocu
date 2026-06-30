@@ -30,7 +30,7 @@
         <div class="col-sm-4">
             <div class="prms-stat-card text-center py-3">
                 <div class="stat-label">Total backups</div>
-                <div class="stat-value">{{ $backups->count() }}</div>
+                <div class="stat-value">{{ $backups->total() }}</div>
             </div>
         </div>
         <div class="col-sm-4">
@@ -86,6 +86,7 @@
         <div class="card-header bg-white border-bottom py-3">
             <h2 class="h6 fw-bold mb-0">Backup history</h2>
         </div>
+        <x-prms-table-pagination-toolbar :paginator="$backups" noun="backups" />
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
@@ -143,6 +144,9 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
+        <div class="card-footer bg-transparent border-top py-3">
+            <x-prms-table-pagination-footer :paginator="$backups" />
         </div>
     </div>
 

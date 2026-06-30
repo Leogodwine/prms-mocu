@@ -1,6 +1,6 @@
 /**
- * Mobile / small screens: persistent icon rail by default; menu toggles full sidebar.
- * Desktop keeps Kaiadmin's native sidebar_minimize behaviour.
+ * Mobile / small screens: sidebar hidden by default; hamburger opens full menu.
+ * Desktop (992px+): Kaiadmin sidebar_minimize icon-rail collapse.
  */
 (function () {
     'use strict';
@@ -13,7 +13,7 @@
 
     function setToggleIcons(collapsed) {
         var iconClass = collapsed ? 'gg-menu-right' : 'gg-menu-left';
-        var label = collapsed ? 'Expand navigation menu' : 'Collapse navigation menu';
+        var label = collapsed ? 'Open navigation menu' : 'Close navigation menu';
 
         document.querySelectorAll('.main-header .toggle-sidebar, .main-header .sidenav-toggler').forEach(function (btn) {
             btn.classList.toggle('toggled', !collapsed);
@@ -31,6 +31,7 @@
         var root = document.documentElement;
 
         root.classList.remove('nav_open');
+        document.body.style.overflow = collapsed ? '' : 'hidden';
 
         if (collapsed) {
             root.classList.remove('prms-mobile-sidebar-expanded');
@@ -50,6 +51,7 @@
         var root = document.documentElement;
 
         root.classList.remove('prms-mobile-shell', 'prms-mobile-sidebar-expanded', 'nav_open');
+        document.body.style.overflow = '';
 
         document.querySelectorAll('.main-header .toggle-sidebar, .main-header .sidenav-toggler').forEach(function (btn) {
             btn.classList.remove('toggled');
@@ -66,13 +68,45 @@
 
         event.preventDefault();
         event.stopImmediatePropagation();
+        event.stopPropagation();
         applyCollapsedState(!isCollapsed());
+    }
+
+    function onMobileDismiss(event) {
+        if (!isMobile() || isCollapsed()) {
+            return;
+        }
+
+        var sidebar = document.querySelector('.wrapper > .sidebar:not(.prms-sidebar-sub)');
+
+        if (sidebar && sidebar.contains(event.target)) {
+            return;
+        }
+
+        if (event.target.closest('.main-header .nav-toggle, .main-header .toggle-sidebar, .main-header .sidenav-toggler')) {
+            return;
+        }
+
+        applyCollapsedState(true);
+    }
+
+    function onMobileNavClick(event) {
+        if (!isMobile() || isCollapsed()) {
+            return;
+        }
+
+        if (event.target.closest('.sidebar-wrapper a[href]')) {
+            applyCollapsedState(true);
+        }
     }
 
     function bindMobileToggles() {
         document.querySelectorAll('.main-header .toggle-sidebar, .main-header .sidenav-toggler').forEach(function (btn) {
             btn.addEventListener('click', onMobileToggle, true);
         });
+
+        document.addEventListener('click', onMobileDismiss);
+        document.addEventListener('click', onMobileNavClick);
     }
 
     function onViewportChange() {

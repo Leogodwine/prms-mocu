@@ -43,6 +43,7 @@
     </div>
 
     <div class="card border-0 shadow-sm">
+        <x-prms-table-pagination-toolbar :paginator="$submissions" noun="submissions" />
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
@@ -91,10 +92,8 @@
                 </tbody>
             </table>
         </div>
-        @if ($submissions->hasPages())
-            <div class="card-footer bg-transparent border-top-0 py-3">
-                {{ $submissions->links() }}
-            </div>
-        @endif
+        <div class="card-footer bg-transparent border-top py-3">
+            <x-prms-table-pagination-footer :paginator="$submissions" />
+        </div>
     </div>
 @endsection

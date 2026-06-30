@@ -15,6 +15,7 @@ use App\Services\OnlyOfficeService;
 use App\Support\Audit;
 use App\Support\PrmsEventNotifier;
 use App\Support\PrmsListFilters;
+use App\Support\PrmsTablePagination;
 use App\Support\RepositoryPublication;
 use App\Support\StudentStageProgress;
 use App\Support\SupervisorAssignmentScope;
@@ -74,7 +75,8 @@ class SupervisorController extends Controller
             $filters
         )
             ->latest()
-            ->get();
+            ->paginate(PrmsTablePagination::perPage($request))
+            ->withQueryString();
 
         return view('supervisor.index', [
             'submissions' => $submissions,
@@ -165,9 +167,22 @@ class SupervisorController extends Controller
 
     public function logs(Request $request): View
     {
-        $data = $this->supervisorLogFormData($request->user()->id);
+        $supervisorId = $request->user()->id;
 
-        return view('supervisor.logs', $data);
+        $logs = SupervisionLog::query()
+            ->with(['projectGroup', 'student'])
+            ->where(function ($query) use ($supervisorId) {
+                $query->whereHas('projectGroup.supervisorAssignment', fn ($q) => $q->where('supervisor_id', $supervisorId))
+                    ->orWhereHas('student.studentAssignment', fn ($q) => $q->where('supervisor_id', $supervisorId));
+            })
+            ->orderByDesc('meeting_starts_at')
+            ->paginate(PrmsTablePagination::perPage($request))
+            ->withQueryString();
+
+        return view('supervisor.logs', [
+            'logs' => $logs,
+            ...$this->supervisorLogFormData($supervisorId),
+        ]);
     }
 
     public function createLog(Request $request): View
@@ -331,11 +346,19 @@ class SupervisorController extends Controller
 
         $visibleGroups = $selectedGroup !== null ? collect([$selectedGroup]) : $groups;
 
+        $individualStudentsAll = $assignments['individuals'];
+        $individualStudents = PrmsTablePagination::paginateCollection(
+            collect($individualStudentsAll),
+            $request,
+            'individuals_page',
+        );
+
         return view('supervisor.workload', [
             'groups' => $groups,
             'visibleGroups' => $visibleGroups,
             'groupFilter' => $groupFilter === '' ? 'all' : $groupFilter,
-            'individualStudents' => $assignments['individuals'],
+            'individualStudents' => $individualStudents,
+            'individualStudentsAll' => $individualStudentsAll,
             'assignmentSummary' => $assignments,
         ]);
     }

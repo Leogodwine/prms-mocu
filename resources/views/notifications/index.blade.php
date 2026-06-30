@@ -10,10 +10,9 @@
     $isReadNotifications = ($statusFilter ?? 'all') === 'read';
 @endphp
 
-<x-prms-greeting-banner subtitle="New uploads, review decisions, and email preferences for your account." actionsAlign="center">
-    <div class="d-flex flex-wrap align-items-center justify-content-end gap-3 w-100">
-        <div class="d-flex flex-wrap align-items-center justify-content-end gap-3" role="group" aria-label="Notification counts">
-            <a href="{{ route('notifications.index') }}"
+<x-prms-greeting-banner subtitle="New uploads, review decisions, and email preferences for your account.">
+    <div class="d-flex flex-wrap align-items-center justify-content-end gap-3" role="group" aria-label="Notification counts">
+        <a href="{{ route('notifications.index') }}"
                class="prms-notif-stat-badge prms-notif-stat-badge--all @if ($isAllNotifications) is-active @endif"
                @if ($isAllNotifications) aria-current="page" @endif>
                 All
@@ -40,7 +39,6 @@
                 Mark all read
             </button>
         </form>
-    </div>
 </x-prms-greeting-banner>
 
 <div class="row g-4">

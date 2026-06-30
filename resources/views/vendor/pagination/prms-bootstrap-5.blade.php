@@ -1,41 +1,51 @@
 @if ($paginator->hasPages())
     <nav class="prms-pagination" aria-label="Pagination">
-        <ul class="pagination justify-content-center flex-wrap mb-0">
-            @if ($paginator->onFirstPage())
-                <li class="page-item disabled" aria-disabled="true">
-                    <span class="page-link">@lang('pagination.previous')</span>
-                </li>
-            @else
-                <li class="page-item">
-                    <a class="page-link" href="{{ $paginator->previousPageUrl() }}" rel="prev">@lang('pagination.previous')</a>
-                </li>
-            @endif
+        <ul class="prms-pagination__list">
+            <li>
+                @if ($paginator->onFirstPage())
+                    <span class="prms-pagination__nav is-disabled" aria-disabled="true">
+                        <i class="fas fa-chevron-left" aria-hidden="true"></i>
+                        <span class="d-none d-sm-inline">Previous</span>
+                    </span>
+                @else
+                    <a class="prms-pagination__nav" href="{{ $paginator->previousPageUrl() }}" rel="prev">
+                        <i class="fas fa-chevron-left" aria-hidden="true"></i>
+                        <span class="d-none d-sm-inline">Previous</span>
+                    </a>
+                @endif
+            </li>
 
             @foreach ($elements as $element)
                 @if (is_string($element))
-                    <li class="page-item disabled" aria-disabled="true"><span class="page-link">{{ $element }}</span></li>
+                    <li><span class="prms-pagination__ellipsis" aria-hidden="true">{{ $element }}</span></li>
                 @endif
 
                 @if (is_array($element))
                     @foreach ($element as $page => $url)
-                        @if ($page == $paginator->currentPage())
-                            <li class="page-item active" aria-current="page"><span class="page-link">{{ $page }}</span></li>
-                        @else
-                            <li class="page-item"><a class="page-link" href="{{ $url }}">{{ $page }}</a></li>
-                        @endif
+                        <li>
+                            @if ($page == $paginator->currentPage())
+                                <span class="prms-pagination__page is-current" aria-current="page">{{ $page }}</span>
+                            @else
+                                <a class="prms-pagination__page" href="{{ $url }}">{{ $page }}</a>
+                            @endif
+                        </li>
                     @endforeach
                 @endif
             @endforeach
 
-            @if ($paginator->hasMorePages())
-                <li class="page-item">
-                    <a class="page-link" href="{{ $paginator->nextPageUrl() }}" rel="next">@lang('pagination.next')</a>
-                </li>
-            @else
-                <li class="page-item disabled" aria-disabled="true">
-                    <span class="page-link">@lang('pagination.next')</span>
-                </li>
-            @endif
+            <li>
+                @if ($paginator->hasMorePages())
+                    <a class="prms-pagination__nav" href="{{ $paginator->nextPageUrl() }}" rel="next">
+                        <span class="d-none d-sm-inline">Next</span>
+                        <i class="fas fa-chevron-right" aria-hidden="true"></i>
+                    </a>
+                @else
+                    <span class="prms-pagination__nav is-disabled" aria-disabled="true">
+                        <span class="d-none d-sm-inline">Next</span>
+                        <i class="fas fa-chevron-right" aria-hidden="true"></i>
+                    </span>
+                @endif
+            </li>
         </ul>
     </nav>
 @endif

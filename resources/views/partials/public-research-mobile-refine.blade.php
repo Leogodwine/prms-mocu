@@ -11,7 +11,7 @@
     ])
 
     <label for="public-mobile-search" class="visually-hidden">Search publications</label>
-    <div class="input-group input-group-sm public-research-mobile-refine__search">
+    <div class="input-group input-group-sm public-research-mobile-refine__search prms-search-input-group">
         <span class="input-group-text bg-white">
             <i class="fas fa-search text-muted" aria-hidden="true"></i>
         </span>
@@ -35,7 +35,7 @@
 
     <div class="public-research-mobile-refine__toolbar">
         <div class="dropdown public-research-mobile-refine__dropdown">
-            <button class="btn btn-sm btn-light border dropdown-toggle w-100"
+            <button class="btn btn-sm dropdown-toggle w-100 public-research-mobile-refine__toggle"
                     type="button"
                     data-bs-toggle="dropdown"
                     data-bs-auto-close="outside"
@@ -44,7 +44,7 @@
                 <i class="fas fa-sliders-h me-1 text-primary" aria-hidden="true"></i>
                 Filters
             </button>
-            <div class="dropdown-menu dropdown-menu-end p-3 public-research-mobile-refine__menu" aria-labelledby="publicMobileFilterMenu">
+            <div class="dropdown-menu dropdown-menu-end public-research-mobile-refine__menu" aria-labelledby="publicMobileFilterMenu">
                 @include('partials.public-research-refine-filters', [
                     'filters' => $filters,
                     'departments' => $departments,
@@ -53,6 +53,7 @@
                     'fieldPrefix' => 'public-mobile-',
                     'authorListId' => 'public-author-options-mobile',
                     'hideDepartmentAuthorFilters' => true,
+                    'plainLinks' => true,
                 ])
             </div>
         </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Support\Audit;
 use App\Support\PrmsBackupCatalog;
+use App\Support\PrmsTablePagination;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -11,11 +12,17 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class AdminBackupController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $backups = PrmsTablePagination::paginateCollection(
+            PrmsBackupCatalog::listBackups(),
+            $request,
+            'backups_page'
+        )->withQueryString();
+
         return view('admin.backups', [
             'settings' => PrmsBackupCatalog::settings(),
-            'backups' => PrmsBackupCatalog::listBackups(),
+            'backups' => $backups,
             'schedulerNote' => 'Server cron must run `php artisan schedule:run` every minute for automatic backups.',
         ]);
     }

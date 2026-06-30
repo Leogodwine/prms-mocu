@@ -10,7 +10,7 @@
                       style="width: 2rem; height: 2rem;">
                     <i class="fas fa-chart-pie" style="font-size: 0.75rem;" aria-hidden="true"></i>
                 </span>
-                <span><strong class="text-strong">{{ $groups->count() }}</strong> groups under supervision</span>
+                <span><strong class="text-strong">{{ $groupsTotal ?? $recentGroups->total() }}</strong> groups under supervision</span>
             </p>
         </x-slot:meta>
         <a href="{{ route('hod.students.index') }}" class="btn btn-primary rounded-pill px-4 fw-semibold">
@@ -25,7 +25,7 @@
         <div class="col-6 col-md-3">
             <div class="prms-stat-card">
                 <div class="stat-label">Supervisors</div>
-                <div class="stat-value">{{ $supervisors->count() }}</div>
+                <div class="stat-value">{{ $supervisors->total() }}</div>
             </div>
         </div>
         <div class="col-6 col-md-3">
@@ -43,7 +43,7 @@
         <div class="col-6 col-md-3">
             <div class="prms-stat-card" style="--prms-primary: var(--prms-color-info-500);">
                 <div class="stat-label">Total groups</div>
-                <div class="stat-value">{{ $groups->count() }}</div>
+                <div class="stat-value">{{ $groupsTotal ?? $recentGroups->total() }}</div>
             </div>
         </div>
     </div>
@@ -58,6 +58,7 @@
                     </h3>
                 </div>
                 <div class="card-body p-0">
+                    <x-prms-table-pagination-toolbar :paginator="$supervisors" noun="supervisors" />
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
                             <thead>
@@ -93,6 +94,9 @@
                             </tbody>
                         </table>
                     </div>
+                    <div class="card-footer bg-transparent border-top py-3">
+                        <x-prms-table-pagination-footer :paginator="$supervisors" />
+                    </div>
                 </div>
             </div>
         </div>
@@ -106,8 +110,9 @@
                     </h3>
                 </div>
                 <div class="card-body p-0">
-                    <div style="max-height: 400px; overflow-y: auto;">
-                        @forelse ($groups as $group)
+                    <x-prms-table-pagination-toolbar :paginator="$recentGroups" noun="groups" />
+                    <div>
+                        @forelse ($recentGroups as $group)
                             <div class="p-4 border-bottom">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <h4 class="h6 fw-bold mb-0 text-strong">{{ $group->name }}</h4>
@@ -132,6 +137,7 @@
                             </div>
                         @endforelse
                     </div>
+                    <x-prms-table-pagination-footer :paginator="$recentGroups" />
                 </div>
             </div>
         </div>

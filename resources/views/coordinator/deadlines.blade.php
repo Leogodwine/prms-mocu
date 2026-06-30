@@ -12,14 +12,10 @@
 @section('content')
 
 @php
-    $totalDeadlines  = $deadlines->count();
-    $now = now();
-    $activeCount = $deadlines->filter(fn ($d) => $d->end_time && $now->between(
-        $d->start_time ?? $now->copy()->subYear(),
-        $d->end_time,
-    ))->count();
-    $upcomingCount = $deadlines->filter(fn ($d) => $d->start_time && $now->isBefore($d->start_time))->count();
-    $closedCount = $deadlines->filter(fn ($d) => $d->end_time && $now->isAfter($d->end_time))->count();
+    $totalDeadlines  = $deadlineStats['total'] ?? $deadlines->total();
+    $activeCount = $deadlineStats['active'] ?? 0;
+    $upcomingCount = $deadlineStats['upcoming'] ?? 0;
+    $closedCount = $deadlineStats['closed'] ?? 0;
 @endphp
 
 <x-prms-greeting-banner subtitle="Define timelines for research proposal chapters, project submissions, and research-report chapters across academic years. Apply globally or restrict to a specific group.">
@@ -99,6 +95,7 @@
     </div>
 
     <div class="card-body p-0">
+        <x-prms-table-pagination-toolbar :paginator="$deadlines" noun="timelines" />
         <div class="table-responsive">
             <table class="table table-hover mb-0">
                 <thead>
@@ -226,6 +223,9 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
+        <div class="card-footer bg-transparent border-top py-3">
+            <x-prms-table-pagination-footer :paginator="$deadlines" />
         </div>
     </div>
 </div>

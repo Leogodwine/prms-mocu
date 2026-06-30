@@ -13,8 +13,8 @@
     @include('layouts.partials.kaiadmin-styles')
     @php $kai = asset(config('prms.kaiadmin_assets', 'vendor/prms-mocu/assets')); @endphp
     <link rel="stylesheet" href="{{ $kai }}/css/demo.css">
-    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=31">
-    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=44">
+    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=32">
+    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=50">
 
     @stack('styles')
 </head>
@@ -61,7 +61,6 @@
                             <i class="fas fa-arrow-left" aria-hidden="true"></i>
                         </a>
                     @endif
-                    <span class="prms-sidebar-brand-name prms-mobile-toolbar-brand">{{ config('app.name', 'MoCU-PRMS') }}</span>
                     <div class="nav-toggle">
                         <button type="button" class="btn btn-toggle toggle-sidebar" aria-label="Toggle sidebar">
                             <i class="gg-menu-right"></i>
@@ -70,6 +69,7 @@
                             <i class="gg-menu-left"></i>
                         </button>
                     </div>
+                    <span class="prms-sidebar-brand-name prms-mobile-toolbar-brand">{{ config('app.name', 'MoCU-PRMS') }}</span>
                 </div>
             </div>
 
@@ -179,8 +179,8 @@
 @stack('modals')
 
 @include('layouts.partials.kaiadmin-scripts', ['full' => true])
-<script src="{{ asset('js/prms-header.js') }}?v=2"></script>
-<script src="{{ asset('js/prms-sidebar.js') }}?v=2"></script>
+<script src="{{ asset('js/prms-header.js') }}?v=4"></script>
+<script src="{{ asset('js/prms-sidebar.js') }}?v=3"></script>
 
 @if (auth()->check())
     <script src="{{ asset('js/prms-quick-nav.js') }}?v=6" defer></script>

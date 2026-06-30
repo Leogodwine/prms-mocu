@@ -8,6 +8,7 @@ use App\Models\ResearchProject;
 use App\Services\Ollama\OllamaClient;
 use App\Services\Similarity\ProjectSimilarityAnalyzer;
 use App\Support\PrmsListFilters;
+use App\Support\PrmsTablePagination;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
@@ -45,7 +46,8 @@ class ProjectSimilarityController extends Controller
             ->where('similarity_score', '>=', $minScore)
             ->orderByDesc('similarity_score')
             ->orderByDesc('analyzed_at')
-            ->paginate(20);
+            ->paginate(PrmsTablePagination::perPage($request))
+            ->withQueryString();
 
         $ollama = app(OllamaClient::class);
 

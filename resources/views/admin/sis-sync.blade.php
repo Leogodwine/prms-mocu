@@ -55,6 +55,7 @@
             </h3>
         </div>
         <div class="card-body p-0">
+            <x-prms-table-pagination-toolbar :paginator="$logs" noun="events" />
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0 small">
                     <thead>
@@ -105,7 +106,7 @@
             </div>
         </div>
         <div class="card-footer bg-transparent border-top py-3">
-            {{ $logs->links() }}
+            <x-prms-table-pagination-footer :paginator="$logs" />
         </div>
     </div>
 @endsection

@@ -4,10 +4,11 @@
 
 @section('content')
     @php
+        $individualAll = $individualStudentsAll ?? $individualStudents;
         $summary = $assignmentSummary ?? [
             'group_count' => $groups->count(),
-            'individual_count' => $individualStudents->count(),
-            'total_count' => $groups->count() + $individualStudents->count(),
+            'individual_count' => $individualAll->count(),
+            'total_count' => $groups->count() + $individualAll->count(),
         ];
         $summaryLabel = \App\Support\SupervisorAssignmentScope::summaryLabel($summary);
         $groupFilter = $groupFilter ?? 'all';
@@ -129,17 +130,19 @@
         </div>
     @endforelse
 
-    @if ($individualStudents->isNotEmpty())
+    @if ($individualAll->isNotEmpty())
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div>
                     <h2 class="h6 fw-bold text-strong mb-1">Individual students</h2>
-                    <div class="small text-muted">{{ $individualStudents->count() }} individually supervised student{{ $individualStudents->count() === 1 ? '' : 's' }}</div>
+                    <div class="small text-muted">{{ $individualAll->count() }} individually supervised student{{ $individualAll->count() === 1 ? '' : 's' }}</div>
                 </div>
-                <span class="badge bg-secondary rounded-pill">{{ $individualStudents->count() }}</span>
+                <span class="badge bg-secondary rounded-pill">{{ $individualAll->count() }}</span>
             </div>
             <div class="card-body p-0">
+                <x-prms-table-pagination-toolbar :paginator="$individualStudents" noun="students" />
                 @include('supervisor.partials.assigned-student-roster-table', ['students' => $individualStudents])
+                <x-prms-table-pagination-footer :paginator="$individualStudents" />
             </div>
         </div>
     @endif

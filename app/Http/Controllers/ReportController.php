@@ -7,6 +7,7 @@ use App\Models\SupervisorAssignment;
 use App\Support\PrmsListFilters;
 use App\Models\User;
 use App\Support\CoordinatorReportScope;
+use App\Support\PrmsTablePagination;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -160,7 +161,7 @@ class ReportController extends Controller
         $status = $resolved['filters']['status'];
 
         $query = $this->coordinatorMaterialsQuery($user, $status);
-        $submissions = $query->latest('submitted_at')->paginate(20);
+        $submissions = $query->latest('submitted_at')->paginate(PrmsTablePagination::perPage($request))->withQueryString();
 
         return view('reports.coordinator-materials', [
             'submissions' => $submissions,

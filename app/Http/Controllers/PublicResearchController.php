@@ -8,6 +8,7 @@ use App\Models\Document;
 use App\Models\ProjectSubmission;
 use App\Models\ResearchProject;
 use App\Support\PublicPortalPublication;
+use App\Support\PrmsTablePagination;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -166,7 +167,8 @@ class PublicResearchController extends Controller
         }
 
         $projects = $query->orderBy($sortColumn, $sortDir)
-            ->paginate(12);
+            ->paginate(PrmsTablePagination::perPage($request))
+            ->withQueryString();
 
         $queryElapsed = round(microtime(true) - $queryStartedAt, 2);
 

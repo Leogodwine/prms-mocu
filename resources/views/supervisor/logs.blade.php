@@ -34,6 +34,7 @@
                     </a>
                 </div>
                 <div class="card-body p-0">
+                    <x-prms-table-pagination-toolbar :paginator="$logs" noun="meetings" />
                     <div class="table-responsive">
                         <table class="table table-hover table-striped align-middle mb-0 supervision-history-table text-start">
                             <thead class="table-light border-bottom">
@@ -46,14 +47,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @php
-                                    $allLogs = collect();
-                                    foreach($groups as $g) $allLogs = $allLogs->concat($g->supervisionLogs);
-                                    foreach($students as $s) $allLogs = $allLogs->concat($s->supervisionLogs);
-                                    $allLogs = $allLogs->sortByDesc('meeting_starts_at');
-                                @endphp
-
-                                @forelse($allLogs as $log)
+                                @forelse($logs as $log)
                                     @php
                                         $startsAt = $log->meeting_starts_at;
                                         $endsAt = $log->meeting_ends_at;
@@ -131,6 +125,9 @@
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
+                    <div class="card-footer bg-transparent border-top py-3">
+                        <x-prms-table-pagination-footer :paginator="$logs" />
                     </div>
                 </div>
             </div>

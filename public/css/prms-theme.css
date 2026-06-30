@@ -264,6 +264,43 @@ a:hover { color: var(--prms-primary-hover); }
 
 hr { border-top: 1px solid var(--prms-border); opacity: 1; }
 
+/* Greeting banner — text left, actions top-right on every page */
+.prms-greeting-banner__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.75rem 1.25rem;
+}
+
+.prms-greeting-banner__content {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+}
+
+.prms-greeting-banner__actions {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  align-self: start;
+}
+
+@media (max-width: 575.98px) {
+  .prms-greeting-banner__body {
+    grid-template-columns: 1fr;
+  }
+
+  .prms-greeting-banner__actions {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .prms-greeting-banner__content {
+    grid-row: 2;
+  }
+}
+
 /* Eyebrow label utility — for "ACADEMIC GROUP", "STAGE" headers */
 .prms-eyebrow {
   display: inline-block;
