@@ -243,7 +243,7 @@
                             ? '.pdf,.ppt,.pptx,.doc,.docx,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation'
                             : '.pdf,.doc,.docx,.zip,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/zip');
                     $headerLabel = $isCompleteSystemStage
-                        ? 'Submit your complete system'
+                        ? 'Submit your system & home page'
                         : ($isPresentationStageSelected ? 'Submit presentation or consent letter' : 'Submit a new document');
                 @endphp
 
@@ -295,12 +295,18 @@
                             <div class="alert alert-info d-flex align-items-start gap-2" role="note">
                                 <i class="fas fa-info-circle mt-1" aria-hidden="true"></i>
                                 <div class="small mb-0">
-                                    Upload the <strong>complete system source code</strong> as a zipped archive.
-                                    For each key screen, <strong>select the interface</strong> and upload its screenshot
-                                    (home page, dashboards, registration, etc.). Add a short system description plus optional
-                                    live demo and video links.
+                                    Upload the <strong>complete system folder</strong> as a single zipped archive plus a
+                                    <strong>home-page screenshot</strong> and a <strong>short description</strong> so reviewers
+                                    and readers understand what the system does before they open it.
                                 </div>
                             </div>
+                        @endif
+
+                        @if ($isCompleteSystemStage)
+                            <p class="small text-muted mb-4">
+                                Provide your system name, a brief bio, optional live demo and video links, then attach
+                                documentation, the home page screenshot, and the full source archive below.
+                            </p>
                         @endif
 
                         <form action="{{ route('student.submissions.store') }}" method="POST" enctype="multipart/form-data" novalidate>
@@ -395,9 +401,9 @@
                                         @error('documentation') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                     </div>
 
-                                    @include('student.partials.complete-system-interface-screenshots')
+                                    @include('student.partials.home-page-screenshot')
 
-                                    <div class="col-md-6">
+                                    <div class="col-12">
                                         <label class="form-label" for="prms-document-file">
                                             {{ $documentLabel }}
                                             <span class="text-danger">*</span>
@@ -468,7 +474,12 @@
             @endif
 
             @php
-                $submissionsHeading = ($isOverview ?? false)
+                $activeStageForList = $currentStage ?? ($stages ?? collect())->firstWhere('id', (int) old('stage_id'));
+                $isCompleteSystemListStage = strtolower((string) ($workspaceType ?? '')) === 'project'
+                    && $activeStageForList
+                    && \App\Support\StudentStageProgress::isCompleteSystemStage($activeStageForList->stage_name);
+
+                $submissionsHeading = ($isOverview ?? false) || $isCompleteSystemListStage
                     ? 'My submissions'
                     : (isset($currentStage)
                         ? \App\Support\StudentStageProgress::shortStageLabel($currentStage->stage_name).' submissions'
@@ -478,6 +489,8 @@
                             'project'  => 'Project submissions',
                             default    => 'My submissions',
                         });
+
+                $submissionTotal = method_exists($submissions, 'total') ? $submissions->total() : $submissions->count();
 
                 $submissionSource = $submissions instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator
                     ? $submissions->getCollection()
@@ -503,9 +516,20 @@
                 }
             @endphp
 
+            <div class="d-flex align-items-center justify-content-between mb-3 mt-2">
+                <h3 class="h6 fw-bold text-strong d-flex align-items-center mb-0">
+                    <i class="fas fa-history text-primary me-2" aria-hidden="true"></i>
+                    {{ $submissionsHeading }}
+                </h3>
+                <span class="badge bg-secondary">
+                    {{ $submissionTotal }} {{ $submissionTotal === 1 ? 'submission' : 'submissions' }}
+                </span>
+            </div>
+
             <x-prms-table-pagination-toolbar :paginator="$submissions" noun="submissions" />
 
             @foreach ($submissionSections as $sectionTrack => $section)
+                @if (! ($isOverview ?? false) && ! $isCompleteSystemListStage)
                 <div class="d-flex align-items-center justify-content-between mb-3 {{ ! $loop->first ? 'mt-4 pt-2' : '' }}">
                     <h3 class="h6 fw-bold text-strong d-flex align-items-center mb-0">
                         <i class="fas fa-history text-primary me-2" aria-hidden="true"></i>
@@ -516,6 +540,7 @@
                         {{ ($section['total'] ?? $section['items']->count()) === 1 ? 'submission' : 'submissions' }}
                     </span>
                 </div>
+                @endif
 
             @php
                 $useGroupedProjectHistory = in_array($sectionTrack, ['project'], true)
@@ -688,6 +713,36 @@
         } else {
             if (nameEl) nameEl.textContent = empty || 'Drop documentation here or click to browse';
             if (statusEl) statusEl.textContent = 'No file chosen';
+        }
+    }
+
+    function prmsHandleHomePageScreenshot(input) {
+        const label = document.querySelector('.prms-home-page-filename');
+        const preview = document.querySelector('.prms-home-page-preview');
+        const icon = document.querySelector('.prms-home-page-icon');
+        const statusEl = document.querySelector('.prms-home-page-status');
+        const empty = label ? label.getAttribute('data-empty-label') : '';
+        const file = input.files && input.files[0];
+
+        if (!file) {
+            if (label) label.textContent = empty || 'Drop screenshot here or click to browse';
+            if (preview) { preview.classList.add('d-none'); preview.removeAttribute('src'); }
+            if (icon) icon.classList.remove('d-none');
+            if (statusEl) statusEl.textContent = 'No file chosen';
+            return;
+        }
+
+        if (label) label.textContent = file.name;
+        if (statusEl) statusEl.textContent = file.name;
+
+        if (preview && /^image\//.test(file.type)) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                preview.src = e.target.result;
+                preview.classList.remove('d-none');
+                if (icon) icon.classList.add('d-none');
+            };
+            reader.readAsDataURL(file);
         }
     }
 

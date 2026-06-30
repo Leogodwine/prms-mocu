@@ -224,7 +224,7 @@ class StudentController extends Controller
 
             if ($storedScreenshots === []) {
                 return back()->withErrors([
-                    'interface_screenshots' => 'Upload at least one interface screenshot.',
+                    'interface_screenshots' => 'Upload a home page interface screenshot.',
                 ]);
             }
 

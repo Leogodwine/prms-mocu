@@ -59,8 +59,8 @@ class StoreSubmissionRequest extends FormRequest
             'description.required' => 'A short system description is required for Complete System submissions.',
             'description.min' => 'The system description should be at least 30 characters.',
             'document.required' => 'Please attach the required document or archive.',
-            'interface_screenshots.required' => 'Upload at least one interface screenshot.',
-            'interface_screenshots.*.image.required' => 'Each interface row needs a screenshot image.',
+            'interface_screenshots.required' => 'Upload a home page interface screenshot.',
+            'interface_screenshots.*.image.required' => 'Please choose a home page screenshot image.',
         ];
     }
 }
