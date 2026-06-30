@@ -14,7 +14,7 @@
     @php $kai = asset(config('prms.kaiadmin_assets', 'vendor/prms-mocu/assets')); @endphp
     <link rel="stylesheet" href="{{ $kai }}/css/demo.css">
     <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=31">
-    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=39">
+    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=44">
 
     @stack('styles')
 </head>
@@ -54,6 +54,13 @@
         <div class="main-header">
             <div class="main-header-logo">
                 <div class="logo-header prms-mobile-toolbar" data-background-color="dark">
+                    @if (auth()->check() && ! request()->routeIs('dashboard'))
+                        <a href="{{ route('dashboard') }}"
+                           class="btn btn-toggle prms-mobile-back d-lg-none"
+                           aria-label="{{ __('Back to dashboard') }}">
+                            <i class="fas fa-arrow-left" aria-hidden="true"></i>
+                        </a>
+                    @endif
                     <span class="prms-sidebar-brand-name prms-mobile-toolbar-brand">{{ config('app.name', 'MoCU-PRMS') }}</span>
                     <div class="nav-toggle">
                         <button type="button" class="btn btn-toggle toggle-sidebar" aria-label="Toggle sidebar">
@@ -173,6 +180,7 @@
 
 @include('layouts.partials.kaiadmin-scripts', ['full' => true])
 <script src="{{ asset('js/prms-header.js') }}?v=2"></script>
+<script src="{{ asset('js/prms-sidebar.js') }}?v=2"></script>
 
 @if (auth()->check())
     <script src="{{ asset('js/prms-quick-nav.js') }}?v=6" defer></script>

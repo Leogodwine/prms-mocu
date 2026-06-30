@@ -7,11 +7,11 @@
     <meta name="theme-color" content="#1572E8">
     <meta name="description" content="Browse approved research, projects, and reports from Moshi Co-operative University.">
 
-    <title>@yield('title', 'Institutional Repository') | {{ config('app.name', 'MoCU-PRMS') }}</title>
+    <title>@yield('title', 'Repository') | {{ config('app.name', 'MoCU-PRMS') }}</title>
 
     @include('layouts.partials.kaiadmin-styles')
-    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=19">
-    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=33">
+    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=20">
+    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=44">
 
     @stack('styles')
 </head>
@@ -21,47 +21,12 @@
 
 <div class="wrapper">
     <div class="main-panel prms-public-main d-flex flex-column">
-        <div class="main-header flex-shrink-0">
-            <nav class="navbar navbar-header navbar-expand-lg border-bottom prms-public-nav prms-public-topnav" data-background-color="dark" aria-label="Public site navigation">
-                <div class="container-fluid">
-                    <a class="navbar-brand d-flex align-items-center gap-2 text-white" href="{{ route('home') }}">
-                        <img src="{{ asset('images/mocu_logo.png') }}" alt="Moshi Co-operative University" class="prms-brand-logo prms-brand-logo--nav">
-                        <span class="prms-eyebrow text-white-50 mb-0" style="font-size: 0.65rem;">MoCU-PRMS</span>
-                    </a>
-
-                    <button class="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#publicNav" aria-controls="publicNav" aria-expanded="false" aria-label="Toggle navigation">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-
-                    <div class="collapse navbar-collapse" id="publicNav">
-                        <ul class="navbar-nav me-auto align-items-lg-center gap-lg-2">
-                            <li class="nav-item">
-                                <a class="nav-link text-white {{ request()->routeIs('home') ? 'fw-bold opacity-100' : '' }}" href="{{ route('home') }}">Home</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-white {{ request()->routeIs('public.research.*') ? 'fw-bold opacity-100' : '' }}" href="{{ route('public.research.index') }}">
-                                    Institutional Repository
-                                </a>
-                            </li>
-                        </ul>
-                        <ul class="navbar-nav ms-auto align-items-lg-center">
-                            @auth
-                                <li class="nav-item">
-                                    <a class="nav-link text-white {{ request()->routeIs('dashboard') ? 'fw-bold opacity-100' : '' }}" href="{{ route('dashboard') }}">
-                                        Dashboard
-                                    </a>
-                                </li>
-                            @else
-                                <li class="nav-item">
-                                    <a class="nav-link text-white {{ request()->routeIs('login') ? 'fw-bold opacity-100' : '' }}" href="{{ route('login') }}">
-                                        Sign in
-                                    </a>
-                                </li>
-                            @endauth
-                        </ul>
-                    </div>
-                </div>
-            </nav>
+        <div class="main-header flex-shrink-0 prms-public-site-header">
+            @include('layouts.partials.prms-site-topnav', [
+                'navId' => 'publicNav',
+                'innerClass' => 'prms-public-nav-inner',
+                'ariaLabel' => 'Public site navigation',
+            ])
         </div>
 
         <div class="container flex-grow-1" id="prms-public-main">
@@ -70,7 +35,7 @@
                 @else
                     @include('layouts.partials.prms-page-header', [
                         'headerHomeUrl' => route('home'),
-                        'headerDefaultTitle' => 'Institutional Repository',
+                        'headerDefaultTitle' => 'Repository',
                     ])
                 @endif
                 <x-prms-flash-messages />

@@ -33,10 +33,6 @@
         <i class="fas fa-file-csv me-1" aria-hidden="true"></i>
         Bulk import
     </button>
-    <a href="{{ route('dashboard') }}" class="btn btn-light border rounded-pill px-3">
-        <i class="fas fa-arrow-left me-1" aria-hidden="true"></i>
-        Dashboard
-    </a>
 </x-prms-greeting-banner>
 
 {{-- User table and modals --}}

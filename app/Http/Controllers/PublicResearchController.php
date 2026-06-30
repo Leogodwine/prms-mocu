@@ -118,7 +118,18 @@ class PublicResearchController extends Controller
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                    ->orWhere('abstract', 'like', "%{$search}%");
+                    ->orWhere('abstract', 'like', "%{$search}%")
+                    ->orWhere('keywords', 'like', "%{$search}%")
+                    ->orWhereHas('student', fn ($inner) => $inner->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('projectGroup.members', fn ($inner) => $inner->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas(
+                        'student.studentProfile.department',
+                        fn ($inner) => $inner->where('department_name', 'like', "%{$search}%")
+                    )
+                    ->orWhereHas(
+                        'student.studentProfile.programme.department',
+                        fn ($inner) => $inner->where('department_name', 'like', "%{$search}%")
+                    );
             });
         }
 

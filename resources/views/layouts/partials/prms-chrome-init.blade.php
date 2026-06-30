@@ -1,5 +1,10 @@
 <script>
 (function () {
+    if (window.matchMedia('(max-width: 991.98px)').matches) {
+        document.documentElement.classList.add('prms-mobile-shell');
+    }
+})();
+(function () {
     var key = 'prms-chrome-colors';
     var defaults = { logo: 'dark', navbar: 'white', sidebar: 'dark' };
     var saved = defaults;

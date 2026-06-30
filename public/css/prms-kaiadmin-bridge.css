@@ -256,11 +256,24 @@ body.prms-kaiadmin-public .wrapper .main-panel.prms-public-main {
 }
 
 /* Kaiadmin pins .main-header and uses calc width for sidebar apps — public site is full bleed */
-body.prms-kaiadmin-public .main-panel.prms-public-main > .main-header {
-  position: relative !important;
+body.prms-kaiadmin-public .main-panel.prms-public-main > .main-header.prms-public-site-header {
+  position: sticky !important;
+  top: 0 !important;
   width: 100% !important;
   min-height: auto !important;
-  z-index: 1030;
+  z-index: 1040;
+  background-color: var(--prms-sidebar-bg, #1a2035);
+}
+
+body.prms-kaiadmin-public .main-panel.prms-public-main .page-inner > .page-header {
+  position: sticky !important;
+  top: var(--prms-public-nav-height, 3.5rem);
+  z-index: 1035;
+  background-color: #ffffff;
+  padding-top: 0.5rem;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--prms-border, #e5e7eb);
 }
 
 body.prms-kaiadmin-public .main-panel.prms-public-main > .container {
@@ -281,17 +294,26 @@ body.prms-kaiadmin-public .main-panel.prms-public-main > .container {
 }
 
 /* Top bar edge-to-edge */
-body.prms-kaiadmin-public .navbar.prms-public-topnav {
-  width: 100% !important;
-  max-width: 100%;
-  background-color: var(--prms-sidebar-bg) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: none;
+@media screen and (max-width: 991.98px) {
+  body.prms-kaiadmin-public {
+    --prms-public-nav-height: 4.25rem;
+  }
 }
-
-body.prms-kaiadmin-public .navbar.prms-public-topnav .container-fluid {
+body.prms-kaiadmin-public .navbar.prms-public-topnav .prms-public-nav-inner {
   width: 100%;
   max-width: 100%;
+}
+
+body.prms-kaiadmin-public .prms-public-nav-inner {
+  padding-left: 0.85rem !important;
+  padding-right: 0.85rem !important;
+}
+
+@media (min-width: 1200px) {
+  body.prms-kaiadmin-public .prms-public-nav-inner {
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
 }
 
 body.prms-kaiadmin-public .footer.prms-public-footer {
@@ -879,6 +901,41 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
   border: none !important;
 }
 
+/* Collapsed sidebar rail — unread count on the nav icon */
+.prms-nav-icon-badge {
+  display: none;
+}
+
+@media screen and (min-width: 992px) {
+  .sidebar_minimize .wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item:not(.submenu) > a.prms-nav-link--has-badge {
+    position: relative;
+  }
+
+  .sidebar_minimize .wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item:not(.submenu) > a .prms-nav-icon-badge {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 0.2rem;
+    right: 0.45rem;
+    min-width: 1rem;
+    height: 1rem;
+    padding: 0 0.2rem;
+    border-radius: 999px;
+    background-color: var(--prms-musaris-danger) !important;
+    color: #fff !important;
+    font-size: 0.55rem;
+    font-weight: 700;
+    line-height: 1;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .sidebar_minimize.sidebar_minimize_hover .wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item > a .prms-nav-icon-badge {
+    display: none !important;
+  }
+}
+
 .wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item.active > a .prms-nav-link-text__label,
 .wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item.is-subpanel-open > a .prms-nav-link-text__label {
   color: inherit !important;
@@ -1240,32 +1297,66 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
   }
 }
 
-/* ── Mobile shell: icon rail sidebar + MoCU-PRMS branding (no logo image) ── */
+/* ── Mobile shell: icon rail visible by default; menu toggles full sidebar ── */
 @media screen and (max-width: 991.98px) {
-  /* Kaiadmin hides sidebar logo on mobile — show branding in the slide-out panel */
-  .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-logo {
+  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-logo {
     display: block !important;
   }
 
-  /* Narrow icon rail (matches collapsed desktop width) */
-  .wrapper > .sidebar:not(.prms-sidebar-sub) {
+  /* Persistent icon rail (default collapsed) */
+  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) {
+    position: fixed;
+    left: 0 !important;
+    top: 0;
+    bottom: 0;
     width: 75px !important;
-    transform: translate3d(-75px, 0, 0) !important;
-  }
-
-  .nav_open .wrapper > .sidebar:not(.prms-sidebar-sub) {
     transform: translate3d(0, 0, 0) !important;
+    margin-top: 0;
+    transition: width 0.3s ease;
+    z-index: 1031;
   }
 
-  .nav_open .main-panel {
-    transform: translate3d(75px, 0, 0) !important;
+  html.prms-mobile-shell.prms-mobile-sidebar-expanded .wrapper > .sidebar:not(.prms-sidebar-sub) {
+    width: 250px !important;
   }
 
-  .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper {
+  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper {
     width: 75px !important;
+    transition: width 0.3s ease;
   }
 
-  .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-logo .logo-header {
+  html.prms-mobile-shell.prms-mobile-sidebar-expanded .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper {
+    width: 250px !important;
+  }
+
+  html.prms-mobile-shell .main-panel,
+  html.prms-mobile-shell .main-header {
+    width: calc(100% - 75px) !important;
+    transform: none !important;
+    float: right;
+    transition: width 0.3s ease;
+  }
+
+  html.prms-mobile-shell.prms-mobile-sidebar-expanded .main-panel,
+  html.prms-mobile-shell.prms-mobile-sidebar-expanded .main-header {
+    width: calc(100% - 250px) !important;
+  }
+
+  /* Disable Kaiadmin off-canvas nav_open slide on mobile shell */
+  html.prms-mobile-shell.nav_open {
+    overflow: visible !important;
+  }
+
+  html.prms-mobile-shell.nav_open .wrapper {
+    overflow: visible !important;
+  }
+
+  html.prms-mobile-shell.nav_open .wrapper > .sidebar:not(.prms-sidebar-sub),
+  html.prms-mobile-shell.nav_open .main-panel {
+    transform: none !important;
+  }
+
+  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-logo .logo-header {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1275,9 +1366,20 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     min-height: 4.5rem;
     padding: 0.4rem 0.25rem !important;
     gap: 0.15rem;
+    transition: width 0.3s ease;
   }
 
-  .sidebar .sidebar-logo .logo-header .logo {
+  html.prms-mobile-shell.prms-mobile-sidebar-expanded .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-logo .logo-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 250px !important;
+    min-height: 3.25rem;
+    padding: 0 0.75rem !important;
+    gap: 0.5rem;
+  }
+
+  html.prms-mobile-shell .sidebar .sidebar-logo .logo-header .logo {
     position: static !important;
     transform: none !important;
     opacity: 1 !important;
@@ -1288,24 +1390,22 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     gap: 0;
   }
 
-  .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-logo .logo-header .logo img,
-  .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-logo .logo-header .logo .prms-brand-logo {
+  html.prms-mobile-shell.prms-mobile-sidebar-expanded .sidebar .sidebar-logo .logo-header .logo {
+    width: auto;
+    flex: 1 1 auto;
+    justify-content: flex-start !important;
+  }
+
+  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-logo .logo-header .logo img,
+  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-logo .logo-header .logo .prms-brand-logo {
     display: none !important;
   }
 
-  .sidebar .sidebar-logo .logo-header .nav-toggle {
-    position: static !important;
-    left: auto !important;
-    right: auto !important;
-    flex-shrink: 0;
-    order: 0;
-    margin: 0;
-    width: 100%;
-    display: flex;
-    justify-content: center;
+  html.prms-mobile-shell .sidebar .sidebar-logo .logo-header .nav-toggle {
+    display: none !important;
   }
 
-  .sidebar .sidebar-logo .prms-sidebar-brand-name {
+  html.prms-mobile-shell .sidebar .sidebar-logo .prms-sidebar-brand-name {
     display: block !important;
     white-space: normal;
     text-align: center;
@@ -1316,13 +1416,22 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     word-break: break-word;
   }
 
-  /* Icon-only nav in mobile rail */
-  .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a {
+  html.prms-mobile-shell.prms-mobile-sidebar-expanded .sidebar .sidebar-logo .prms-sidebar-brand-name {
+    text-align: left;
+    font-size: 0.8125rem;
+    max-width: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Collapsed: icon-only nav */
+  html.prms-mobile-shell:not(.prms-mobile-sidebar-expanded) .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a {
     justify-content: center;
     padding: 0.5rem 0 !important;
   }
 
-  .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a i {
+  html.prms-mobile-shell:not(.prms-mobile-sidebar-expanded) .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a i {
     display: inline-block !important;
     float: none !important;
     margin: 0 !important;
@@ -1331,30 +1440,82 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     line-height: 1;
   }
 
-  .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a p,
-  .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a .caret,
-  .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a .badge {
+  html.prms-mobile-shell:not(.prms-mobile-sidebar-expanded) .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a p,
+  html.prms-mobile-shell:not(.prms-mobile-sidebar-expanded) .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a .caret,
+  html.prms-mobile-shell:not(.prms-mobile-sidebar-expanded) .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a .badge {
     display: none !important;
   }
 
-  .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item.submenu .nav-collapse,
-  .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item.active .nav-collapse {
+  html.prms-mobile-shell:not(.prms-mobile-sidebar-expanded) .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item:not(.submenu) > a.prms-nav-link--has-badge {
+    position: relative;
+  }
+
+  html.prms-mobile-shell:not(.prms-mobile-sidebar-expanded) .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item:not(.submenu) > a .prms-nav-icon-badge {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 0.15rem;
+    right: 0.35rem;
+    min-width: 1rem;
+    height: 1rem;
+    padding: 0 0.2rem;
+    border-radius: 999px;
+    background-color: var(--prms-musaris-danger) !important;
+    color: #fff !important;
+    font-size: 0.55rem;
+    font-weight: 700;
+    line-height: 1;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  html.prms-mobile-shell.prms-mobile-sidebar-expanded .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a .prms-nav-icon-badge {
     display: none !important;
   }
 
-  /* Top bar: menu + MoCU-PRMS name (no logo image) */
-  .main-header .main-header-logo .logo-header.prms-mobile-toolbar .logo,
-  .main-header .main-header-logo .logo-header .logo,
-  .main-header .main-header-logo .logo-header .logo img,
-  .main-header .main-header-logo .logo-header .logo .prms-brand-logo {
+  html.prms-mobile-shell:not(.prms-mobile-sidebar-expanded) .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item.submenu .nav-collapse,
+  html.prms-mobile-shell:not(.prms-mobile-sidebar-expanded) .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item.active .nav-collapse {
     display: none !important;
   }
 
-  .main-header .main-header-logo .logo-header .prms-sidebar-brand-name:not(.prms-mobile-toolbar-brand) {
+  /* Expanded: full labels and submenus */
+  html.prms-mobile-shell.prms-mobile-sidebar-expanded .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a {
+    justify-content: flex-start;
+    padding: 0.55rem 1rem !important;
+  }
+
+  html.prms-mobile-shell.prms-mobile-sidebar-expanded .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a i {
+    display: inline-block !important;
+    float: left !important;
+    margin-right: 0.65rem !important;
+    font-size: 1.05rem;
+  }
+
+  html.prms-mobile-shell.prms-mobile-sidebar-expanded .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a p,
+  html.prms-mobile-shell.prms-mobile-sidebar-expanded .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a .caret,
+  html.prms-mobile-shell.prms-mobile-sidebar-expanded .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a .badge {
+    display: inline-flex !important;
+  }
+
+  html.prms-mobile-shell.prms-mobile-sidebar-expanded .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item.submenu .nav-collapse,
+  html.prms-mobile-shell.prms-mobile-sidebar-expanded .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item.active .nav-collapse {
+    display: block !important;
+  }
+
+  /* Top bar: single menu control + MoCU-PRMS name */
+  html.prms-mobile-shell .main-header .main-header-logo .logo-header.prms-mobile-toolbar .logo,
+  html.prms-mobile-shell .main-header .main-header-logo .logo-header .logo,
+  html.prms-mobile-shell .main-header .main-header-logo .logo-header .logo img,
+  html.prms-mobile-shell .main-header .main-header-logo .logo-header .logo .prms-brand-logo {
     display: none !important;
   }
 
-  .main-header .main-header-logo .logo-header .prms-mobile-toolbar-brand {
+  html.prms-mobile-shell .main-header .main-header-logo .logo-header .prms-sidebar-brand-name:not(.prms-mobile-toolbar-brand) {
+    display: none !important;
+  }
+
+  html.prms-mobile-shell .main-header .main-header-logo .logo-header .prms-mobile-toolbar-brand {
     display: inline !important;
     font-size: 0.8125rem;
     font-weight: 700;
@@ -1367,47 +1528,95 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     text-overflow: ellipsis;
   }
 
-  .main-header .main-header-logo .logo-header .topbar-toggler.more,
-  .logo-header .topbar-toggler.more {
+  html.prms-mobile-shell .main-header .main-header-logo .logo-header .topbar-toggler.more,
+  html.prms-mobile-shell .logo-header .topbar-toggler.more {
     display: none !important;
   }
 
-  /* Single row: [menu | MoCU-PRMS] … [quick find | notifications | profile] */
-  .main-header {
+  /* Kaiadmin hides .toggle-sidebar on mobile — keep one visible hamburger control */
+  html.prms-mobile-shell .main-header .main-header-logo .logo-header .nav-toggle .toggle-sidebar {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+
+  html.prms-mobile-shell .main-header .main-header-logo .logo-header .nav-toggle .sidenav-toggler {
+    display: none !important;
+  }
+
+  html.prms-mobile-shell .main-header .main-header-logo .logo-header .nav-toggle .btn-toggle,
+  html.prms-mobile-shell .main-header .main-header-logo .logo-header .nav-toggle .btn-toggle i {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  html.prms-mobile-shell .main-header {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
     align-items: stretch;
   }
 
-  .main-header .main-header-logo {
+  html.prms-mobile-shell .main-header .main-header-logo {
     width: auto;
     flex: 0 1 auto;
-    max-width: 42%;
+    max-width: 52%;
+    min-width: 9.5rem;
   }
 
-  .main-header .main-header-logo .logo-header.prms-mobile-toolbar {
+  html.prms-mobile-shell .main-header .main-header-logo .logo-header.prms-mobile-toolbar {
     display: flex;
     align-items: center;
     justify-content: flex-start;
     flex-wrap: nowrap;
-    gap: 0.35rem;
+    gap: 0.25rem;
     min-height: 3.25rem;
     height: 100%;
-    padding: 0 0.5rem 0 0.75rem;
-    width: auto;
+    padding: 0 0.35rem 0 0.5rem;
+    width: 100%;
     max-width: 100%;
+    overflow: visible;
   }
 
-  .main-header .main-header-logo .logo-header .nav-toggle {
+  html.prms-mobile-shell .main-header .main-header-logo .logo-header .prms-mobile-toolbar-brand {
+    display: inline !important;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    color: #fff;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  html.prms-mobile-shell .main-header .main-header-logo .logo-header .prms-mobile-back {
+    flex-shrink: 0;
+    color: #fff;
+    opacity: 0.92;
+    padding: 0.35rem 0.45rem;
+    line-height: 1;
+  }
+
+  html.prms-mobile-shell .main-header .main-header-logo .logo-header .prms-mobile-back:hover,
+  html.prms-mobile-shell .main-header .main-header-logo .logo-header .prms-mobile-back:focus {
+    color: #fff;
+    opacity: 1;
+  }
+
+  html.prms-mobile-shell .main-header .main-header-logo .logo-header .nav-toggle {
     position: static !important;
     left: auto !important;
     right: auto !important;
     margin: 0;
-    flex-shrink: 0;
+    flex: 0 0 auto;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
   }
 
-  .main-header .navbar-header {
+  html.prms-mobile-shell .main-header .navbar-header {
     position: relative !important;
     transform: none !important;
     flex: 1 1 auto;
@@ -1416,13 +1625,13 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     border-top: none !important;
   }
 
-  .main-header .navbar-header .container-fluid {
+  html.prms-mobile-shell .main-header .navbar-header .container-fluid {
     padding-left: 0.25rem;
     padding-right: 0.75rem;
     height: 100%;
   }
 
-  .main-header .navbar-header .navbar-nav {
+  html.prms-mobile-shell .main-header .navbar-header .navbar-nav {
     justify-content: flex-end !important;
     width: 100%;
     margin-left: 0 !important;
@@ -1431,16 +1640,16 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     min-height: 3.25rem;
   }
 
-  .main-header .navbar-header .topbar-icon .nav-link,
-  .main-header .navbar-header .topbar-user .profile-pic {
+  html.prms-mobile-shell .main-header .navbar-header .topbar-icon .nav-link,
+  html.prms-mobile-shell .main-header .navbar-header .topbar-user .profile-pic {
     padding-top: 0.35rem;
     padding-bottom: 0.35rem;
   }
 
-  .main-panel > .container,
-  .main-panel > .container-full,
-  .topbar_open .main-panel > .container,
-  .topbar_open .main-panel > .container-full {
+  html.prms-mobile-shell .main-panel > .container,
+  html.prms-mobile-shell .main-panel > .container-full,
+  html.prms-mobile-shell.topbar_open .main-panel > .container,
+  html.prms-mobile-shell.topbar_open .main-panel > .container-full {
     margin-top: 3.25rem !important;
   }
 }

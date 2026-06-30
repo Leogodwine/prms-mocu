@@ -1,16 +1,27 @@
 @extends('layouts.public')
 
-@section('hide_page_header', true)
-
-@section('title', 'Institutional Repository')
+@section('title', 'Repository')
 
 @section('content')
 
-<section class="position-relative public-research-page" style="padding: 4rem 0 3rem;">
+@php
+    $heroCompact = ($filters['search'] ?? '') !== ''
+        || ($filters['type'] ?? '') !== ''
+        || (int) ($filters['department_id'] ?? 0) > 0
+        || ($filters['author'] ?? '') !== ''
+        || ($filters['since_year'] ?? '') !== ''
+        || (int) ($filters['year_from'] ?? 0) > 0
+        || (int) ($filters['year_to'] ?? 0) > 0
+        || ($filters['sort'] ?? 'recent') === 'relevance';
+@endphp
+
+<section class="position-relative public-research-page{{ $heroCompact ? ' public-research-page--compact' : '' }}"
+         style="padding: 1.5rem 0 3rem;"
+         data-mobile-compact="{{ $heroCompact ? '1' : '0' }}">
     <div class="container public-research-container">
         {{-- ────────── Hero / search ────────── --}}
         <div class="row align-items-center g-4 g-lg-5 mb-4 public-research-hero">
-            <div class="col-lg-5 col-md-6 public-research-hero__media">
+            <div class="col-lg-5 col-md-6 public-research-hero__intro public-research-hero__media">
                 <div class="public-research-hero__material" aria-hidden="true">
                     <div class="public-research-hero__material-surface public-research-hero__material-surface--back"></div>
                     <div class="public-research-hero__material-surface public-research-hero__material-surface--front">
@@ -34,14 +45,17 @@
                 </div>
             </div>
             <div class="col-lg-7 col-md-6 public-research-hero__content">
-                <h1 class="display-5 fw-bold public-research-hero__title mt-0 mb-3">
-                    Institutional repository
-                </h1>
-                <p class="lead mb-0 public-research-hero__lead">
-                    Discover approved proposals, research reports, and computer-based course projects authored by MoCU students. Every record is reviewed before publication.
-                </p>
+                <div class="public-research-hero__intro">
+                    <h1 class="display-5 fw-bold public-research-hero__title mt-0 mb-3">
+                        Institutional repository
+                    </h1>
+                    <p class="lead mb-0 public-research-hero__lead">
+                        Discover approved proposals, research reports, and computer-based course projects authored by MoCU students. Every record is reviewed before publication.
+                    </p>
+                </div>
 
-                <form action="{{ route('public.research.index') }}" method="POST" class="mt-4 public-research-search" role="search">
+                <div class="public-research-hero__tools">
+                <form action="{{ route('public.research.index') }}" method="POST" class="mt-4 mt-lg-4 public-research-search" role="search">
                     @csrf
                     <input type="hidden" name="_filter_action" value="apply">
                     <label for="prms-search" class="visually-hidden">Search the repository</label>
@@ -54,7 +68,7 @@
                             type="text"
                             name="search"
                             class="form-control border-start-0 ps-0"
-                            placeholder="Search by title, keywords, or abstract…"
+                            placeholder="Search by title, author, department, keywords…"
                             value="{{ $filters['search'] }}">
                     </div>
 
@@ -66,12 +80,16 @@
                     $visibleTotal = $activeCategory === ''
                         ? ($categoryCounts['all'] ?? $projects->total())
                         : ($categoryCounts[$activeCategory] ?? $projects->total());
+                    $activeSinceYear = $filters['since_year'] ?? '';
+                    $activeDepartment = (int) ($filters['department_id'] ?? 0);
+                    $activeAuthor = $filters['author'] ?? '';
+                    $activeSort = $filters['sort'] ?? 'recent';
                 @endphp
-                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-3 public-research-meta">
+                <div class="mt-3 public-research-meta">
                     <p class="small text-muted mb-0 public-research-meta__count">
                         {{ $visibleTotal }} approved publication{{ $visibleTotal === 1 ? '' : 's' }} available
                     </p>
-                    <div class="d-flex flex-wrap align-items-center gap-1 public-research-meta__filters">
+                    <div class="public-research-meta__filters" role="tablist" aria-label="Publication type">
                         @foreach ([
                             '' => 'All',
                             'proposal' => 'Proposals',
@@ -81,17 +99,27 @@
                             @if (! $loop->first)
                                 <span class="public-research-meta__sep text-muted" aria-hidden="true">·</span>
                             @endif
-                            <form method="POST" action="{{ route('public.research.index') }}" class="d-inline">
+                            <form method="POST" action="{{ route('public.research.index') }}" class="public-research-meta__filter-form">
                                 @csrf
                                 <input type="hidden" name="_filter_action" value="apply">
                                 @include('partials.public-research-filter-fields', ['filters' => $filters, 'override' => ['type' => $value]])
                                 <button type="submit"
+                                        role="tab"
+                                        aria-selected="{{ $activeCategory === $value ? 'true' : 'false' }}"
                                         class="public-research-category-link {{ $activeCategory === $value ? 'is-active' : '' }}">
                                     {{ $label }}
                                 </button>
                             </form>
                         @endforeach
                     </div>
+
+                    @include('partials.public-research-mobile-refine', [
+                        'filters' => $filters,
+                        'departments' => $departments,
+                        'authors' => $authors,
+                        'filterResetUrl' => $filterResetUrl,
+                    ])
+                </div>
                 </div>
             </div>
         </div>
@@ -99,8 +127,8 @@
         {{-- ────────── Results + filters ────────── --}}
         <div class="row public-research-results g-4">
 
-            {{-- ── Refine sidebar (left) ── --}}
-            <div class="col-lg-3">
+            {{-- ── Refine sidebar (left, desktop only) ── --}}
+            <div class="col-lg-3 d-none d-lg-block">
                 <aside class="card border-0 shadow-sm public-research-refine h-100" aria-label="Filter results">
                     <div class="card-body public-research-panel-body">
                         <details class="public-refine-details" open>
@@ -109,185 +137,13 @@
                                 Refine results
                             </summary>
 
-                            <div class="mt-2 public-refine-filters">
-                                @php
-                                    $activeSinceYear = $filters['since_year'] ?? '';
-                                    $activeDepartment = (int) ($filters['department_id'] ?? 0);
-                                    $activeAuthor = $filters['author'] ?? '';
-                                    $activeSort = $filters['sort'] ?? 'recent';
-                                @endphp
-
-                                <div class="public-refine-block">
-                                    <ul class="list-unstyled mb-0 public-quick-filter-list">
-                                        @foreach ([
-                                            '' => 'Any time',
-                                            '2026' => 'Since 2026',
-                                            '2025' => 'Since 2025',
-                                            '2022' => 'Since 2022',
-                                            'custom' => 'Custom range…',
-                                        ] as $value => $label)
-                                            <li>
-                                                <form method="POST" action="{{ route('public.research.index') }}">
-                                                    @csrf
-                                                    <input type="hidden" name="_filter_action" value="apply">
-                                                    @include('partials.public-research-filter-fields', [
-                                                        'filters' => $filters,
-                                                        'override' => [
-                                                            'since_year' => $value,
-                                                            'year_from' => $value === 'custom' ? ($filters['year_from'] ?? '') : '',
-                                                            'year_to' => $value === 'custom' ? ($filters['year_to'] ?? '') : '',
-                                                        ],
-                                                    ])
-                                                    <button type="submit"
-                                                            class="btn btn-link btn-sm text-start px-0 py-1 public-quick-filter-btn {{ $activeSinceYear === $value ? 'active' : '' }}">
-                                                        {{ $label }}
-                                                    </button>
-                                                </form>
-                                            </li>
-                                        @endforeach
-                                    </ul>
-                                    @if ($activeSinceYear === 'custom')
-                                        <form method="POST" action="{{ route('public.research.index') }}" class="mt-2">
-                                            @csrf
-                                            <input type="hidden" name="_filter_action" value="apply">
-                                            @include('partials.public-research-filter-fields', [
-                                                'filters' => $filters,
-                                                'override' => ['since_year' => 'custom'],
-                                                'except' => ['year_from', 'year_to'],
-                                            ])
-                                            <div class="row g-2">
-                                                <div class="col-6">
-                                                    <label for="filter-year-from" class="form-label small text-muted mb-1">From</label>
-                                                    <input id="filter-year-from" type="number" name="year_from" min="1900" max="2100"
-                                                           class="form-control form-control-sm" placeholder="Year"
-                                                           value="{{ $filters['year_from'] ?: '' }}">
-                                                </div>
-                                                <div class="col-6">
-                                                    <label for="filter-year-to" class="form-label small text-muted mb-1">To</label>
-                                                    <input id="filter-year-to" type="number" name="year_to" min="1900" max="2100"
-                                                           class="form-control form-control-sm" placeholder="Year"
-                                                           value="{{ $filters['year_to'] ?: '' }}">
-                                                </div>
-                                            </div>
-                                        </form>
-                                    @endif
-                                </div>
-
-                                <div class="public-refine-block">
-                                    <ul class="list-unstyled mb-0 public-quick-filter-list">
-                                        @foreach ([
-                                            'relevance' => 'Relevance',
-                                            'recent' => 'Date',
-                                        ] as $value => $label)
-                                            <li>
-                                                <form method="POST" action="{{ route('public.research.index') }}">
-                                                    @csrf
-                                                    <input type="hidden" name="_filter_action" value="apply">
-                                                    @include('partials.public-research-filter-fields', [
-                                                        'filters' => $filters,
-                                                        'override' => ['sort' => $value],
-                                                    ])
-                                                    <button type="submit"
-                                                            class="btn btn-link btn-sm text-start px-0 py-1 public-quick-filter-btn {{ $activeSort === $value ? 'active' : '' }}">
-                                                        {{ $label }}
-                                                    </button>
-                                                </form>
-                                            </li>
-                                        @endforeach
-                                    </ul>
-                                </div>
-
-                                <div class="public-refine-block">
-                                    <ul class="list-unstyled mb-0 public-quick-filter-list public-quick-filter-scroll">
-                                        <li>
-                                            <form method="POST" action="{{ route('public.research.index') }}">
-                                                @csrf
-                                                <input type="hidden" name="_filter_action" value="apply">
-                                                @include('partials.public-research-filter-fields', [
-                                                    'filters' => $filters,
-                                                    'override' => ['department_id' => ''],
-                                                ])
-                                                <button type="submit"
-                                                        class="btn btn-link btn-sm text-start px-0 py-1 public-quick-filter-btn {{ $activeDepartment === 0 ? 'active' : '' }}">
-                                                    All departments
-                                                </button>
-                                            </form>
-                                        </li>
-                                        @foreach ($departments as $department)
-                                            <li>
-                                                <form method="POST" action="{{ route('public.research.index') }}">
-                                                    @csrf
-                                                    <input type="hidden" name="_filter_action" value="apply">
-                                                    @include('partials.public-research-filter-fields', [
-                                                        'filters' => $filters,
-                                                        'override' => ['department_id' => $department->id],
-                                                    ])
-                                                    <button type="submit"
-                                                            class="btn btn-link btn-sm text-start px-0 py-1 public-quick-filter-btn {{ $activeDepartment === (int) $department->id ? 'active' : '' }}">
-                                                        {{ $department->department_name }}
-                                                    </button>
-                                                </form>
-                                            </li>
-                                        @endforeach
-                                    </ul>
-                                </div>
-
-                                <div class="public-refine-block public-refine-block--author">
-                                    <ul class="list-unstyled mb-1 public-quick-filter-list public-quick-filter-scroll">
-                                        <li>
-                                            <form method="POST" action="{{ route('public.research.index') }}">
-                                                @csrf
-                                                <input type="hidden" name="_filter_action" value="apply">
-                                                @include('partials.public-research-filter-fields', [
-                                                    'filters' => $filters,
-                                                    'override' => ['author' => ''],
-                                                ])
-                                                <button type="submit"
-                                                        class="btn btn-link btn-sm text-start px-0 py-1 public-quick-filter-btn {{ $activeAuthor === '' ? 'active' : '' }}">
-                                                    All authors
-                                                </button>
-                                            </form>
-                                        </li>
-                                        @foreach ($authors as $authorName)
-                                            <li>
-                                                <form method="POST" action="{{ route('public.research.index') }}">
-                                                    @csrf
-                                                    <input type="hidden" name="_filter_action" value="apply">
-                                                    @include('partials.public-research-filter-fields', [
-                                                        'filters' => $filters,
-                                                        'override' => ['author' => $authorName],
-                                                    ])
-                                                    <button type="submit"
-                                                            class="btn btn-link btn-sm text-start px-0 py-1 public-quick-filter-btn {{ $activeAuthor === $authorName ? 'active' : '' }}">
-                                                        {{ $authorName }}
-                                                    </button>
-                                                </form>
-                                            </li>
-                                        @endforeach
-                                    </ul>
-                                    <form method="POST" action="{{ route('public.research.index') }}" class="public-refine-author-search">
-                                        @csrf
-                                        <input type="hidden" name="_filter_action" value="apply">
-                                        @include('partials.public-research-filter-fields', ['filters' => $filters, 'except' => ['author']])
-                                        <label for="filter-author-search" class="visually-hidden">Filter by author</label>
-                                        <div class="input-group input-group-sm">
-                                            <input id="filter-author-search"
-                                                   type="text"
-                                                   name="author"
-                                                   class="form-control"
-                                                   list="public-author-options"
-                                                   placeholder="Author name"
-                                                   value="{{ $filters['author'] }}">
-                                            <datalist id="public-author-options">
-                                                @foreach ($authors as $authorName)
-                                                    <option value="{{ $authorName }}"></option>
-                                                @endforeach
-                                            </datalist>
-                                        </div>
-                                    </form>
-                                </div>
-
-                                <a href="{{ $filterResetUrl }}" class="small text-muted">Clear all filters</a>
+                            <div class="mt-2">
+                                @include('partials.public-research-refine-filters', [
+                                    'filters' => $filters,
+                                    'departments' => $departments,
+                                    'authors' => $authors,
+                                    'filterResetUrl' => $filterResetUrl,
+                                ])
                             </div>
                         </details>
                     </div>
@@ -523,14 +379,22 @@
         box-shadow: var(--prms-shadow);
     }
 
-    .public-research-meta,
-    .public-research-hero,
-    .public-research-results {
+    .public-research-meta {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.65rem;
         width: 100%;
     }
 
-    .public-research-meta {
-        align-items: center !important;
+    @media (min-width: 992px) {
+        .public-research-meta {
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
     }
 
     .public-research-meta__count {
@@ -538,15 +402,93 @@
         align-items: center;
         min-height: 2rem;
         line-height: 1.4;
+        text-align: center;
+        justify-content: center;
+        width: 100%;
+    }
+
+    @media (min-width: 992px) {
+        .public-research-meta__count {
+            width: auto;
+            text-align: left;
+            justify-content: flex-start;
+        }
     }
 
     .public-research-meta__filters {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        justify-content: flex-end;
+        justify-content: center;
+        gap: 0.35rem 0.5rem;
+        width: 100%;
+        padding: 0;
+    }
+
+    @media (min-width: 992px) {
+        .public-research-meta__filters {
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            width: auto;
+            margin-left: auto;
+            gap: 0.5rem;
+        }
+    }
+
+    .public-research-meta__filter-form {
+        display: inline-flex;
+        align-items: center;
+        margin: 0;
+        flex-shrink: 0;
+    }
+
+    .public-research-mobile-refine {
+        display: flex;
+        flex-direction: column;
         gap: 0.5rem;
-        margin-left: auto;
+        width: 100%;
+    }
+
+    .public-research-mobile-refine__search .form-control {
+        font-size: 0.875rem;
+    }
+
+    .public-research-mobile-refine__toolbar {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .public-research-mobile-refine__dropdown {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .public-research-mobile-refine__menu {
+        min-width: min(100vw - 2rem, 20rem);
+        max-height: min(70vh, 28rem);
+        overflow-y: auto;
+    }
+
+    .public-research-mobile-refine__menu .public-quick-filter-scroll {
+        max-height: 9rem;
+    }
+
+    @media (min-width: 992px) {
+        .public-research-meta,
+        .public-research-hero,
+        .public-research-results {
+            width: 100%;
+        }
+
+        .public-research-meta {
+            align-items: center !important;
+        }
+    }
+
+    .public-research-meta,
+    .public-research-hero,
+    .public-research-results {
+        width: 100%;
     }
 
     .public-research-meta__filters form {
@@ -561,19 +503,23 @@
         padding: 0;
         font-size: 0.875rem;
         line-height: 1.4;
+        font-weight: 400;
         color: var(--prms-text-muted, #64748b);
         text-decoration: none;
         cursor: pointer;
+        white-space: nowrap;
+        transition: color 0.15s ease;
     }
 
     .public-research-category-link:hover,
     .public-research-category-link:focus {
         color: var(--prms-primary, #1572E8);
-        text-decoration: underline;
+        text-decoration: none;
     }
 
     .public-research-category-link.is-active {
         color: var(--prms-primary, #1572E8);
+        background: none;
         font-weight: 600;
         text-decoration: none;
     }
@@ -581,6 +527,7 @@
     .public-research-meta__sep {
         font-size: 0.875rem;
         line-height: 1;
+        color: var(--prms-text-faint, #94a3b8);
         user-select: none;
     }
 
@@ -829,24 +776,55 @@
         100% { background-position: -100% 0; }
     }
 
-    @media (max-width: 767.98px) {
+    @media (max-width: 991.98px) {
+        .public-research-page--compact .public-research-hero__intro {
+            display: none !important;
+        }
+
+        .public-research-page--compact .public-research-hero {
+            margin-bottom: 0.5rem;
+        }
+
+        .public-research-page--compact .public-research-hero__tools {
+            width: 100%;
+        }
+
+        .public-research-page--compact .public-research-search {
+            margin-top: 0 !important;
+        }
+
+        body.prms-public-research-compact .page-inner > .page-header {
+            display: none !important;
+        }
+
+        .public-research-page--compact .public-research-meta {
+            top: var(--prms-public-nav-height, 3.5rem);
+        }
+
         .public-research-hero__content {
             text-align: center;
         }
 
-        .public-research-meta__filters {
-            justify-content: center;
-            margin-left: 0;
+        .public-research-search {
+            display: none;
         }
 
-        .public-research-meta__count {
-            width: 100%;
-            justify-content: center;
+        .public-research-meta {
+            position: sticky;
+            top: calc(var(--prms-public-nav-height, 3.5rem) + var(--prms-public-page-header-height, 2.75rem));
+            z-index: 1030;
+            background-color: #ffffff;
+            padding-top: 0.35rem;
+            padding-bottom: 0.5rem;
+            margin-inline: -0.15rem;
+            padding-inline: 0.15rem;
+            border-bottom: 1px solid var(--prms-border, #e5e7eb);
         }
 
         .public-research-hero__material {
             max-width: 18rem;
             min-height: 14rem;
+            margin-inline: auto;
             margin-bottom: 0.5rem;
         }
 
@@ -857,6 +835,12 @@
 
         .public-research-hero__material-chip--article {
             left: 0;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        .public-research-meta__filters {
+            justify-content: center;
         }
     }
 
@@ -883,6 +867,73 @@
                 content.classList.add('d-none');
                 loading.classList.remove('d-none');
             });
+        });
+
+        var mobileRefine = document.getElementById('publicResearchMobileRefine');
+        var mobileMq = window.matchMedia('(max-width: 991.98px)');
+
+        function enterCompactMode() {
+            if (!mobileMq.matches) {
+                return;
+            }
+
+            page.classList.add('public-research-page--compact');
+            document.body.classList.add('prms-public-research-compact');
+            page.setAttribute('data-mobile-compact', '1');
+
+            var anchor = page.querySelector('.public-research-hero__tools')
+                || page.querySelector('.public-research-meta')
+                || document.getElementById('prms-research-results');
+
+            if (anchor) {
+                window.requestAnimationFrame(function () {
+                    anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            }
+        }
+
+        if (page.getAttribute('data-mobile-compact') === '1' && mobileMq.matches) {
+            document.body.classList.add('prms-public-research-compact');
+        }
+
+        if (mobileRefine) {
+            var mobileSearch = mobileRefine.querySelector('#public-mobile-search');
+            var searchTimer = null;
+            var filterMenu = document.getElementById('publicMobileFilterMenu');
+
+            if (mobileSearch) {
+                mobileSearch.addEventListener('focus', enterCompactMode);
+            }
+
+            if (filterMenu) {
+                filterMenu.addEventListener('click', enterCompactMode);
+                filterMenu.addEventListener('show.bs.dropdown', enterCompactMode);
+            }
+
+            if (mobileSearch) {
+                mobileSearch.addEventListener('input', function () {
+                    window.clearTimeout(searchTimer);
+                    searchTimer = window.setTimeout(function () {
+                        mobileRefine.submit();
+                    }, 500);
+                });
+
+                mobileSearch.addEventListener('keydown', function (event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        window.clearTimeout(searchTimer);
+                        mobileRefine.submit();
+                    }
+                });
+            }
+        }
+
+        page.querySelectorAll('.public-research-meta__filter-form button').forEach(function (button) {
+            button.addEventListener('click', enterCompactMode);
+        });
+
+        page.querySelectorAll('.public-research-mobile-refine__menu form button[type="submit"]').forEach(function (button) {
+            button.addEventListener('click', enterCompactMode);
         });
     })();
 </script>

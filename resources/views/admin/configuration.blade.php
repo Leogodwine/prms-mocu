@@ -251,37 +251,37 @@
                     </div>
                     <div class="modal-body p-4">
                         <div class="row g-3 mb-4">
-                            <div class="col-md-6">
-                                <label class="form-label" for="cfg_year">Academic year</label>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="cfg_year">Academic year</label>
                                 <input id="cfg_year" name="configs[academic_year]" value="{{ old('configs.academic_year', $map['academic_year'] ?? '') }}"
-                                       placeholder="e.g. 2026/2027" class="form-control @error('configs.academic_year') is-invalid @enderror" required>
+                                           placeholder="e.g. 2026/2027" class="form-control @error('configs.academic_year') is-invalid @enderror" required>
                                 @error('configs.academic_year')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label" for="cfg_cycle">Current cycle</label>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="cfg_cycle">Current cycle</label>
                                 <input id="cfg_cycle" name="configs[project_cycle]" value="{{ old('configs.project_cycle', $map['project_cycle'] ?? '') }}"
-                                       placeholder="e.g. Semester 2" class="form-control @error('configs.project_cycle') is-invalid @enderror" required>
+                                           placeholder="e.g. Semester 2" class="form-control @error('configs.project_cycle') is-invalid @enderror" required>
                                 @error('configs.project_cycle')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
                         </div>
                         <div class="row g-3 mb-4">
-                            <div class="col-md-6">
+                                <div class="col-md-6">
                                 <label class="form-label" for="deadline_proposal">Proposal deadline</label>
-                                <input type="date" id="deadline_proposal" name="configs[deadline_proposal]"
+                                    <input type="date" id="deadline_proposal" name="configs[deadline_proposal]"
                                        value="{{ old('configs.deadline_proposal', $map['deadline_proposal'] ?? '') }}"
                                        class="form-control @error('configs.deadline_proposal') is-invalid @enderror" required>
                                 @error('configs.deadline_proposal')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-                            <div class="col-md-6">
+                                </div>
+                                <div class="col-md-6">
                                 <label class="form-label" for="deadline_final">Final submission deadline</label>
-                                <input type="date" id="deadline_final" name="configs[deadline_final]"
+                                    <input type="date" id="deadline_final" name="configs[deadline_final]"
                                        value="{{ old('configs.deadline_final', $map['deadline_final'] ?? '') }}"
                                        class="form-control @error('configs.deadline_final') is-invalid @enderror" required>
                                 @error('configs.deadline_final')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
                         </div>
                         <div class="row g-3">
-                            <div class="col-md-6">
+                                <div class="col-md-6">
                                 <label class="form-label" for="min_year">Minimum year of study (project groups)</label>
                                 <input type="number" id="min_year" min="1" max="8" name="configs[eligibility_min_year]"
                                        value="{{ old('configs.eligibility_min_year', $map['eligibility_min_year'] ?? '3') }}"

@@ -47,15 +47,20 @@
                     </ul>
                 </div>
             @else
-                <a href="{{ $item['url'] }}">
+                @php
+                    $unreadCount = ($item['route_is'] === 'notifications.*')
+                        ? auth()->user()->unreadNotifications()->count()
+                        : 0;
+                @endphp
+                <a href="{{ $item['url'] }}" @class(['prms-nav-link--has-badge' => $unreadCount > 0])>
                     <i class="{{ $item['icon'] }}"></i>
+                    @if ($unreadCount > 0)
+                        <span class="prms-nav-icon-badge" aria-hidden="true">{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span>
+                    @endif
                     <p class="prms-nav-link-text">
                         <span class="prms-nav-link-text__label">{{ $item['label'] }}</span>
-                        @if ($item['route_is'] === 'notifications.*')
-                            @php $unreadCount = auth()->user()->unreadNotifications()->count(); @endphp
-                            @if ($unreadCount > 0)
-                                <span class="badge rounded-pill bg-danger prms-nav-link-text__badge">{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span>
-                            @endif
+                        @if ($unreadCount > 0)
+                            <span class="badge rounded-pill bg-danger prms-nav-link-text__badge">{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span>
                         @endif
                     </p>
                 </a>
