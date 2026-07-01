@@ -1812,3 +1812,99 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     margin-top: 3.25rem !important;
   }
 }
+
+/* Public repository / welcome: Kaiadmin mobile shell styles .navbar-header as a
+   slim right icon strip (50% width). The public site uses it as the full top nav. */
+@media screen and (max-width: 999.98px) {
+  body.prms-kaiadmin-public .main-panel.prms-public-main > .main-header.prms-public-site-header,
+  body.prms-landing .main-header.prms-landing-header {
+    position: sticky !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    min-height: auto !important;
+    z-index: 1040;
+  }
+
+  body.prms-kaiadmin-public .main-panel > .main-header.prms-public-site-header .prms-site-topnav.navbar-header,
+  body.prms-landing .main-header .prms-site-topnav.navbar-header {
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    transform: none !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    background-color: var(--prms-sidebar-bg, #1a2035) !important;
+    border-top: none !important;
+    z-index: 5;
+  }
+
+  body.prms-kaiadmin-public .main-panel.prms-public-main > .container {
+    margin-top: 0 !important;
+  }
+
+  body.prms-kaiadmin-public .prms-site-topnav--always-expanded .prms-site-nav-toggler {
+    display: none !important;
+  }
+
+  body.prms-kaiadmin-public .prms-site-topnav--always-expanded .prms-site-nav-menu,
+  body.prms-landing .prms-site-topnav--always-expanded .prms-site-nav-menu {
+    display: flex !important;
+    visibility: visible !important;
+    height: auto !important;
+    flex-basis: 100%;
+    width: 100% !important;
+    margin-top: 0.35rem;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem 0.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  body.prms-kaiadmin-public .prms-site-topnav--always-expanded .prms-site-nav-menu .navbar-nav,
+  body.prms-landing .prms-site-topnav--always-expanded .prms-site-nav-menu .navbar-nav {
+    flex-direction: row !important;
+    flex-wrap: nowrap;
+    align-items: center !important;
+    justify-content: center !important;
+    width: auto !important;
+    margin: 0 !important;
+    gap: 0.15rem 0.35rem;
+  }
+
+  body.prms-kaiadmin-public .prms-site-topnav--always-expanded .prms-site-nav-menu .nav-item,
+  body.prms-landing .prms-site-topnav--always-expanded .prms-site-nav-menu .nav-item {
+    flex-shrink: 0;
+  }
+
+  body.prms-kaiadmin-public .prms-site-topnav--always-expanded .prms-site-nav-menu .nav-link,
+  body.prms-landing .prms-site-topnav--always-expanded .prms-site-nav-menu .nav-link {
+    padding: 0.4rem 0.55rem;
+    font-size: 0.8125rem;
+    white-space: nowrap;
+  }
+
+  body.prms-landing .prms-site-topnav--always-expanded .prms-site-nav-toggler {
+    display: none !important;
+  }
+
+  body.prms-kaiadmin-public .main-panel.prms-public-main .page-inner > .page-header {
+    position: relative !important;
+    top: auto !important;
+  }
+}

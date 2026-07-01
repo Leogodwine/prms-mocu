@@ -10,6 +10,7 @@ use App\Models\DepartmentWorkflowRule;
 use App\Models\Program;
 use App\Models\SystemConfiguration;
 use App\Support\Audit;
+use App\Support\PrmsTablePagination;
 use App\Support\ProgrammeWorkflowPolicy;
 use App\Support\StudentWorkflowAssigner;
 use App\Support\WorkflowSettingsCatalog;
@@ -21,7 +22,7 @@ use Illuminate\View\View;
 
 class AdminConfigurationController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $configs = SystemConfiguration::query()->orderBy('category')->orderBy('config_key')->get();
 
@@ -30,18 +31,24 @@ class AdminConfigurationController extends Controller
             : collect();
 
         $programmes = Schema::hasTable('programmes')
-            ? Program::query()->with('department')->orderBy('programme_code')->get()
-            : collect();
+            ? Program::query()->with('department')->orderBy('programme_code')
+                ->paginate(PrmsTablePagination::perPage($request), ['*'], 'programmes_page')
+                ->withQueryString()
+            : new \Illuminate\Pagination\LengthAwarePaginator([], 0, PrmsTablePagination::DEFAULT);
 
         $departmentRules = Schema::hasTable('department_workflow_rules')
-            ? DepartmentWorkflowRule::query()->with('department')->orderBy('department_id')->get()
-            : collect();
+            ? DepartmentWorkflowRule::query()->with('department')->orderBy('department_id')
+                ->paginate(PrmsTablePagination::perPage($request), ['*'], 'rules_page')
+                ->withQueryString()
+            : new \Illuminate\Pagination\LengthAwarePaginator([], 0, PrmsTablePagination::DEFAULT);
 
         return view('admin.configuration', [
             'configs' => $configs,
             'departments' => $departments,
             'programmes' => $programmes,
+            'programmesTotal' => $programmes->total(),
             'departmentRules' => $departmentRules,
+            'departmentRulesTotal' => $departmentRules->total(),
             'workflowDefaults' => WorkflowSettingsCatalog::settings(),
             'academicLevels' => AcademicLevel::cases(),
             'outputTypes' => ProgramOutputType::cases(),

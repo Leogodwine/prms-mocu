@@ -1,8 +1,9 @@
 @php
     $navId = $navId ?? 'siteNav';
     $innerClass = $innerClass ?? '';
+    $expandClass = ($alwaysExpanded ?? false) ? 'navbar-expand' : 'navbar-expand-sm';
 @endphp
-<nav class="navbar navbar-header navbar-expand-sm border-bottom prms-public-nav prms-public-topnav prms-site-topnav w-100"
+<nav class="navbar navbar-header {{ $expandClass }} border-bottom prms-public-nav prms-public-topnav prms-site-topnav w-100{{ ($alwaysExpanded ?? false) ? ' prms-site-topnav--always-expanded' : '' }}"
      data-background-color="dark"
      aria-label="{{ $ariaLabel ?? __('Site navigation') }}">
     <div class="prms-site-nav-inner {{ $innerClass }}">

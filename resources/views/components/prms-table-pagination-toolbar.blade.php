@@ -12,7 +12,7 @@
 @endphp
 
 @if ($showControls)
-    <div {{ $attributes->merge(['class' => 'prms-table-pagination-toolbar d-flex flex-wrap align-items-center justify-content-between gap-2 py-2 px-3 border-bottom']) }}>
+    <div {{ $attributes->merge(['class' => 'prms-table-pagination-toolbar d-flex flex-nowrap align-items-center justify-content-between gap-2 py-2 px-3 border-bottom overflow-auto']) }}>
         <p class="small text-muted mb-0">
             @if (method_exists($paginator, 'firstItem') && $paginator->firstItem() !== null)
                 Showing {{ number_format($paginator->firstItem()) }}–{{ number_format($paginator->lastItem()) }} of {{ number_format($total) }} {{ $noun }}

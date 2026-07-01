@@ -10,8 +10,8 @@
     <title>@yield('title', 'Repository') | {{ config('app.name', 'MoCU-PRMS') }}</title>
 
     @include('layouts.partials.kaiadmin-styles')
-    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=20">
-    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=44">
+    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=38">
+    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=45">
 
     @stack('styles')
 </head>
@@ -26,6 +26,7 @@
                 'navId' => 'publicNav',
                 'innerClass' => 'prms-public-nav-inner',
                 'ariaLabel' => 'Public site navigation',
+                'alwaysExpanded' => true,
             ])
         </div>
 

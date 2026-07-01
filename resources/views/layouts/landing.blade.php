@@ -10,8 +10,8 @@
     <title>@yield('title', 'Welcome') | {{ config('app.name', 'MoCU-PRMS') }}</title>
 
     @include('layouts.partials.kaiadmin-styles')
-    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=20">
-    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=44">
+    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=38">
+    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=45">
     <link rel="stylesheet" href="{{ asset('css/prms-welcome.css') }}?v=38">
     @stack('styles')
 </head>
@@ -23,6 +23,7 @@
         @include('layouts.partials.prms-site-topnav', [
             'navId' => 'landingNav',
             'innerClass' => 'prms-landing-nav-inner',
+            'alwaysExpanded' => true,
         ])
     </header>
 

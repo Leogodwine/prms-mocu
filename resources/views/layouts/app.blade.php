@@ -13,7 +13,7 @@
     @include('layouts.partials.kaiadmin-styles')
     @php $kai = asset(config('prms.kaiadmin_assets', 'vendor/prms-mocu/assets')); @endphp
     <link rel="stylesheet" href="{{ $kai }}/css/demo.css">
-    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=32">
+    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=38">
     <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=53">
 
     @stack('styles')

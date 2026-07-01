@@ -12,7 +12,7 @@
 @endphp
 
 @if ($showFooter)
-    <div {{ $attributes->merge(['class' => 'prms-table-pagination-footer d-flex justify-content-center']) }}>
+    <div {{ $attributes->merge(['class' => 'prms-table-pagination-footer d-flex flex-nowrap justify-content-center overflow-auto w-100']) }}>
         {{ method_exists($paginator, 'withQueryString') ? $paginator->withQueryString()->links() : $paginator->links() }}
     </div>
 @endif
