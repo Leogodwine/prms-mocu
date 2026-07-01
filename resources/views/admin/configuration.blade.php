@@ -33,14 +33,14 @@
         <div class="col-md-4">
             <div class="prms-stat-card py-3 px-4 h-100">
                 <div class="stat-label">Programmes configured</div>
-                <div class="stat-value">{{ $programmesTotal ?? $programmes->total() }}</div>
+                <div class="stat-value">{{ $programmesTotal ?? $programmes->count() }}</div>
                 <div class="small text-muted">Each programme defines final year and output type.</div>
             </div>
         </div>
         <div class="col-md-4">
             <div class="prms-stat-card py-3 px-4 h-100">
                 <div class="stat-label">Department overrides</div>
-                <div class="stat-value">{{ $departmentRulesTotal ?? $departmentRules->total() }}</div>
+                <div class="stat-value">{{ $departmentRulesTotal ?? $departmentRules->count() }}</div>
                 <div class="small text-muted">Optional rules by department + academic level.</div>
             </div>
         </div>
