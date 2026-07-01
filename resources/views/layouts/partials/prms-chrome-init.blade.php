@@ -1,7 +1,8 @@
 <script>
 (function () {
-    if (window.matchMedia('(max-width: 991.98px)').matches) {
+    if (window.matchMedia('(max-width: 999.98px)').matches) {
         document.documentElement.classList.add('prms-mobile-shell');
+        document.documentElement.classList.remove('topbar_open');
     }
 })();
 (function () {

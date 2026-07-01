@@ -121,7 +121,7 @@ body.prms-public-page {
   gap: 0.25rem;
 }
 
-@media screen and (max-width: 991.98px) {
+@media screen and (max-width: 999.98px) {
   .main-panel .page-header .page-title,
   .prms-public-page .page-header .page-title {
     font-size: 1.0625rem;
@@ -294,7 +294,7 @@ body.prms-kaiadmin-public .main-panel.prms-public-main > .container {
 }
 
 /* Top bar edge-to-edge */
-@media screen and (max-width: 991.98px) {
+@media screen and (max-width: 999.98px) {
   body.prms-kaiadmin-public {
     --prms-public-nav-height: 4.25rem;
   }
@@ -517,7 +517,7 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
 }
 
 /* Collapsed sidebar — product name in header, nav icons only in rail */
-@media screen and (min-width: 992px) {
+@media screen and (min-width: 1000px) {
   .sidebar_minimize .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-logo .logo-header,
   .sidebar_minimize .main-header .main-header-logo .logo-header:not(.prms-mobile-toolbar) {
     flex-direction: column;
@@ -906,7 +906,7 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
   display: none;
 }
 
-@media screen and (min-width: 992px) {
+@media screen and (min-width: 1000px) {
   .sidebar_minimize .wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item:not(.submenu) > a.prms-nav-link--has-badge {
     position: relative;
   }
@@ -1298,7 +1298,7 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
 }
 
 /* ── Mobile shell: sidebar hidden by default; hamburger opens full overlay menu ── */
-@media screen and (max-width: 991.98px) {
+@media screen and (max-width: 999.98px) {
   html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-logo {
     display: block !important;
   }
@@ -1462,7 +1462,7 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     display: block !important;
     flex: 1 1 auto;
     min-width: 0;
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     font-weight: 700;
     letter-spacing: 0.02em;
     white-space: nowrap;
@@ -1481,15 +1481,6 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     order: 1;
   }
 
-  html.prms-mobile-shell .main-header .main-header-logo .logo-header .nav-toggle .toggle-sidebar {
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-    min-width: 2.75rem;
-    min-height: 2.75rem;
-    -webkit-tap-highlight-color: transparent;
-  }
-
   html.prms-mobile-shell .main-header .main-header-logo .logo-header .nav-toggle .sidenav-toggler {
     display: none !important;
   }
@@ -1501,10 +1492,14 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
   }
 
   html.prms-mobile-shell .main-header {
-    position: relative;
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
     display: block;
     width: 100% !important;
-    min-height: 3.5rem;
+    min-height: 3.25rem;
+    z-index: 1030;
   }
 
   html.prms-mobile-shell .main-header .main-header-logo {
@@ -1523,14 +1518,12 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     -webkit-box-pack: start;
     justify-content: flex-start;
     flex-wrap: nowrap;
-    gap: 0.35rem;
+    gap: 0.25rem;
     width: 100% !important;
-    min-height: 3.5rem;
-    height: 3.5rem;
-    padding-top: 0;
-    padding-bottom: 0;
-    padding-left: max(0.5rem, env(safe-area-inset-left, 0px));
-    padding-right: max(5.5rem, calc(5.5rem + env(safe-area-inset-right, 0px)));
+    min-height: 3.25rem;
+    height: 3.25rem;
+    padding: 0 0.75rem;
+    padding-right: max(5rem, calc(5rem + env(safe-area-inset-right, 0px)));
     box-sizing: border-box;
     overflow: hidden;
     position: relative;
@@ -1542,10 +1535,8 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     flex-shrink: 0;
     color: #fff;
     opacity: 0.92;
-    padding: 0.35rem 0.4rem;
+    padding: 0.25rem 0.35rem;
     line-height: 1;
-    min-width: 2.5rem;
-    min-height: 2.5rem;
   }
 
   html.prms-mobile-shell .main-header .main-header-logo .logo-header .nav-toggle {
@@ -1554,14 +1545,29 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     right: auto !important;
     margin: 0;
     flex: 0 0 auto;
+    order: 1;
     display: -webkit-box !important;
     display: flex !important;
     -webkit-box-align: center;
     align-items: center;
     -webkit-box-pack: center;
     justify-content: center;
-    height: 3.5rem;
+    height: auto;
     width: auto;
+  }
+
+  html.prms-mobile-shell .main-header .main-header-logo .logo-header .prms-mobile-toolbar-brand,
+  html.prms-mobile-shell .main-header .main-header-logo .logo-header .logo .prms-sidebar-brand-name {
+    order: 2;
+  }
+
+  html.prms-mobile-shell .main-header .main-header-logo .logo-header .nav-toggle .toggle-sidebar {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 0;
+    padding: 0.35rem;
   }
 
   html.prms-mobile-shell .main-header .navbar-header {
@@ -1574,8 +1580,8 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     opacity: 1 !important;
     width: auto !important;
     max-width: 46%;
-    min-height: 3.5rem;
-    height: 3.5rem;
+    min-height: 3.25rem;
+    height: 3.25rem;
     -webkit-transform: none !important;
     transform: none !important;
     border: none !important;
@@ -1604,7 +1610,7 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     margin-left: 0 !important;
     flex-wrap: nowrap;
     gap: 0;
-    min-height: 3.5rem;
+    min-height: 3.25rem;
     height: 100%;
     -webkit-box-align: center;
     align-items: center;
@@ -1622,19 +1628,187 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
   html.prms-mobile-shell .main-panel > .container-full,
   html.prms-mobile-shell.topbar_open .main-panel > .container,
   html.prms-mobile-shell.topbar_open .main-panel > .container-full {
-    margin-top: 3.5rem !important;
+    margin-top: 3.25rem !important;
   }
 
   @media screen and (max-width: 400px) {
     html.prms-mobile-shell .main-header .main-header-logo .logo-header .logo .prms-sidebar-brand-name,
     html.prms-mobile-shell .main-header .main-header-logo .logo-header .prms-mobile-toolbar-brand {
-      font-size: 0.8125rem;
+      font-size: 0.75rem;
     }
 
     html.prms-mobile-shell .main-header .main-header-logo .logo-header.prms-mobile-toolbar,
     html.prms-mobile-shell .main-header .main-header-logo .logo-header {
-      padding-right: max(5rem, calc(5rem + env(safe-area-inset-right, 0px)));
-      gap: 0.2rem;
+      padding-right: max(4.75rem, calc(4.75rem + env(safe-area-inset-right, 0px)));
+      gap: 0.15rem;
     }
+  }
+}
+
+/* Mobile top bar — always visible (Kaiadmin hides .navbar-header off-screen until .topbar_open) */
+@media screen and (max-width: 999.98px) {
+  /* Kaiadmin desktop (>=992px) hides the mobile logo strip — restore it below 1000px */
+  .main-header .main-header-logo {
+    display: block !important;
+  }
+
+  .wrapper > .sidebar:not(.prms-sidebar-sub) {
+    position: fixed;
+    left: 0 !important;
+    top: 0;
+    bottom: 0;
+    width: 250px !important;
+    max-width: min(250px, 85vw);
+    transform: translate3d(-100%, 0, 0) !important;
+    margin-top: 0;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    z-index: 1032;
+    box-shadow: none;
+  }
+
+  html.prms-mobile-sidebar-expanded .wrapper > .sidebar:not(.prms-sidebar-sub) {
+    transform: translate3d(0, 0, 0) !important;
+    box-shadow: 0 0 24px rgba(0, 0, 0, 0.22);
+  }
+
+  .main-panel,
+  .main-header {
+    width: 100% !important;
+    float: none;
+  }
+
+  html.topbar_open .main-panel > .main-header .navbar-header,
+  .main-panel > .main-header .navbar-header {
+    position: absolute !important;
+    top: 0 !important;
+    right: 0 !important;
+    left: auto !important;
+    width: auto !important;
+    max-width: 50%;
+    height: 3.25rem !important;
+    min-height: 3.25rem !important;
+    -webkit-transform: none !important;
+    transform: none !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    border-top: none !important;
+    background: transparent !important;
+    z-index: 4;
+    pointer-events: none;
+  }
+
+  .main-panel > .main-header .navbar-header .container-fluid,
+  .main-panel > .main-header .navbar-header .navbar-nav,
+  .main-panel > .main-header .navbar-header .nav-link,
+  .main-panel > .main-header .navbar-header .dropdown-toggle {
+    pointer-events: auto;
+  }
+
+  .main-panel > .main-header {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100% !important;
+    z-index: 1030;
+    min-height: 3.25rem;
+  }
+
+  .main-panel > .main-header .main-header-logo {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  .main-panel > .main-header .main-header-logo .logo-header {
+    display: -webkit-box !important;
+    display: flex !important;
+    -webkit-box-align: center;
+    align-items: center;
+    width: 100% !important;
+    min-height: 3.25rem;
+    height: 3.25rem;
+    padding: 0 0.75rem;
+    padding-right: max(5rem, calc(5rem + env(safe-area-inset-right, 0px)));
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .main-panel > .main-header .logo-header .nav-toggle {
+    flex: 0 0 auto;
+    order: 1;
+  }
+
+  .main-panel > .main-header .logo-header .nav-toggle .toggle-sidebar {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 0.35rem;
+  }
+
+  .main-panel > .main-header .logo-header .nav-toggle .sidenav-toggler,
+  .main-panel > .main-header .logo-header .topbar-toggler.more {
+    display: none !important;
+  }
+
+  .main-panel > .main-header .logo-header .logo img,
+  .main-panel > .main-header .logo-header .logo .prms-brand-logo {
+    display: none !important;
+  }
+
+  .main-panel > .main-header .logo-header .logo {
+    position: static !important;
+    -webkit-transform: none !important;
+    transform: none !important;
+    left: auto !important;
+    flex: 1 1 auto;
+    order: 2;
+    min-width: 0;
+    display: -webkit-box !important;
+    display: flex !important;
+    -webkit-box-pack: start;
+    justify-content: flex-start !important;
+    align-items: center;
+  }
+
+  .main-panel > .main-header .logo-header .prms-sidebar-brand-name,
+  .main-panel > .main-header .logo-header .prms-mobile-toolbar-brand {
+    display: block !important;
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #fff !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .main-panel > .main-header .navbar-header .container-fluid {
+    padding-left: 0;
+    padding-right: 0.25rem;
+    height: 100%;
+  }
+
+  .main-panel > .main-header .navbar-header .navbar-nav {
+    justify-content: flex-end !important;
+    align-items: center;
+    height: 100%;
+    min-height: 3.25rem;
+    margin-left: 0 !important;
+    flex-wrap: nowrap;
+  }
+
+  .main-panel > .main-header .navbar-header .nav-link,
+  .main-panel > .main-header .navbar-header .nav-link i,
+  .main-panel > .main-header .navbar-header .dropdown-toggle {
+    color: #fff !important;
+  }
+
+  .main-panel > .container,
+  .main-panel > .container-full,
+  html.topbar_open .main-panel > .container,
+  html.topbar_open .main-panel > .container-full {
+    margin-top: 3.25rem !important;
   }
 }

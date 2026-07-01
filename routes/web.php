@@ -221,6 +221,14 @@ Route::middleware(['auth', 'password.changed', 'role:supervisor'])->prefix('repo
     Route::get('/supervisor/export', [ReportController::class, 'supervisorExport'])->name('supervisor.export');
 });
 
+Route::middleware(['auth', 'password.changed', 'role:admin,hod'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', function (\Illuminate\Http\Request $request) {
+        return $request->user()->role === 'hod'
+            ? redirect()->route('admin.academic-configuration.index')
+            : redirect()->route('admin.users.index');
+    })->name('index');
+});
+
 Route::middleware(['auth', 'password.changed', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
     Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');

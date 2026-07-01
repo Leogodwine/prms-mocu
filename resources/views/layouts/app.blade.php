@@ -14,7 +14,7 @@
     @php $kai = asset(config('prms.kaiadmin_assets', 'vendor/prms-mocu/assets')); @endphp
     <link rel="stylesheet" href="{{ $kai }}/css/demo.css">
     <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=32">
-    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=50">
+    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=53">
 
     @stack('styles')
 </head>
@@ -179,8 +179,8 @@
 @stack('modals')
 
 @include('layouts.partials.kaiadmin-scripts', ['full' => true])
-<script src="{{ asset('js/prms-header.js') }}?v=4"></script>
-<script src="{{ asset('js/prms-sidebar.js') }}?v=3"></script>
+<script src="{{ asset('js/prms-header.js') }}?v=6"></script>
+<script src="{{ asset('js/prms-sidebar.js') }}?v=4"></script>
 
 @if (auth()->check())
     <script src="{{ asset('js/prms-quick-nav.js') }}?v=6" defer></script>

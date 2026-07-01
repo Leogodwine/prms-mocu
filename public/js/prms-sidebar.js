@@ -1,11 +1,11 @@
 /**
  * Mobile / small screens: sidebar hidden by default; hamburger opens full menu.
- * Desktop (992px+): Kaiadmin sidebar_minimize icon-rail collapse.
+ * Desktop (1000px+): Kaiadmin sidebar_minimize icon-rail collapse.
  */
 (function () {
     'use strict';
 
-    var MOBILE_QUERY = window.matchMedia('(max-width: 991.98px)');
+    var MOBILE_QUERY = window.matchMedia('(max-width: 999.98px)');
 
     function isMobile() {
         return MOBILE_QUERY.matches;
@@ -44,6 +44,7 @@
 
     function initMobileShell() {
         document.documentElement.classList.add('prms-mobile-shell');
+        document.documentElement.classList.remove('topbar_open');
         applyCollapsedState(true);
     }
 
