@@ -18,7 +18,7 @@
                    aria-expanded="{{ $parentActive ? 'true' : 'false' }}">
                     <i class="{{ $item['icon'] }}"></i>
                     <p>{{ $item['label'] }}</p>
-                    <span class="prms-sidebar-caret material-symbols-outlined" aria-hidden="true">expand_more</span>
+                    <i class="fas fa-chevron-down prms-sidebar-caret" aria-hidden="true"></i>
                 </a>
                 <div class="collapse {{ $parentActive ? 'show' : '' }}" id="{{ $collapseId }}">
                     <ul class="nav nav-collapse prms-workspace-chapters">

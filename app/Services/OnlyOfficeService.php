@@ -58,6 +58,88 @@ class OnlyOfficeService
         return rtrim((string) config('onlyoffice.storage_url'), '/');
     }
 
+    /**
+     * Common misconfiguration hints when the editor shell loads but the document never opens.
+     *
+     * @return list<string>
+     */
+    public function deploymentWarnings(): array
+    {
+        $warnings = [];
+
+        $storageUrl = $this->storageBaseUrl();
+        $storageHost = parse_url($storageUrl, PHP_URL_HOST) ?: '';
+        $docServerUrl = rtrim((string) config('onlyoffice.document_server_url'), '/');
+        $docHost = parse_url($docServerUrl, PHP_URL_HOST) ?: '';
+        $appUrl = rtrim((string) config('app.url'), '/');
+        $requestHost = request()->getHost();
+
+        if ($storageHost === '' || $storageUrl === '') {
+            $warnings[] = 'ONLYOFFICE_STORAGE_URL is not set. The Document Server cannot download files from Laravel.';
+        } elseif (in_array($storageHost, ['localhost', '127.0.0.1'], true)
+            && $requestHost !== ''
+            && ! in_array($requestHost, ['localhost', '127.0.0.1'], true)) {
+            $warnings[] = 'ONLYOFFICE_STORAGE_URL points at '.$storageHost.', but you are browsing via '.$requestHost.'. '
+                .'From inside Docker, localhost is the container — not your Laravel app. '
+                .'Set ONLYOFFICE_STORAGE_URL to a URL the Document Server container can reach (e.g. your server IP, domain, or http://host.docker.internal on Docker Desktop).';
+        }
+
+        if (in_array($docHost, ['localhost', '127.0.0.1'], true)
+            && $requestHost !== ''
+            && ! in_array($requestHost, ['localhost', '127.0.0.1'], true)) {
+            $warnings[] = 'ONLYOFFICE_DOCUMENT_SERVER_URL uses '.$docHost.'. Remote browsers cannot reach that address. '
+                .'Use your server hostname/IP with port 8080 (or a public ONLYOFFICE URL).';
+        }
+
+        $storageScheme = parse_url($storageUrl, PHP_URL_SCHEME) ?: 'http';
+        $docScheme = parse_url($docServerUrl, PHP_URL_SCHEME) ?: 'http';
+        if (request()->secure()) {
+            if ($docScheme === 'http') {
+                $warnings[] = 'This page is HTTPS but ONLYOFFICE_DOCUMENT_SERVER_URL is HTTP. Browsers block mixed content — the editor API may not load.';
+            }
+            if ($storageScheme === 'http') {
+                $warnings[] = 'This page is HTTPS but ONLYOFFICE_STORAGE_URL is HTTP. Some Document Server builds refuse to download documents over HTTP when the editor is on HTTPS.';
+            }
+        }
+
+        if ($this->jwtEnabled()) {
+            $warnings[] = 'JWT is enabled in Laravel (ONLYOFFICE_JWT_SECRET set). The Document Server must use the same JWT secret. '
+                .'The bundled docker-compose.onlyoffice.yml sets JWT_ENABLED=false — either disable JWT in .env (ONLYOFFICE_JWT_ENABLED=false) or enable the same secret in Docker.';
+        }
+
+        if ($appUrl !== '' && $storageUrl !== '' && ! $this->storageUrlMatchesAppUrl($appUrl, $storageUrl)) {
+            $warnings[] = 'ONLYOFFICE_STORAGE_URL ('.$storageUrl.') differs from APP_URL ('.$appUrl.'). '
+                .'Signed document URLs are built from STORAGE_URL — it must be reachable by the Document Server container.';
+        }
+
+        return $warnings;
+    }
+
+    /**
+     * host.docker.internal:8000 and 127.0.0.1:8000 are the same Laravel app in local Docker Desktop setups.
+     */
+    private function storageUrlMatchesAppUrl(string $appUrl, string $storageUrl): bool
+    {
+        if (rtrim($appUrl, '/') === rtrim($storageUrl, '/')) {
+            return true;
+        }
+
+        $app = parse_url($appUrl) ?: [];
+        $storage = parse_url($storageUrl) ?: [];
+        $appPort = $app['port'] ?? (($app['scheme'] ?? 'http') === 'https' ? 443 : 80);
+        $storagePort = $storage['port'] ?? (($storage['scheme'] ?? 'http') === 'https' ? 443 : 80);
+
+        if ($appPort !== $storagePort) {
+            return false;
+        }
+
+        $appHost = strtolower((string) ($app['host'] ?? ''));
+        $storageHost = strtolower((string) ($storage['host'] ?? ''));
+        $localHosts = ['127.0.0.1', 'localhost', 'host.docker.internal'];
+
+        return in_array($appHost, $localHosts, true) && in_array($storageHost, $localHosts, true);
+    }
+
     public function buildSubmissionEditorConfig(ProjectSubmission $submission, User $user): array
     {
         $this->repairSubmissionDocumentIfNeeded($submission);

@@ -81,7 +81,7 @@
                         $marker = (string) ($idx + 1);
                     }
 
-                    $title = \App\Support\StudentStageProgress::shortStageLabel($stage->stage_name);
+                    $title = \App\Support\StudentStageProgress::journeyStageLabel($stage->stage_name);
                     $stepUrl = ! empty($trackType)
                         ? route('student.index', ['type' => $trackType, 'stage_id' => $stage->id])
                         : null;

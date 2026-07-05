@@ -956,6 +956,10 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
 .sidebar .nav.nav-primary > .nav-item.submenu > .collapse .nav-collapse.prms-workspace-chapters {
   margin-top: 0.15rem;
   margin-bottom: 0.35rem;
+  margin-inline-start: 1.15rem;
+  margin-inline-end: 0.35rem;
+  padding-inline-start: 0.35rem;
+  padding-inline-end: 0.15rem;
 }
 
 .sidebar .nav.nav-primary > .nav-item.submenu .prms-workspace-chapters a {
@@ -997,7 +1001,9 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
 }
 
 .sidebar .nav.nav-primary > .nav-item.submenu .nav-collapse > li > a {
-  margin-left: 5px;
+  margin-inline-start: 0;
+  padding-inline-start: 0.65rem !important;
+  padding-inline-end: 0.5rem !important;
 }
 
 .sidebar .nav.nav-primary > .nav-item.submenu .prms-workspace-chapters > li > a .sub-item::before,
@@ -1037,14 +1043,25 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
 
 .sidebar .nav.nav-primary > .nav-item.submenu > a.prms-sidebar-subtoggle {
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.sidebar .nav.nav-primary > .nav-item.submenu > a.prms-sidebar-subtoggle > p {
+  flex: 1;
+  min-width: 0;
 }
 
 .sidebar .nav.nav-primary > .nav-item.submenu > a .prms-sidebar-caret {
   margin-left: auto;
-  font-size: 1.15rem;
+  margin-inline-start: auto;
+  padding-inline-start: 0.65rem;
+  font-size: 0.7rem;
   line-height: 1;
   color: var(--prms-snav-muted);
   transition: transform 0.2s ease;
+  flex-shrink: 0;
 }
 
 .sidebar .nav.nav-primary > .nav-item.submenu.is-submenu-open > a .prms-sidebar-caret,
@@ -1072,7 +1089,8 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
 
 .sidebar .nav.nav-primary > .nav-item.submenu .prms-workspace-chapters > li > a {
   position: relative;
-  padding-left: 0.85rem !important;
+  padding-inline-start: 0.65rem !important;
+  padding-inline-end: 0.5rem !important;
 }
 
 .sidebar .nav.nav-primary > .nav-item.submenu .prms-workspace-chapters > li > a::before,

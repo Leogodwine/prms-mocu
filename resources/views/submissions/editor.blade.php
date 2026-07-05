@@ -52,10 +52,10 @@
             opacity: 0.6;
             cursor: wait;
         }
-        .editor-hint {
-            flex: 0 0 auto;
-            background: #fff3cd; color: #664d03; padding: 0.4rem 1rem; font-size: 0.85rem;
-            border-bottom: 1px solid #ffc107;
+        .editor-hint,
+        .editor-deploy-warnings,
+        .editor-ready-hint {
+            display: none !important;
         }
         #onlyoffice-editor {
             flex: 1 1 auto;
@@ -73,16 +73,30 @@
             background: #eef2ff;
             color: #1e3a8a;
             border-bottom: 1px solid #c7d2fe;
-        }
-        .editor-ready-hint {
             display: none;
-            position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
-            background: rgba(26, 32, 53, 0.92); color: #fff; padding: 0.45rem 1rem;
-            border-radius: 999px; font-size: 0.8rem; z-index: 5; pointer-events: none;
         }
-        .editor-ready-hint.visible { display: block; }
+        .editor-status.is-visible {
+            display: block;
+        }
+        .editor-status.is-error {
+            background: #fef2f2;
+            color: #991b1b;
+            border-bottom-color: #fecaca;
+        }
+        .editor-stuck-help {
+            display: none;
+            margin: 1rem;
+            padding: 1rem 1.25rem;
+            border-radius: 8px;
+            background: #fef2f2;
+            color: #991b1b;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        .editor-stuck-help.visible { display: block; }
+        .editor-stuck-help ul { margin: 0.5rem 0 0; padding-left: 1.25rem; }
         @media (prefers-reduced-motion: reduce) {
-            .editor-ready-hint { transition: none; }
+            .editor-stuck-help { transition: none; }
         }
     </style>
 </head>
@@ -111,23 +125,26 @@
         </div>
     </header>
 
-    @if (! empty($capabilities['hint']))
-        <div class="editor-hint" role="note">{{ $capabilities['hint'] }}</div>
-    @endif
-
-    <div id="editor-status" class="editor-status" role="status" aria-live="polite">
-        Loading document editor…
-    </div>
+    <div id="editor-status" class="editor-status" role="status" aria-live="polite"></div>
 
     <main id="onlyoffice-editor" role="main" aria-labelledby="editor-doc-title" tabindex="-1"></main>
-    <div id="editor-ready-hint" class="editor-ready-hint" aria-hidden="true">
-        Document loaded — click in the page and start typing
+    <div id="editor-stuck-help" class="editor-stuck-help" role="alert">
+        <strong>Document did not open.</strong>
+        <p class="mb-0">The ONLYOFFICE shell loaded, but the Document Server could not fetch your file from Laravel. Typical fixes:</p>
+        <ul>
+            <li>Set <code>ONLYOFFICE_STORAGE_URL</code> to a URL reachable <em>from inside the Document Server container</em> (not <code>127.0.0.1</code> when Laravel runs on the host).</li>
+            <li>On Docker Desktop + XAMPP: <code>ONLYOFFICE_STORAGE_URL=http://host.docker.internal</code></li>
+            <li>On a Linux server: use the server LAN IP or public domain, and open port <strong>8080</strong> for ONLYOFFICE.</li>
+            <li>Match JWT: set <code>ONLYOFFICE_JWT_ENABLED=false</code> in <code>.env</code> if Docker uses <code>JWT_ENABLED=false</code>.</li>
+            <li>Run <code>php artisan storage:link</code> on the server so uploaded files exist under <code>public/storage</code>.</li>
+            <li>Test from the container: <code>docker exec prms-onlyoffice curl -I "{{ rtrim($documentServerBase ?? '', '/') }}"</code> and curl your Laravel app at <code>{{ rtrim(config('onlyoffice.storage_url'), '/') }}</code>.</li>
+        </ul>
+    </div>
     </div>
 
     <script>
         (function () {
             var placeholder = document.getElementById('onlyoffice-editor');
-            var readyHint = document.getElementById('editor-ready-hint');
             var statusEl = document.getElementById('editor-status');
             var saveBtn = document.getElementById('prms-editor-save');
             var saveReturnBtn = document.getElementById('prms-editor-save-return');
@@ -136,11 +153,21 @@
             var docEditor = null;
             var savePending = false;
             var returnAfterSave = false;
+            var documentOpened = false;
+            var openTimeout = null;
 
-            function setStatus(message) {
-                if (statusEl) {
-                    statusEl.textContent = message;
+            function setStatus(message, isError) {
+                if (! statusEl) {
+                    return;
                 }
+                if (! message) {
+                    statusEl.textContent = '';
+                    statusEl.classList.remove('is-visible', 'is-error');
+                    return;
+                }
+                statusEl.textContent = message;
+                statusEl.classList.add('is-visible');
+                statusEl.classList.toggle('is-error', !! isError);
             }
 
             function setSaving(isSaving) {
@@ -183,7 +210,7 @@
                     window.location.href = backUrl;
                     return;
                 }
-                setStatus('Document saved.');
+                setStatus('');
             }
 
             if (saveBtn) {
@@ -219,33 +246,39 @@
 
             config.events = {
                 onAppReady: function () {
-                    setStatus('Editor application ready. Opening document…');
+                    if (openTimeout) {
+                        clearTimeout(openTimeout);
+                    }
+                    openTimeout = window.setTimeout(function () {
+                        if (! documentOpened) {
+                            setStatus('Document failed to open — check ONLYOFFICE configuration.', true);
+                            var stuck = document.getElementById('editor-stuck-help');
+                            if (stuck) {
+                                stuck.classList.add('visible');
+                            }
+                        }
+                    }, 15000);
                 },
                 onDocumentReady: function () {
-                    setStatus(@json(($isDraft ?? false)
-                        ? 'Draft ready. Edit, save, then submit to your supervisor from the workspace.'
-                        : 'Document ready. You can edit now.'));
-                    if (readyHint) {
-                        readyHint.classList.add('visible');
-                        readyHint.setAttribute('aria-hidden', 'false');
-                        setTimeout(function () {
-                            readyHint.classList.remove('visible');
-                            readyHint.setAttribute('aria-hidden', 'true');
-                        }, 8000);
+                    documentOpened = true;
+                    if (openTimeout) {
+                        clearTimeout(openTimeout);
+                        openTimeout = null;
                     }
+                    var stuck = document.getElementById('editor-stuck-help');
+                    if (stuck) {
+                        stuck.classList.remove('visible');
+                    }
+                    setStatus('');
                     placeholder.focus();
                 },
-                onDocumentStateChange: function (event) {
-                    if (event && event.data && statusEl && ! savePending) {
-                        setStatus('Unsaved changes — use Save or Save & return.');
-                    }
-                },
+                onDocumentStateChange: function () {},
                 onRequestSaveAs: function () {},
                 onMetaChange: function () {},
                 onError: function (e) {
                     setSaving(false);
                     var msg = (e && e.data) ? (e.data.errorCode + ': ' + (e.data.errorDescription || '')) : 'Unknown error';
-                    setStatus('Editor error: ' + msg);
+                    setStatus('Editor error: ' + msg, true);
                     placeholder.innerHTML = '<div class="editor-fallback" role="alert"><strong>Editor error</strong><p>' + msg + '</p><p><a href="' + backUrl + '">Return to workspace</a></p></div>';
                 },
                 onWarning: function () {},
@@ -257,7 +290,7 @@
             };
 
             if (typeof DocsAPI === 'undefined') {
-                setStatus('ONLYOFFICE failed to load.');
+                setStatus('ONLYOFFICE failed to load.', true);
                 placeholder.innerHTML =
                     '<div class="editor-fallback" role="alert"><strong>ONLYOFFICE failed to load</strong><p>Check Docker: <code>docker ps</code> and open <a href="{{ $apiScriptUrl }}">{{ $apiScriptUrl }}</a></p><p><a href="' + backUrl + '">Return to workspace</a></p></div>';
                 return;

@@ -161,7 +161,7 @@ final class StudentStageProgress
 
         if ($stageName === 'Progress Presentation 1') {
             if (($latestByStage->get('Complete Project Document')?->status ?? '') !== 'approved') {
-                return 'Your supervisor must approve the Complete Project Document before you can upload Progress Presentation 1.';
+                return 'Your supervisor must approve the Complete Project Document before you can upload '.self::shortStageLabel($stageName).'.';
             }
 
             return null;
@@ -175,7 +175,7 @@ final class StudentStageProgress
             };
 
             if (($latestByStage->get($previous)?->status ?? '') !== 'approved') {
-                return 'Complete and receive approval for '.$previous.' first.';
+                return 'Complete and receive approval for '.self::shortStageLabel($previous).' first.';
             }
 
             return null;
@@ -191,7 +191,7 @@ final class StudentStageProgress
 
         if (self::isFinalPresentationStage($stageName)) {
             if (($latestByStage->get('Progress Presentation 3')?->status ?? '') !== 'approved') {
-                return 'Complete and receive approval for Progress Presentation 3 before uploading the Final Presentation.';
+                return 'Complete and receive approval for '.self::shortStageLabel('Progress Presentation 3').' before uploading the Final Presentation.';
             }
 
             return null;
@@ -567,6 +567,26 @@ final class StudentStageProgress
         }
 
         return $stageName;
+    }
+
+    /**
+     * Student-facing label for journey steppers (may differ from sidebar chapter links).
+     */
+    public static function journeyStageLabel(string $stageName): string
+    {
+        $trimmed = trim($stageName);
+
+        $journeyOverrides = [
+            'Progress Presentation 1' => 'Presentation 1',
+            'Progress Presentation 2' => 'Presentation 2',
+            'Progress Presentation 3' => 'Presentation 3',
+        ];
+
+        if (isset($journeyOverrides[$trimmed])) {
+            return $journeyOverrides[$trimmed];
+        }
+
+        return self::shortStageLabel($stageName);
     }
 
     /**
