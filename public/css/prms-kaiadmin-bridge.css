@@ -993,6 +993,17 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
   align-items: center;
   gap: 0.45rem;
   min-width: 0;
+  margin-left: 0;
+}
+
+.sidebar .nav.nav-primary > .nav-item.submenu .nav-collapse > li > a {
+  margin-left: 5px;
+}
+
+.sidebar .nav.nav-primary > .nav-item.submenu .prms-workspace-chapters > li > a .sub-item::before,
+.sidebar[data-background-color="white"] .nav.nav-primary > .nav-item.submenu .prms-workspace-chapters > li > a .sub-item::before {
+  display: none !important;
+  content: none !important;
 }
 
 .prms-ws-chapter-step {
@@ -1011,6 +1022,41 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
+.material-symbols-outlined.prms-ws-sub-icon {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+  font-size: 1.05rem;
+  line-height: 1;
+  width: 1.15rem;
+  height: 1.15rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--prms-snav-muted);
+}
+
+.sidebar .nav.nav-primary > .nav-item.submenu > a.prms-sidebar-subtoggle {
+  cursor: pointer;
+}
+
+.sidebar .nav.nav-primary > .nav-item.submenu > a .prms-sidebar-caret {
+  margin-left: auto;
+  font-size: 1.15rem;
+  line-height: 1;
+  color: var(--prms-snav-muted);
+  transition: transform 0.2s ease;
+}
+
+.sidebar .nav.nav-primary > .nav-item.submenu.is-submenu-open > a .prms-sidebar-caret,
+.sidebar .nav.nav-primary > .nav-item.submenu > a[aria-expanded="true"] .prms-sidebar-caret {
+  transform: rotate(180deg);
+  color: var(--prms-snav-active-text);
+}
+
+.sidebar .nav.nav-primary > .nav-item.submenu .prms-workspace-chapters > li.active > a .prms-ws-sub-icon {
+  color: var(--prms-snav-active-text);
+}
+
 .wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item.submenu .prms-workspace-chapters > li.active > a .prms-ws-chapter-step {
   color: var(--prms-snav-active-text);
   background: rgba(255, 255, 255, 0.14);
@@ -1026,32 +1072,117 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
 
 .sidebar .nav.nav-primary > .nav-item.submenu .prms-workspace-chapters > li > a {
   position: relative;
-  padding-left: 1.35rem !important;
+  padding-left: 0.85rem !important;
 }
 
-.sidebar .nav.nav-primary > .nav-item.submenu .prms-workspace-chapters > li > a::before {
-  content: '';
-  position: absolute;
-  left: 0.55rem;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.sidebar .nav.nav-primary > .nav-item.submenu .prms-workspace-chapters > li:last-child > a::before {
-  bottom: 50%;
-}
-
+.sidebar .nav.nav-primary > .nav-item.submenu .prms-workspace-chapters > li > a::before,
 .sidebar .nav.nav-primary > .nav-item.submenu .prms-workspace-chapters > li > a::after {
-  content: '';
-  position: absolute;
-  left: 0.55rem;
-  top: 50%;
-  width: 0.55rem;
-  height: 1px;
+  display: none !important;
+  content: none !important;
+}
+
+/* Student sidebar — group contributors */
+.prms-sidebar-contributors {
+  margin: 1rem 0.85rem 0.75rem;
+  padding: 0.75rem 0.65rem 0.65rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.prms-sidebar-contributors__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin-bottom: 0.65rem;
+}
+
+.prms-sidebar-contributors__icon {
+  font-size: 1.15rem;
+  line-height: 1;
+  color: var(--prms-snav-muted, rgba(255, 255, 255, 0.55));
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.prms-sidebar-contributors__title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.prms-sidebar-contributors__group {
+  font-size: 0.72rem;
+  color: var(--prms-snav-muted, rgba(255, 255, 255, 0.55));
+}
+
+.prms-sidebar-contributors__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.prms-sidebar-contributors__member {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 0.35rem 0.25rem;
+  border-radius: 0.375rem;
+}
+
+.prms-sidebar-contributors__member.is-self {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.prms-sidebar-contributors__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.65rem;
+  height: 1.65rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
   background: rgba(255, 255, 255, 0.12);
-  transform: translateY(-50%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.prms-sidebar-contributors__meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.prms-sidebar-contributors__name {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.prms-sidebar-contributors__you {
+  font-weight: 500;
+  color: var(--prms-snav-muted, rgba(255, 255, 255, 0.55));
+}
+
+.prms-sidebar-contributors__id {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--prms-snav-muted, rgba(255, 255, 255, 0.55));
+}
+
+@media screen and (min-width: 1000px) {
+  .sidebar_minimize .wrapper > .sidebar:not(.prms-sidebar-sub) .prms-sidebar-contributors {
+    display: none;
+  }
+
+  .sidebar_minimize.sidebar_minimize_hover .wrapper > .sidebar:not(.prms-sidebar-sub) .prms-sidebar-contributors {
+    display: block;
+  }
 }
 
 /* Quick find modal — must render at body level (not inside navbar) */
@@ -1418,7 +1549,7 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
   }
 
   html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a p,
-  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a .caret,
+  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a .prms-sidebar-caret,
   html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a .badge {
     display: inline-flex !important;
   }
@@ -1427,8 +1558,12 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     display: none !important;
   }
 
-  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item.submenu .nav-collapse,
-  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item.active .nav-collapse {
+  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item.submenu > .collapse:not(.show) {
+    display: none !important;
+  }
+
+  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item.submenu > .collapse.show,
+  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item.submenu > .collapse.collapsing {
     display: block !important;
   }
 
@@ -1906,5 +2041,190 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
   body.prms-kaiadmin-public .main-panel.prms-public-main .page-inner > .page-header {
     position: relative !important;
     top: auto !important;
+  }
+}
+
+/* App shell mobile top bar — final override layer (Kaiadmin translateY / toggle rules) */
+@media screen and (max-width: 999.98px) {
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 3.25rem !important;
+    z-index: 1040 !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: none !important;
+    -webkit-transform: none !important;
+    float: none !important;
+    background: transparent !important;
+  }
+
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .main-header-logo {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .main-header-logo .logo-header,
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .main-header-logo .logo-header.prms-mobile-toolbar {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 0.35rem;
+    width: 100% !important;
+    min-height: 3.25rem !important;
+    height: 3.25rem !important;
+    padding: 0 0.75rem;
+    padding-right: max(5.25rem, calc(5.25rem + env(safe-area-inset-right, 0px)));
+    box-sizing: border-box;
+    float: none !important;
+    position: relative !important;
+    overflow: visible !important;
+    background: var(--prms-musaris-navbar, #1a2035) !important;
+    background-color: var(--prms-musaris-navbar, #1a2035) !important;
+  }
+
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .logo-header .nav-toggle {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: static !important;
+    left: auto !important;
+    right: auto !important;
+    order: 1;
+    flex: 0 0 auto;
+    margin: 0;
+    height: auto;
+    width: auto;
+  }
+
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .logo-header .nav-toggle .toggle-sidebar {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    visibility: visible !important;
+    opacity: 1 !important;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+    padding: 0.35rem;
+    color: #fff !important;
+  }
+
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .logo-header .nav-toggle .toggle-sidebar i,
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .logo-header .nav-toggle .toggle-sidebar .gg-menu-left,
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .logo-header .nav-toggle .toggle-sidebar .gg-menu-right {
+    color: #fff !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .logo-header .nav-toggle .sidenav-toggler,
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .logo-header .topbar-toggler.more {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .prms-mobile-toolbar-brand,
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .logo-header .prms-sidebar-brand-name {
+    display: block !important;
+    order: 2;
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #fff !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    visibility: visible !important;
+  }
+
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .navbar-header,
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .prms-app-topnav,
+  html.topbar_open body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .navbar-header {
+    position: absolute !important;
+    top: 0 !important;
+    right: 0 !important;
+    left: auto !important;
+    width: auto !important;
+    max-width: 52% !important;
+    height: 3.25rem !important;
+    min-height: 3.25rem !important;
+    transform: none !important;
+    -webkit-transform: none !important;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    border: none !important;
+    border-top: none !important;
+    background: transparent !important;
+    z-index: 5 !important;
+    pointer-events: none;
+    padding-right: max(0.25rem, env(safe-area-inset-right, 0px));
+  }
+
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .navbar-header .container-fluid,
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .navbar-header .navbar-nav,
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .navbar-header .nav-link,
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .navbar-header .dropdown-toggle,
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .navbar-header button {
+    pointer-events: auto;
+  }
+
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .navbar-header .container-fluid {
+    padding-left: 0;
+    padding-right: 0.25rem;
+    height: 100%;
+  }
+
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .navbar-header .navbar-nav {
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    width: 100%;
+    margin-left: 0 !important;
+    min-height: 3.25rem;
+    height: 100%;
+    gap: 0;
+  }
+
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .navbar-header .nav-link,
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .navbar-header .nav-link i,
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .navbar-header .dropdown-toggle {
+    color: #fff !important;
+  }
+
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .navbar-header .prms-quick-nav-trigger {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: #fff !important;
+  }
+
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .navbar-header .topbar-icon .nav-link,
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .navbar-header .topbar-user .profile-pic {
+    padding: 0.35rem 0.4rem;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+  }
+
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .container,
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .container-full,
+  html.topbar_open body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .container,
+  html.topbar_open body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .container-full {
+    margin-top: 3.25rem !important;
+  }
+}
+
+@media screen and (min-width: 992px) and (max-width: 999.98px) {
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .main-header-logo {
+    display: block !important;
   }
 }

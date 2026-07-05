@@ -50,6 +50,8 @@ final class StudentSisRecordSync
                 'must_change_password' => true,
                 'notify_email_new_submission' => true,
                 'notify_email_submission_reviewed' => true,
+                'notify_email_workflow' => true,
+                'notify_sms_workflow' => true,
             ]));
             $action = 'added';
         }

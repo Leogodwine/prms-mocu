@@ -64,6 +64,7 @@ class AdminConfigurationController extends Controller
             'configs.deadline_proposal' => ['required', 'date'],
             'configs.deadline_final' => ['required', 'date'],
             'configs.eligibility_min_year' => ['required', 'integer', 'min:1', 'max:8'],
+            'configs.calendar_announcements' => ['nullable', 'string', 'max:10000'],
         ]);
 
         foreach ($validated['configs'] as $key => $value) {
@@ -77,6 +78,7 @@ class AdminConfigurationController extends Controller
                     'category' => $existing?->category ?? match ($key) {
                         'academic_year', 'project_cycle' => 'lifecycle',
                         'deadline_proposal', 'deadline_final' => 'deadlines',
+                        'calendar_announcements' => 'calendar',
                         'eligibility_min_year' => 'eligibility',
                         default => 'general',
                     },

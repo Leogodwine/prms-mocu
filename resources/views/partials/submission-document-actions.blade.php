@@ -3,11 +3,21 @@
     $canEdit = ($context ?? 'student') === 'student'
         && auth()->check()
         && \App\Support\SubmissionFileAccess::canStudentEdit(auth()->user(), $submission);
+    $canRemove = ($context ?? 'student') === 'student'
+        && auth()->check()
+        && \App\Support\SubmissionFileAccess::canStudentRemove(auth()->user(), $submission) === null;
+    $editUrl = $canEdit
+        ? (($isWord && ($onlyOfficeConfigured ?? false))
+            ? route('student.submissions.editor', $submission)
+            : \App\Support\SubmissionFileAccess::studentReplaceUrl($submission))
+        : null;
     $actionsAlign = ($align ?? 'end') === 'start' ? 'start' : 'end';
+    $compactActions = ($compactActions ?? false) || (($context ?? 'student') === 'student');
+    $downloadLabel = $submission->original_filename ?: ($submission->title ?: 'document');
 @endphp
 
 @if ($submission->file_path)
-    <div class="d-flex flex-wrap gap-2 justify-content-{{ $actionsAlign }}">
+    <div class="d-flex flex-wrap gap-1 justify-content-{{ $actionsAlign }} prms-submission-actions{{ $compactActions ? ' prms-submission-actions--compact' : '' }}">
         @if ($submission->isProjectShowcase())
             <a href="{{ route('student.submissions.showcase', ['submission' => $submission, 'return' => url()->current()]) }}"
                class="btn btn-primary btn-sm">
@@ -15,21 +25,23 @@
             </a>
         @endif
 
-        @if ($isWord && ($onlyOfficeConfigured ?? false))
+        @if ($canEdit && $editUrl)
+            <a href="{{ $editUrl }}"
+               class="btn btn-outline-secondary btn-sm{{ $compactActions ? ' px-2' : '' }}"
+               @if($compactActions) aria-label="Edit {{ $downloadLabel }}" title="Edit" @endif>
+                <i class="fas fa-pen{{ $compactActions ? '' : ' me-1' }}" aria-hidden="true"></i>
+                @unless($compactActions) Edit @endunless
+            </a>
+        @endif
+
+        @if ($isWord && ($onlyOfficeConfigured ?? false) && ($context ?? 'student') === 'supervisor')
             <a href="{{ route('student.submissions.editor', $submission) }}"
-               class="btn {{ ($context ?? 'student') === 'supervisor' ? 'btn-primary' : 'btn-outline-primary' }} btn-sm">
-                <i class="fas fa-file-word me-1" aria-hidden="true"></i>
-                @if ($canEdit)
-                    Edit in Word
-                @elseif (($context ?? 'student') === 'supervisor')
-                    Review in Word
-                @else
-                    Open in Word
-                @endif
+               class="btn btn-primary btn-sm">
+                <i class="fas fa-file-word me-1" aria-hidden="true"></i> Review in Word
             </a>
         @elseif (! $isWord)
             <button type="button"
-                    class="btn btn-outline-primary btn-sm"
+                    class="btn btn-outline-primary btn-sm{{ $compactActions ? ' px-2' : '' }}"
                     data-bs-toggle="modal"
                     data-bs-target="#prmsPreviewModal"
                     data-preview-url="{{ route('student.submissions.preview', $submission) }}"
@@ -37,16 +49,51 @@
                     data-file-name="{{ $submission->original_filename ?: $submission->title }}"
                     data-mime-type="{{ $submission->mime_type }}"
                     data-extension="{{ $previewExt }}"
-                    data-is-pdf="{{ ($isPdf ?? false) ? '1' : '0' }}">
-                <i class="far fa-eye me-1" aria-hidden="true"></i> Preview
+                    data-is-pdf="{{ ($isPdf ?? false) ? '1' : '0' }}"
+                    @if($compactActions) aria-label="Preview {{ $downloadLabel }}" title="Preview" @endif>
+                <i class="far fa-eye{{ $compactActions ? '' : ' me-1' }}" aria-hidden="true"></i>
+                @unless($compactActions) Preview @endunless
             </button>
         @endif
 
-        <a href="{{ route('student.submissions.download', $submission) }}" class="btn btn-light btn-sm border">
-            <i class="fas fa-download me-1" aria-hidden="true"></i> Download
+        @php
+            $docIcon = \App\Support\SubmissionFileAccess::documentIconMeta(
+                $submission->mime_type,
+                $submission->original_filename
+            );
+        @endphp
+        <a href="{{ route('student.submissions.download', $submission) }}"
+           class="btn btn-light btn-sm border{{ $compactActions ? ' px-2' : '' }}"
+           @if($compactActions) aria-label="Download {{ $downloadLabel }}" title="Download {{ $docIcon['label'] }}" @endif>
+            @if ($compactActions)
+                <i class="{{ $docIcon['icon'] }} {{ $docIcon['class'] }}" aria-hidden="true"></i>
+            @else
+                <i class="fas fa-download me-1" aria-hidden="true"></i> Download
+            @endif
         </a>
 
-        @if (($context ?? 'student') === 'student' && ($submission->status ?? '') === 'approved'
+        @if ($canRemove)
+            <form action="{{ route('student.submissions.destroy', $submission) }}" method="POST" class="m-0"
+                  onsubmit="return confirm('Remove this submission? This cannot be undone.')">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-outline-danger btn-sm{{ $compactActions ? ' px-2' : '' }}"
+                        @if($compactActions) aria-label="Remove {{ $downloadLabel }}" title="Remove" @endif>
+                    <i class="fas fa-trash-alt{{ $compactActions ? '' : ' me-1' }}" aria-hidden="true"></i>
+                    @unless($compactActions) Remove @endunless
+                </button>
+            </form>
+        @endif
+
+        @if (($context ?? 'student') === 'student' && ($submission->status ?? '') === 'draft')
+            <form action="{{ route('student.submissions.submit-to-supervisor', $submission) }}" method="POST" class="m-0">
+                @csrf
+                <button type="submit" class="btn btn-primary btn-sm" onclick="return confirm('Send this draft to your supervisor for review?')">
+                    <i class="fas fa-paper-plane me-1" aria-hidden="true"></i>
+                    Submit to supervisor
+                </button>
+            </form>
+        @elseif (($context ?? 'student') === 'student' && ($submission->status ?? '') === 'approved'
                 && ! $submission->submitted_to_coordinator
                 && \App\Support\StudentStageProgress::isCoordinatorEligibleStage((string) $submission->stage))
             @php

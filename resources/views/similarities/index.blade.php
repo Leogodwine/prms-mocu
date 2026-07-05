@@ -1,18 +1,20 @@
 @extends('layouts.app')
 
-@section('title', 'Similarity reports')
+@section('title', 'Similar projects & research')
 
 @section('breadcrumb')
+    @if (! empty($breadcrumb_parent_url))
+        <li class="separator"><i class="icon-arrow-right"></i></li>
+        <li class="nav-item"><a href="{{ $breadcrumb_parent_url }}">{{ $breadcrumb_parent_label }}</a></li>
+    @endif
     <li class="separator"><i class="icon-arrow-right"></i></li>
-    <li class="nav-item"><a href="{{ route('admin.configuration.index') }}">Administration</a></li>
-    <li class="separator"><i class="icon-arrow-right"></i></li>
-    <li class="nav-item"><span class="text-muted">{{ __('Similarity reports') }}</span></li>
+    <li class="nav-item"><span class="text-muted">{{ __('Similar projects & research') }}</span></li>
 @endsection
 
 @section('content')
 
-<x-prms-greeting-banner subtitle="Admin-only: background overlap checks between student projects and research.">
-    <form method="POST" action="{{ route('admin.similarities.index') }}" class="d-flex align-items-center gap-2">
+<x-prms-greeting-banner :subtitle="$subtitle">
+    <form method="POST" action="{{ route($index_route) }}" class="d-flex align-items-center gap-2">
         @csrf
         <input type="hidden" name="_filter_action" value="apply">
         <label for="min_score" class="small text-muted mb-0">Min. score</label>
@@ -44,6 +46,7 @@
                 <p class="mb-0">No similarity pairs above {{ (int) $minScore }}%.</p>
             </div>
         @else
+            <x-prms-table-pagination-toolbar :paginator="$pairs" noun="pairs" />
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
@@ -89,14 +92,14 @@
                     </tbody>
                 </table>
             </div>
-            <div class="p-3 border-top">
-                {{ $pairs->links() }}
-            </div>
+            <x-prms-table-pagination-footer :paginator="$pairs" class="border-top" />
         @endif
     </div>
 </div>
 
-<p class="text-muted small mt-3 mb-0">
-    Batch scan: <code>php artisan projects:check-similarities --sync</code>
-</p>
+@if ($showBatchCommand ?? false)
+    <p class="text-muted small mt-3 mb-0">
+        Batch scan: <code>php artisan projects:check-similarities --sync</code>
+    </p>
+@endif
 @endsection

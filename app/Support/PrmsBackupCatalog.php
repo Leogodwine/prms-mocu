@@ -290,7 +290,7 @@ final class PrmsBackupCatalog
                 'config_value' => $value,
                 'config_type' => 'string',
                 'category' => 'backup',
-                'description' => 'Backup & recovery setting',
+                'description' => 'Backup and recovery setting',
             ]
         );
     }

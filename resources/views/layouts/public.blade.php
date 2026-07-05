@@ -10,7 +10,7 @@
     <title>@yield('title', 'Repository') | {{ config('app.name', 'MoCU-PRMS') }}</title>
 
     @include('layouts.partials.kaiadmin-styles')
-    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=38">
+    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=42">
     <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=45">
 
     @stack('styles')
@@ -53,6 +53,7 @@
 </div>
 
 @include('layouts.partials.kaiadmin-scripts', ['full' => false])
+<x-prms-toast-host />
 <script src="{{ asset('js/prms-auto-filter.js') }}?v=1" defer></script>
 @stack('scripts')
 </body>

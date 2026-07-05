@@ -31,7 +31,9 @@ class PrmsTablePaginationTest extends TestCase
 
     public function test_it_detects_when_controls_are_needed(): void
     {
-        $this->assertFalse(PrmsTablePagination::needsControls(1));
-        $this->assertTrue(PrmsTablePagination::needsControls(2));
+        $this->assertFalse(PrmsTablePagination::needsControls(10, 10));
+        $this->assertFalse(PrmsTablePagination::needsControls(5, 10));
+        $this->assertTrue(PrmsTablePagination::needsControls(11, 10));
+        $this->assertTrue(PrmsTablePagination::needsControls(25, 20));
     }
 }

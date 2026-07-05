@@ -37,7 +37,14 @@
                             <div class="bg-brand-soft text-primary rounded-3 d-inline-flex align-items-center justify-content-center p-3">
                                 <i class="fas fa-tasks" aria-hidden="true"></i>
                             </div>
-                            <span class="badge bg-success">Active</span>
+                            <div class="d-flex flex-column align-items-end gap-1">
+                                <span class="badge {{ $rubric->is_active ? 'bg-success' : 'bg-secondary' }}">
+                                    {{ $rubric->is_active ? 'Active' : 'Inactive' }}
+                                </span>
+                                @if ($rubric->is_system_default)
+                                    <span class="badge bg-primary">All supervisors</span>
+                                @endif
+                            </div>
                         </div>
                         <h3 class="h5 fw-bold text-strong mb-2">{{ $rubric->name }}</h3>
                         <p class="text-muted small mb-4">{{ $rubric->description }}</p>
@@ -57,15 +64,17 @@
                             @endif
                         </div>
 
-                        <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-auto">
+                        <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-auto flex-wrap gap-2">
                             <span class="fw-semibold text-strong">Maximum score: {{ $rubric->total_marks }} marks</span>
                             <div class="d-flex gap-2">
-                                <button type="button" class="btn btn-light btn-sm border rounded-circle p-2" disabled title="Edit (route pending)">
-                                    <i class="fas fa-pen" aria-hidden="true"></i>
-                                </button>
-                                <button type="button" class="btn btn-light btn-sm border rounded-circle p-2 text-danger" disabled title="Delete (route pending)">
-                                    <i class="far fa-trash-alt" aria-hidden="true"></i>
-                                </button>
+                                @if (! $rubric->is_system_default)
+                                    <form method="POST" action="{{ route('coordinator.rubrics.default', $rubric) }}" class="m-0">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">
+                                            Apply to all supervisors
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
                         </div>
                     </div>

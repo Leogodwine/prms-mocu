@@ -33,8 +33,6 @@ Set at minimum:
 | `APP_DEBUG=false` | Never `true` on live host |
 | `APP_URL` | Public URL of the application |
 | `DB_*` | MySQL connection |
-| `PRMS_ADMIN_EMAIL` | First admin login email |
-| `PRMS_ADMIN_PASSWORD` | Strong password (12+ characters) |
 | `MAIL_*` | Outbound mail for notifications |
 
 ### 3. Database (mandatory seed data only)
@@ -49,7 +47,7 @@ php artisan storage:link
 
 - **Roles & permissions** (`RoleSeeder`)
 - **Workflow stages** (`ProjectStageSeeder`) — required before students can submit
-- **Initial admin account** (`AdminUserSeeder`) — from `PRMS_ADMIN_*` env vars
+- **Initial admin account** (`AdminUserSeeder`) — `admin@mocu.ac.tz` with a fixed local password (`password123` when `APP_ENV=local`), or a random temporary password in production
 
 It does **not** seed demo users, sample projects, faculties, or rubrics. Create those through the admin UI or SIS sync after go-live.
 
@@ -82,10 +80,15 @@ Point the document root to `public/`. Ensure `storage/` and `bootstrap/cache/` a
 ```bash
 composer install
 cp .env.example .env
-# Set APP_ENV=local, APP_DEBUG=true, DB_* and PRMS_ADMIN_PASSWORD
+# Set APP_ENV=local, APP_DEBUG=true, and DB_*
 php artisan key:generate
 php artisan migrate
 php artisan db:seed
+```
+
+Local admin sign-in after seeding: **username** `admin@mocu.ac.tz`, **password** `password123` (defined in `database/seeders/AdminUserSeeder.php`).
+
+```bash
 php artisan serve
 ```
 
@@ -98,7 +101,7 @@ php artisan db:seed --class=DevelopmentSeeder
 ## Security notes
 
 - Never commit `.env` or real credentials to GitHub.
-- Change the admin password after first login if `PRMS_ADMIN_MUST_CHANGE_PASSWORD=true`.
+- In production, use the temporary admin password printed by `db:seed`, then change it at first sign-in.
 - Keep `APP_DEBUG=false` on the live host.
 - Use HTTPS in production (`APP_URL` must match).
 

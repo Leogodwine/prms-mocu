@@ -96,6 +96,10 @@
             return;
         }
 
+        if (event.target.closest('a[data-prms-submenu-toggle]')) {
+            return;
+        }
+
         if (event.target.closest('.sidebar-wrapper a[href]')) {
             applyCollapsedState(true);
         }

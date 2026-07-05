@@ -4,13 +4,13 @@
             <li>
                 @if ($paginator->onFirstPage())
                     <span class="prms-pagination__nav is-disabled" aria-disabled="true">
-                        <i class="fas fa-chevron-left" aria-hidden="true"></i>
-                        <span class="d-none d-sm-inline">Previous</span>
+                        <span class="prms-pagination__chevron" aria-hidden="true">&lt;</span>
+                        <span>Previous</span>
                     </span>
                 @else
-                    <a class="prms-pagination__nav" href="{{ $paginator->previousPageUrl() }}" rel="prev">
-                        <i class="fas fa-chevron-left" aria-hidden="true"></i>
-                        <span class="d-none d-sm-inline">Previous</span>
+                    <a class="prms-pagination__nav" href="{{ $paginator->previousPageUrl() }}" rel="prev" aria-label="Previous page">
+                        <span class="prms-pagination__chevron" aria-hidden="true">&lt;</span>
+                        <span>Previous</span>
                     </a>
                 @endif
             </li>
@@ -26,7 +26,7 @@
                             @if ($page == $paginator->currentPage())
                                 <span class="prms-pagination__page is-current" aria-current="page">{{ $page }}</span>
                             @else
-                                <a class="prms-pagination__page" href="{{ $url }}">{{ $page }}</a>
+                                <a class="prms-pagination__page" href="{{ $url }}" aria-label="Go to page {{ $page }}">{{ $page }}</a>
                             @endif
                         </li>
                     @endforeach
@@ -35,14 +35,14 @@
 
             <li>
                 @if ($paginator->hasMorePages())
-                    <a class="prms-pagination__nav" href="{{ $paginator->nextPageUrl() }}" rel="next">
-                        <span class="d-none d-sm-inline">Next</span>
-                        <i class="fas fa-chevron-right" aria-hidden="true"></i>
+                    <a class="prms-pagination__nav" href="{{ $paginator->nextPageUrl() }}" rel="next" aria-label="Next page">
+                        <span>Next</span>
+                        <span class="prms-pagination__chevron" aria-hidden="true">&gt;</span>
                     </a>
                 @else
                     <span class="prms-pagination__nav is-disabled" aria-disabled="true">
-                        <span class="d-none d-sm-inline">Next</span>
-                        <i class="fas fa-chevron-right" aria-hidden="true"></i>
+                        <span>Next</span>
+                        <span class="prms-pagination__chevron" aria-hidden="true">&gt;</span>
                     </span>
                 @endif
             </li>

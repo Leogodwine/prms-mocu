@@ -9,22 +9,25 @@
                 ? \App\Support\PrmsNavigationIndex::isWorkspaceParentActive($item)
                 : \App\Support\PrmsNavigationIndex::isActive($item);
         @endphp
-        <li class="nav-item {{ $hasChildren ? 'submenu' : '' }} {{ $parentActive ? 'active' : '' }}">
+        <li class="nav-item {{ $hasChildren ? 'submenu' : '' }} {{ $parentActive ? 'active' : '' }} {{ $parentActive ? 'is-submenu-open' : '' }}">
             @if ($hasChildren)
-                <a data-bs-toggle="collapse"
-                   href="#{{ $collapseId }}"
+                <a href="#{{ $collapseId }}"
+                   class="prms-sidebar-subtoggle"
+                   data-prms-submenu-toggle
+                   aria-controls="{{ $collapseId }}"
                    aria-expanded="{{ $parentActive ? 'true' : 'false' }}">
                     <i class="{{ $item['icon'] }}"></i>
-                    <p>
-                        {{ $item['label'] }}
-                    </p>
-                    <span class="caret"></span>
+                    <p>{{ $item['label'] }}</p>
+                    <span class="prms-sidebar-caret material-symbols-outlined" aria-hidden="true">expand_more</span>
                 </a>
                 <div class="collapse {{ $parentActive ? 'show' : '' }}" id="{{ $collapseId }}">
                     <ul class="nav nav-collapse prms-workspace-chapters">
                         <li class="{{ \App\Support\PrmsNavigationIndex::isWorkspaceOverviewActive($item) ? 'active' : '' }}">
                             <a href="{{ $item['url'] }}">
-                                <span class="sub-item">{{ $item['overview_label'] ?? __('Track overview') }}</span>
+                                <span class="sub-item">
+                                    <span class="material-symbols-outlined prms-ws-sub-icon" aria-hidden="true">{{ $item['overview_material_icon'] ?? 'dashboard' }}</span>
+                                    <span class="prms-ws-chapter-label">{{ $item['overview_label'] ?? __('Track overview') }}</span>
+                                </span>
                             </a>
                         </li>
                         @foreach ($children as $child)
@@ -32,7 +35,9 @@
                             <li class="{{ $childActive ? 'active' : '' }}">
                                 <a href="{{ $child['url'] }}" title="{{ $child['status']['title'] ?? '' }}">
                                     <span class="sub-item">
-                                        @if (! empty($child['step']))
+                                        @if (! empty($child['material_icon']))
+                                            <span class="material-symbols-outlined prms-ws-sub-icon" aria-hidden="true">{{ $child['material_icon'] }}</span>
+                                        @elseif (! empty($child['step']))
                                             <span class="prms-ws-chapter-step" aria-hidden="true">{{ $child['step'] }}</span>
                                         @endif
                                         <span class="prms-ws-chapter-label">{{ $child['label'] }}</span>

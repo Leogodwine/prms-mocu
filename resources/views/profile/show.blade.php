@@ -80,6 +80,11 @@
                         <dd class="col-sm-8">Year {{ $user->year_of_study }}</dd>
                     @endif
 
+                    @if ($user->studentProfile)
+                        <dt class="col-sm-4 text-muted fw-normal small text-uppercase">Gender</dt>
+                        <dd class="col-sm-8">{{ $user->studentProfile->genderLabel() }}</dd>
+                    @endif
+
                     <dt class="col-sm-4 text-muted fw-normal small text-uppercase">Role</dt>
                     <dd class="col-sm-8">{{ $roleLabel }}</dd>
                 </dl>

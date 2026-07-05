@@ -23,13 +23,6 @@
 </div>
 
 <div class="card-body prms-auth-card-body px-4 pt-3 pb-4">
-    @if (session('status'))
-        <div class="alert alert-success prms-auth-alert border-0 small mb-4 d-flex gap-2 align-items-start" role="status">
-            <i class="fas fa-circle-check mt-1 flex-shrink-0" aria-hidden="true"></i>
-            <span>{{ session('status') }}</span>
-        </div>
-    @endif
-
     <form id="prms-login-form"
           action="{{ route('login.store') }}"
           method="POST"
@@ -39,7 +32,7 @@
         @csrf
 
         <div class="mb-4">
-            <label for="login_id" class="form-label prms-auth-label">University email or registration number</label>
+            <label for="login_id" class="form-label prms-auth-label">Username</label>
             <div class="input-group prms-auth-input-group">
                 <span class="input-group-text" id="login_id-addon"><i class="far fa-user" aria-hidden="true"></i></span>
                 <input
@@ -48,14 +41,13 @@
                     name="login_id"
                     class="form-control @error('login_id') is-invalid @enderror"
                     value="{{ old('login_id') }}"
-                    placeholder="Staff: you@mocu.ac.tz · Students: MoCU/REG/1134/24"
+                    placeholder="Staff: you@mocu.ac.tz · Students: {{ \App\Support\PrmsAccountIdentifierFormat::STUDENT_EXAMPLE }}"
                     required
                     autofocus
                     autocomplete="username"
-                    aria-describedby="login_id-addon login_id-hint @error('login_id') login_id-error @enderror"
+                    aria-describedby="login_id-addon @error('login_id') login_id-error @enderror"
                     @error('login_id') aria-invalid="true" @enderror>
             </div>
-            <p id="login_id-hint" class="form-text prms-auth-hint mb-0">Staff: university email only. Students: Registration number.</p>
             @error('login_id')
                 <div id="login_id-error" class="invalid-feedback d-block mt-2" role="alert">{{ $message }}</div>
             @enderror

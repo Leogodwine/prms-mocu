@@ -21,10 +21,13 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        $year = fake()->numerify('##');
+        $num = fake()->unique()->numerify('###');
+
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
-            'login_id' => 'MoCU/USR/'.fake()->unique()->numerify('####').'/'.fake()->numerify('##'),
+            'login_id' => "MoCU/BBICT/{$num}/{$year}",
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'role' => 'normal_student',
@@ -39,6 +42,8 @@ class UserFactory extends Factory
             'must_change_password' => false,
             'notify_email_new_submission' => true,
             'notify_email_submission_reviewed' => true,
+            'notify_email_workflow' => true,
+            'notify_sms_workflow' => true,
             'remember_token' => Str::random(10),
         ];
     }
@@ -53,7 +58,9 @@ class UserFactory extends Factory
     public function administrator(): static
     {
         return $this->state(function (): array {
-            $login = 'MoCU/ADM/'.fake()->unique()->numerify('####').'/'.fake()->numerify('##');
+            $year = fake()->numerify('##');
+            $num = fake()->unique()->numerify('###');
+            $login = "MoCU/ADMIN/{$num}/{$year}";
 
             return [
                 'role' => 'admin',
@@ -68,13 +75,16 @@ class UserFactory extends Factory
     public function coordinator(): static
     {
         return $this->state(function (): array {
-            $login = 'MoCU/CRD/'.fake()->unique()->numerify('####').'/'.fake()->numerify('##');
+            $year = fake()->numerify('##');
+            $num = fake()->unique()->numerify('###');
+            $login = "MoCU/CICT/{$num}/{$year}";
 
             return [
                 'role' => 'coordinator',
                 'login_id' => $login,
                 'staff_id' => $login,
                 'registration_number' => null,
+                'department' => 'CICT',
             ];
         });
     }
@@ -82,13 +92,16 @@ class UserFactory extends Factory
     public function hod(): static
     {
         return $this->state(function (): array {
-            $login = 'MoCU/HOD/'.fake()->unique()->numerify('####').'/'.fake()->numerify('##');
+            $year = fake()->numerify('##');
+            $num = fake()->unique()->numerify('###');
+            $login = "MoCU/ACC/{$num}/{$year}";
 
             return [
                 'role' => 'hod',
                 'login_id' => $login,
                 'staff_id' => $login,
                 'registration_number' => null,
+                'department' => 'ACC',
             ];
         });
     }
@@ -96,13 +109,16 @@ class UserFactory extends Factory
     public function supervisor(): static
     {
         return $this->state(function (): array {
-            $login = 'MoCU/SUP/'.fake()->unique()->numerify('####').'/'.fake()->numerify('##');
+            $year = fake()->numerify('##');
+            $num = fake()->unique()->numerify('###');
+            $login = "MoCU/CICT/{$num}/{$year}";
 
             return [
                 'role' => 'supervisor',
                 'login_id' => $login,
                 'staff_id' => $login,
                 'registration_number' => null,
+                'department' => 'CICT',
             ];
         });
     }
@@ -114,15 +130,15 @@ class UserFactory extends Factory
         return $this->state(function () use ($subtype, $valid): array {
             $role = in_array($subtype, $valid, true) ? $subtype : 'normal_student';
             $year = fake()->numerify('##');
-            $num = fake()->unique()->numerify('####');
-            $login = "MoCU/STU/{$num}/{$year}";
-            $reg = "MoCU/REG/{$num}/{$year}";
+            $num = fake()->unique()->numerify('###');
+            $reg = "MoCU/BBICT/{$num}/{$year}";
 
             return [
                 'role' => $role,
-                'login_id' => $login,
+                'login_id' => $reg,
                 'registration_number' => $reg,
                 'staff_id' => null,
+                'programme' => 'BBICT',
                 'year_of_study' => fake()->numberBetween(2, 4),
             ];
         });

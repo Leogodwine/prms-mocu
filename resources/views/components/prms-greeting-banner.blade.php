@@ -35,4 +35,9 @@
             </div>
         @endif
     </div>
+    @isset($footer)
+        <div class="prms-greeting-banner__footer border-top px-4 py-3">
+            {{ $footer }}
+        </div>
+    @endisset
 </div>

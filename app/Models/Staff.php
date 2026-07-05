@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\StudentGenderNormalizer;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,6 +16,7 @@ class Staff extends Model
         'user_id',
         'staff_number',
         'full_name',
+        'gender',
         'designation',
         'department_id',
         'email',
@@ -47,5 +49,14 @@ class Staff extends Model
     public function supervisorAssignments(): HasMany
     {
         return $this->hasMany(SupervisorAssignment::class, 'supervisor_id', 'user_id');
+    }
+
+    public function genderLabel(): string
+    {
+        return match (StudentGenderNormalizer::normalize($this->gender)) {
+            'male' => 'Male',
+            'female' => 'Female',
+            default => '—',
+        };
     }
 }

@@ -86,7 +86,27 @@ class GroupAutoFormerTest extends TestCase
         $this->assertSame([[3, 4]], $groupsByProgramme[202]);
     }
 
-    private function makeStudent(int $userId, string $gender, ?int $programmeId = null): Student
+    public function test_form_groups_by_programme_and_year_keeps_years_separate(): void
+    {
+        $former = new GroupAutoFormer;
+
+        $students = collect([
+            $this->makeStudent(1, 'male', 101, 3),
+            $this->makeStudent(2, 'female', 101, 3),
+            $this->makeStudent(3, 'male', 101, 4),
+            $this->makeStudent(4, 'female', 101, 4),
+        ]);
+
+        $groupsByCohort = $former->formGroupsByProgrammeAndYear($students, 2);
+
+        $this->assertCount(2, $groupsByCohort);
+        $this->assertArrayHasKey('101|3', $groupsByCohort);
+        $this->assertArrayHasKey('101|4', $groupsByCohort);
+        $this->assertSame([[1, 2]], $groupsByCohort['101|3']);
+        $this->assertSame([[3, 4]], $groupsByCohort['101|4']);
+    }
+
+    private function makeStudent(int $userId, string $gender, ?int $programmeId = null, int $yearOfStudy = 3): Student
     {
         $student = new Student([
             'user_id' => $userId,
@@ -94,7 +114,7 @@ class GroupAutoFormerTest extends TestCase
             'full_name' => 'Student ' . $userId,
             'gender' => $gender,
             'programme_id' => $programmeId,
-            'year_of_study' => 3,
+            'year_of_study' => $yearOfStudy,
             'enrollment_status' => 'active',
         ]);
         $student->id = $userId;

@@ -6,6 +6,8 @@ use App\Models\ProjectStage;
 use App\Models\ProjectSubmission;
 use App\Services\OnlyOfficeService;
 use App\Support\Audit;
+use App\Support\StudentResearchEligibility;
+use App\Support\StudentStageProgress;
 use App\Support\SubmissionFileAccess;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -55,6 +57,7 @@ class SubmissionEditorController extends Controller
             'documentServerBase' => $this->onlyOffice->documentServerBaseUrl(),
             'editorLabel' => $editorLabel,
             'backUrl' => $this->backUrlForUser($request->user()),
+            'isDraft' => ($submission->status ?? '') === 'draft',
         ]);
     }
 
@@ -68,10 +71,33 @@ class SubmissionEditorController extends Controller
             'title' => ['required', 'string', 'max:255'],
         ]);
 
-        $stage = ProjectStage::findOrFail($validated['stage_id']);
-        $projectGroup = $user->projectGroups()->first();
+        if ($blockReason = StudentResearchEligibility::researchYearBlockReason($user)) {
+            return redirect()->back()->withInput()->withErrors(['stage_id' => $blockReason]);
+        }
 
-        $fileMeta = $this->onlyOffice->createBlankDocx($validated['title']);
+        $stage = ProjectStage::findOrFail($validated['stage_id']);
+        $track = StudentStageProgress::workTypeFromStage($stage->stage_name);
+        if (in_array($track, StudentStageProgress::workTypeOptions(), true)
+            && ! StudentResearchEligibility::hasTrack($user, $track)) {
+            return redirect()->back()->withInput()->withErrors(['stage_id' => 'This stage is not available for your programme.']);
+        }
+
+        $projectGroup = $user->projectGroups()->first();
+        $latestByStage = StudentStageProgress::latestSubmissionByStage($user, $projectGroup);
+        if ($uploadBlockReason = StudentStageProgress::canUploadStage(
+            $stage->stage_name,
+            $user,
+            $projectGroup,
+            $latestByStage
+        )) {
+            return redirect()->back()->withInput()->withErrors(['stage_id' => $uploadBlockReason]);
+        }
+
+        try {
+            $fileMeta = $this->onlyOffice->createBlankDocx($validated['title']);
+        } catch (\RuntimeException $exception) {
+            return redirect()->back()->withInput()->with('error', $exception->getMessage());
+        }
         $relativePath = $fileMeta['file_path'];
 
         $nextVersionQuery = ProjectSubmission::query()->where('stage', $stage->stage_name);
@@ -93,8 +119,8 @@ class SubmissionEditorController extends Controller
             'original_filename' => $fileMeta['original_filename'],
             'mime_type' => $fileMeta['mime_type'],
             'file_size' => $fileMeta['file_size'],
-            'status' => 'pending',
-            'submitted_at' => now(),
+            'status' => 'draft',
+            'submitted_at' => null,
         ]);
 
         Audit::log($request, 'student.submission_blank_word_created', 'ProjectSubmission', (string) $submission->id, null, [
@@ -104,7 +130,7 @@ class SubmissionEditorController extends Controller
 
         return redirect()
             ->route('student.submissions.editor', $submission)
-            ->with('success', 'Blank document created. Start writing in the Word editor.');
+            ->with('success', 'Blank document created as a draft. Write your content, save, then submit to your supervisor when ready.');
     }
 
     public function serve(Request $request, ProjectSubmission $submission): StreamedResponse

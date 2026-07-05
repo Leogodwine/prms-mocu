@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\Department;
 use App\Models\Staff;
 use App\Models\User;
+use App\Support\StudentGenderNormalizer;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -43,7 +44,7 @@ final class StaffProfileProvisioner
         return $dept?->id;
     }
 
-    public static function syncFromUser(User $user): void
+    public static function syncFromUser(User $user, ?string $gender = null): void
     {
         if (! Schema::hasTable('staff')) {
             return;
@@ -56,16 +57,23 @@ final class StaffProfileProvisioner
         }
 
         $deptId = self::resolveDepartmentIdFromLabel($user->department);
+        $genderNorm = StudentGenderNormalizer::normalize($gender ?? $user->gender);
+
+        $attributes = [
+            'staff_number' => $user->login_id,
+            'full_name' => $user->name,
+            'email' => $user->email,
+            'department_id' => $deptId,
+            'is_active' => $user->account_status === 'active',
+        ];
+
+        if ($genderNorm !== null && Schema::hasColumn('staff', 'gender')) {
+            $attributes['gender'] = $genderNorm;
+        }
 
         Staff::query()->updateOrCreate(
             ['user_id' => $user->id],
-            [
-                'staff_number' => $user->login_id,
-                'full_name' => $user->name,
-                'email' => $user->email,
-                'department_id' => $deptId,
-                'is_active' => $user->account_status === 'active',
-            ]
+            $attributes
         );
     }
 

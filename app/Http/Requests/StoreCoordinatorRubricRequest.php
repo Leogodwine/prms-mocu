@@ -21,6 +21,7 @@ class StoreCoordinatorRubricRequest extends FormRequest
             'criteria.*.name' => ['required', 'string'],
             'criteria.*.weight' => ['required', 'integer', 'min:1'],
             'criteria.*.description' => ['nullable', 'string'],
+            'apply_to_all_supervisors' => ['sometimes', 'boolean'],
         ];
     }
 

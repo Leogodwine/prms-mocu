@@ -19,6 +19,9 @@
         <a href="{{ route('coordinator.deadlines') }}" class="btn btn-light border rounded-pill px-3">
             <i class="far fa-calendar-alt me-1" aria-hidden="true"></i> Deadlines
         </a>
+        <a href="{{ route('coordinator.similarities.index') }}" class="btn btn-light border rounded-pill px-3">
+            <i class="fas fa-clone me-1" aria-hidden="true"></i> Similar projects
+        </a>
         <a href="{{ route('dashboard') }}" class="btn btn-light border rounded-pill px-3">
             <i class="fas fa-arrow-left me-1" aria-hidden="true"></i> Dashboard
         </a>
@@ -37,7 +40,7 @@
                     <form method="POST" action="{{ route('coordinator.index') }}" class="row g-2 align-items-end mb-4 bg-surface-soft p-3 rounded-3 border-soft">
                         @csrf
                         <input type="hidden" name="_filter_action" value="apply">
-                        <div class="col-md-4">
+                        <div class="col-md-5">
                             <select name="programme_id" class="form-select form-select-sm" aria-label="Programme">
                                 <option value="">All programmes</option>
                                 @foreach ($programmes as $prog)
@@ -45,7 +48,7 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <select name="year" class="form-select form-select-sm" aria-label="Year of study">
                                 <option value="">All years</option>
                                 @foreach ([1, 2, 3, 4] as $y)
@@ -53,21 +56,20 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-6">
-                            <select name="department_id" class="form-select form-select-sm" aria-label="Department">
-                                <option value="">All departments</option>
-                                @foreach ($departments as $dept)
-                                    <option value="{{ $dept->id }}" @selected((int) ($filters['deptId'] ?? 0) === (int) $dept->id)>
-                                        {{ $dept->department_name }}
-                                    </option>
-                                @endforeach
-                            </select>
+                        <div class="col-md-4">
+                            <div class="form-control form-control-sm bg-light text-muted">
+                                Department:
+                                <span class="fw-semibold text-strong">
+                                    {{ $coordinatorDepartment?->department_name ?? 'Not assigned' }}
+                                </span>
+                            </div>
                         </div>
                     </form>
 
                     @php
-                        $eligibleCount = $eligibleStudents->count();
-                        $withoutGenderCount = $eligibleStudents->filter(fn ($s) => $s->normalizedGender() === null)->count();
+                        $eligibleStudentPool = $eligibleStudentsAll ?? collect($eligibleStudents->items());
+                        $eligibleCount = $eligibleStudentPool->count();
+                        $withoutGenderCount = $eligibleStudentPool->filter(fn ($s) => $s->normalizedGender() === null)->count();
                     @endphp
 
                     <div class="mb-4">
@@ -88,7 +90,7 @@
                     <div id="formation-panel-auto" class="d-none mb-4 p-3 border border-soft rounded-3 bg-surface-soft">
                         <h4 class="h6 fw-bold text-strong mb-2">Auto-group filtered students</h4>
                         <p class="text-muted small mb-3">
-                            Forms groups for all <strong>{{ $eligibleCount }}</strong> eligible student(s) above, keeping students within the same programme and balancing gender where gender is recorded.
+                            Forms groups for all <strong>{{ $eligibleCount }}</strong> eligible final-year student(s) with a programme, keeping students within the same programme and same year of study while balancing gender where gender is recorded.
                             With size 2, an odd total leaves one group of 3. With size 3, remainders are merged into the last group or a pair group.
                         </p>
                         @if ($withoutGenderCount > 0)
@@ -101,9 +103,6 @@
                             @csrf
                             @if ($filters['progId'])
                                 <input type="hidden" name="programme_id" value="{{ $filters['progId'] }}">
-                            @endif
-                            @if ($filters['deptId'])
-                                <input type="hidden" name="department_id" value="{{ $filters['deptId'] }}">
                             @endif
                             @if ($filters['year'])
                                 <input type="hidden" name="year" value="{{ $filters['year'] }}">
@@ -167,7 +166,10 @@
                         </div>
 
                         <div id="formation-panel-group">
-                            <label class="form-label mb-2">Select students (minimum 2, same programme)</label>
+                            <label class="form-label mb-2">Select final-year students (minimum 2, same programme and year)</label>
+                            <p class="text-muted small mb-2">
+                                Only active final-year students with a programme are shown for assignment.
+                            </p>
                             <div class="border border-soft rounded-3 mb-4 formation-student-list bg-white" style="max-height: 350px; overflow-y: auto;">
                                 <div class="table-responsive">
                                     <table class="table table-hover table-sm align-middle mb-0 coordinator-eligible-table">
@@ -205,7 +207,7 @@
                                                 <tr>
                                                     <td colspan="6" class="text-center py-5 text-muted">
                                                         <i class="fas fa-user-slash opacity-25 mb-2 d-block" style="font-size: 2.5rem;" aria-hidden="true"></i>
-                                                        <p class="mb-0 small">No eligible students found.</p>
+                                                        <p class="mb-0 small">No active final-year students with a programme were found.</p>
                                                     </td>
                                                 </tr>
                                             @endforelse
@@ -281,19 +283,22 @@
                             @error('project_group_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="mb-3">
-                            <label class="form-label" for="assign_supervisor_department">Department <span class="text-muted small fw-normal">(filter list)</span></label>
-                            <select id="assign_supervisor_department" class="form-select form-select-sm" aria-label="Filter supervisors by department">
-                                <option value="">All departments</option>
-                                @foreach ($departments as $dept)
-                                    <option value="{{ $dept->id }}">{{ $dept->department_name }}</option>
-                                @endforeach
-                            </select>
-                           <!-- <div class="form-text">Narrows the supervisor list below. Does not change the student table filter.</div> -->
+                            <div class="form-control form-control-sm bg-light text-muted">
+                                Supervisor department:
+                                <span class="fw-semibold text-strong">
+                                    {{ $coordinatorDepartment?->department_name ?? 'Not assigned' }}
+                                </span>
+                            </div>
+                            <div class="form-text">
+                                Only supervisors from the coordinator department are shown.
+                            </div>
                         </div>
                         <div class="mb-4">
                             <label class="form-label" for="assign_supervisor">Supervisor</label>
                             <select id="assign_supervisor" name="supervisor_id"
-                                    class="form-select @error('supervisor_id') is-invalid @enderror" required>
+                                    class="form-select @error('supervisor_id') is-invalid @enderror"
+                                    data-placeholder="Choose a supervisor…"
+                                    required>
                                 <option value="">Choose a supervisor…</option>
                                 @forelse ($supervisors as $staff)
                                     <option value="{{ $staff->user->id }}"
@@ -326,10 +331,17 @@
                     <div style="max-height: 400px; overflow-y: auto;">
                         @forelse ($groups as $group)
                             <div class="p-4 border-bottom">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="d-flex justify-content-between align-items-start mb-2 gap-2">
                                     <h4 class="h6 fw-bold mb-0 text-strong">{{ $group->name }}</h4>
-                                    @php $mc = $group->members->count(); @endphp
-                                    <span class="badge bg-info">{{ $mc === 1 ? 'Individual' : $mc . ' members' }}</span>
+                                    <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                                        @php $mc = $group->members->count(); @endphp
+                                        <span class="badge bg-info">{{ $mc === 1 ? 'Individual' : $mc . ' members' }}</span>
+                                        <a href="{{ route('coordinator.groups.show', $group) }}"
+                                           class="btn btn-sm btn-outline-primary rounded-pill"
+                                           title="View group members and supervisor">
+                                            <i class="fas fa-eye me-1" aria-hidden="true"></i>View
+                                        </a>
+                                    </div>
                                 </div>
                                 <div class="small text-muted d-flex align-items-center mb-2">
                                     <i class="fas fa-user me-2 text-primary" aria-hidden="true"></i>
@@ -512,29 +524,49 @@
         const supSel = document.getElementById('assign_supervisor');
         if (!deptFilter || !supSel) return;
 
-        const options = Array.from(supSel.querySelectorAll('option[data-department-id]'));
+        const placeholderText = String(supSel.getAttribute('data-placeholder') || 'Choose a supervisor…');
+        const originalOptions = Array.from(supSel.querySelectorAll('option[data-department-id]')).map(function (opt) {
+            return {
+                value: String(opt.value || ''),
+                text: opt.textContent || '',
+                departmentId: String(opt.getAttribute('data-department-id') ?? ''),
+            };
+        });
+
+        function rebuildSupervisorOptions(filteredOptions, selectedValue) {
+            supSel.innerHTML = '';
+
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = filteredOptions.length > 0
+                ? placeholderText
+                : 'No supervisors available for this department';
+            supSel.appendChild(placeholder);
+
+            filteredOptions.forEach(function (item) {
+                const option = document.createElement('option');
+                option.value = item.value;
+                option.textContent = item.text;
+                option.setAttribute('data-department-id', item.departmentId);
+                supSel.appendChild(option);
+            });
+
+            if (selectedValue !== '' && filteredOptions.some(function (item) { return item.value === selectedValue; })) {
+                supSel.value = selectedValue;
+            } else {
+                supSel.value = '';
+            }
+        }
 
         function applySupervisorDepartmentFilter() {
             const v = String(deptFilter.value || '');
-            let anyEnabled = false;
-            options.forEach(function (opt) {
-                const d = String(opt.getAttribute('data-department-id') ?? '');
-                if (v === '') {
-                    opt.disabled = false;
-                    anyEnabled = true;
-                    return;
-                }
-                const match = d === v;
-                opt.disabled = !match;
-                if (match) {
-                    anyEnabled = true;
-                }
+            const currentValue = String(supSel.value || '');
+            const filteredOptions = originalOptions.filter(function (opt) {
+                return v === '' || opt.departmentId === v;
             });
-            const sel = supSel.selectedOptions[0];
-            if (sel && sel.disabled) {
-                supSel.value = '';
-            }
-            supSel.classList.toggle('border-warning', v !== '' && !anyEnabled);
+
+            rebuildSupervisorOptions(filteredOptions, currentValue);
+            supSel.classList.toggle('border-warning', v !== '' && filteredOptions.length === 0);
         }
 
         deptFilter.addEventListener('change', applySupervisorDepartmentFilter);

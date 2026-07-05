@@ -97,6 +97,44 @@ class SubmissionFileAccess
     }
 
     /**
+     * Whether a student may delete their own submission (withdraw draft / pending work).
+     */
+    public static function canStudentRemove(User $user, ProjectSubmission $submission): ?string
+    {
+        if (! self::isStudentOwner($user, $submission)) {
+            return 'You are not allowed to remove this submission.';
+        }
+
+        if ($submission->submitted_to_coordinator) {
+            return 'This submission was sent to the coordinator and cannot be removed.';
+        }
+
+        if (($submission->status ?? '') === 'approved') {
+            return 'Approved submissions cannot be removed.';
+        }
+
+        return null;
+    }
+
+    /**
+     * Student workspace URL for replacing a non-Word upload or opening the upload form.
+     */
+    public static function studentReplaceUrl(ProjectSubmission $submission): string
+    {
+        $stageId = \App\Models\ProjectStage::query()
+            ->where('stage_name', $submission->stage)
+            ->value('id');
+
+        $track = StudentStageProgress::workTypeFromStage($submission->stage);
+        $params = array_filter([
+            'type' => in_array($track, StudentStageProgress::workTypeOptions(), true) ? $track : null,
+            'stage_id' => $stageId,
+        ]);
+
+        return route('student.index', $params).'#prms-submit-stage-card';
+    }
+
+    /**
      * ONLYOFFICE editor capabilities per role.
      * editorMode must be "edit" for typing, comments, and review UI (ONLYOFFICE API requirement).
      *
@@ -110,7 +148,9 @@ class SubmissionFileAccess
                 'canEdit' => true,
                 'canReview' => false,
                 'canComment' => true,
-                'hint' => 'You can type and edit freely. Changes save automatically when you close the editor or use Save.',
+                'hint' => ($submission->status ?? '') === 'draft'
+                    ? 'Draft — use Save or Save & return below. Your work is kept as a draft until you submit it to your supervisor from the workspace.'
+                    : 'You can type and edit freely. Use Save or Save & return below, or the Save button in the Word toolbar.',
             ];
         }
 

@@ -35,9 +35,12 @@ class User extends Authenticatable
         'enrollment_status',
         'account_status',
         'phone_number',
+        'gender',
         'must_change_password',
         'notify_email_new_submission',
         'notify_email_submission_reviewed',
+        'notify_email_workflow',
+        'notify_sms_workflow',
     ];
 
     /**
@@ -64,6 +67,8 @@ class User extends Authenticatable
             'year_of_study' => 'integer',
             'notify_email_new_submission' => 'boolean',
             'notify_email_submission_reviewed' => 'boolean',
+            'notify_email_workflow' => 'boolean',
+            'notify_sms_workflow' => 'boolean',
         ];
     }
 
@@ -134,6 +139,11 @@ class User extends Authenticatable
         ], true);
     }
 
+    public function isAdminUser(): bool
+    {
+        return (string) $this->role === 'admin';
+    }
+
     /** Student registration number for display and sign-in prompts. */
     public function regNo(): ?string
     {
@@ -144,18 +154,18 @@ class User extends Authenticatable
         return $this->registration_number ?: $this->login_id;
     }
 
-    /** Account identifier shown in admin lists (reg. no for students, staff ID for staff). */
+    /** Account identifier shown in admin lists (reg. no for students, staff email for staff). */
     public function displayIdentifier(): string
     {
         if ($this->isStudentUser()) {
             return $this->regNo() ?? '—';
         }
 
-        return $this->staff_id ?: $this->login_id ?: '—';
+        return $this->email ?: '—';
     }
 
     public function displayIdentifierLabel(): string
     {
-        return $this->isStudentUser() ? 'Reg. no' : 'Staff ID';
+        return $this->isStudentUser() ? 'Reg. no' : 'Staff email';
     }
 }

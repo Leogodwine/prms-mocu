@@ -6,8 +6,9 @@ use App\Models\ProjectStage;
 use App\Models\SupervisorAssignment;
 use App\Support\FinalYearWorkflowEngine;
 use App\Support\PrmsUserCapabilities;
-use App\Support\StudentStageProgress;
 use App\Support\StudentResearchEligibility;
+use App\Support\StudentStageProgress;
+use App\Support\PrmsAcademicCalendar;
 use App\Support\SupervisorAssignmentScope;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -70,6 +71,9 @@ class DashboardController extends Controller
             'proposalTotal' => $proposalSummary['total'],
             'researchTotal' => $researchSummary['total'],
             'projectTotal' => $projectSummary['total'],
+            'academicCalendar' => in_array($user->role, ['project_student', 'research_student', 'normal_student'], true)
+                ? PrmsAcademicCalendar::forUser($user, $projectGroup)
+                : null,
         ]);
     }
 }

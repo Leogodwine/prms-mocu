@@ -7,7 +7,7 @@ use Illuminate\Support\Collection;
 
 /**
  * Builds project groups from eligible students with gender balance.
- * Groups are always formed within a single programme cohort.
+ * Groups are always formed within a single programme and year-of-study cohort.
  *
  * @phpstan-type StudentGroup list<int>
  */
@@ -33,6 +33,31 @@ final class GroupAutoFormer
         }
 
         return $groupsByProgramme;
+    }
+
+    /**
+     * Form groups separately for each programme/year cohort so members never
+     * mix programmes or study years.
+     *
+     * @param  Collection<int, Student>  $students
+     * @return array<string, list<StudentGroup>>  "programme_id|year_of_study" => groups
+     */
+    public function formGroupsByProgrammeAndYear(Collection $students, int $groupSize): array
+    {
+        $cohorts = $students->groupBy(
+            fn (Student $student) => (int) ($student->programme_id ?? 0).'|'.(int) ($student->year_of_study ?? 0)
+        );
+
+        $groupsByCohort = [];
+
+        foreach ($cohorts as $cohortKey => $cohort) {
+            $groups = $this->formGroups($cohort, $groupSize);
+            if ($groups !== []) {
+                $groupsByCohort[(string) $cohortKey] = $groups;
+            }
+        }
+
+        return $groupsByCohort;
     }
 
     /**

@@ -339,6 +339,7 @@ final class PrmsNavigationIndex
                     return [
                         'label' => $label,
                         'step' => $step,
+                        'material_icon' => StudentStageProgress::stageMaterialIcon($stage->stage_name, $track, $index),
                         'url' => route('student.index', ['type' => $track, 'stage_id' => $stage->id]),
                         'route_is' => 'student.index',
                         'route_query' => [
@@ -350,6 +351,7 @@ final class PrmsNavigationIndex
                 })
                 ->all();
             $item['overview_label'] = StudentStageProgress::navTrackOverviewLabel($track);
+            $item['overview_material_icon'] = 'dashboard';
 
             return $item;
         }, $items);
@@ -397,6 +399,17 @@ final class PrmsNavigationIndex
                 'sidebar' => true,
                 'sidebar_order' => 40,
                 'route_is' => 'coordinator.submissions',
+            ],
+            [
+                'label' => 'Similar projects & research',
+                'url' => route('coordinator.similarities.index'),
+                'icon' => 'fas fa-clone',
+                'group' => 'Coordinator',
+                'keywords' => 'plagiarism duplicate overlap similarity projects research',
+                'roles' => ['coordinator'],
+                'sidebar' => true,
+                'sidebar_order' => 45,
+                'route_is' => 'coordinator.similarities.*',
             ],
             [
                 'label' => 'Grading schemes',
@@ -577,7 +590,7 @@ final class PrmsNavigationIndex
                 'route_is' => 'admin.system-health*',
             ],
             [
-                'label' => 'Backup & recovery',
+                'label' => 'Backup and recovery',
                 'url' => route('admin.backups.index'),
                 'icon' => 'fas fa-database',
                 'group' => 'Administration',

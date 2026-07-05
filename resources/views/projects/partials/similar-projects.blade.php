@@ -17,7 +17,7 @@
         <div>
             <h3 class="h6 fw-bold text-strong mb-0">
                 <i class="fas fa-clone me-2 text-primary" aria-hidden="true"></i>
-                Similarity review (admin)
+                Similarity review
             </h3>
             <p class="text-muted small mb-0 mt-1">Background checks against other projects — not visible to students.</p>
         </div>
@@ -92,14 +92,16 @@
             </ul>
         @endif
 
-        <form action="{{ route('admin.projects.similarity.rerun', $project) }}" method="POST" class="mt-3 d-flex flex-wrap gap-2">
-            @csrf
-            <button type="submit" class="btn btn-sm btn-outline-primary">
-                <i class="fas fa-sync me-1" aria-hidden="true"></i> Re-run check
-            </button>
-            <button type="submit" name="sync" value="1" class="btn btn-sm btn-light border">
-                Run now (wait)
-            </button>
-        </form>
+        @if ($canRerunSimilarity ?? false)
+            <form action="{{ route('admin.projects.similarity.rerun', $project) }}" method="POST" class="mt-3 d-flex flex-wrap gap-2">
+                @csrf
+                <button type="submit" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-sync me-1" aria-hidden="true"></i> Re-run check
+                </button>
+                <button type="submit" name="sync" value="1" class="btn btn-sm btn-light border">
+                    Run now (wait)
+                </button>
+            </form>
+        @endif
     </div>
 </div>

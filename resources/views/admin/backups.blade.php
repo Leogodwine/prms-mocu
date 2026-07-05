@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Backup & recovery')
+@section('title', 'Backup and recovery')
 
 @section('content')
     <x-prms-greeting-banner subtitle="Create database backups, schedule automatic backups, restore data, and monitor backup status.">

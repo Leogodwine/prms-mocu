@@ -44,34 +44,45 @@
                 @php
                     $latest       = $latestByStage->get($stage->stage_name);
                     $latestStatus = $latest?->status;
+                    $isDraft      = $latestStatus === 'draft';
                     $isApproved   = $latestStatus === 'approved';
                     $isPending    = $latestStatus === 'pending';
                     $isReturned   = $latestStatus === 'needs_revision';
                     $isRejected   = $latestStatus === 'rejected';
                     $isCurrent    = $idx === $currentIdx;
 
-                    $stateLabel = $isApproved   ? 'Completed'
-                                : ($isPending  ? 'Awaiting review'
-                                : ($isReturned ? 'Returned for revision'
-                                : ($isRejected ? 'Rejected'
-                                : ($isCurrent  ? 'In progress'
-                                : 'Not started'))));
+                    if ($isApproved) {
+                        $stateLabel = 'Completed';
+                        $stepClass = 'is-done';
+                        $marker = '<i class="fas fa-check" aria-hidden="true"></i>';
+                    } elseif ($isDraft) {
+                        $stateLabel = 'Draft — ready to submit';
+                        $stepClass = 'is-draft';
+                        $marker = (string) ($idx + 1);
+                    } elseif ($isPending) {
+                        $stateLabel = 'Awaiting review';
+                        $stepClass = 'is-pending';
+                        $marker = '<i class="far fa-clock" aria-hidden="true"></i>';
+                    } elseif ($isReturned) {
+                        $stateLabel = 'Returned for revision';
+                        $stepClass = 'is-returned';
+                        $marker = '<i class="fas fa-undo" aria-hidden="true"></i>';
+                    } elseif ($isRejected) {
+                        $stateLabel = 'Rejected';
+                        $stepClass = 'is-rejected';
+                        $marker = '<i class="fas fa-times" aria-hidden="true"></i>';
+                    } elseif ($isCurrent) {
+                        $stateLabel = 'In progress';
+                        $stepClass = 'is-current';
+                        $marker = (string) ($idx + 1);
+                    } else {
+                        $stateLabel = 'Not started';
+                        $stepClass = 'is-todo';
+                        $marker = (string) ($idx + 1);
+                    }
 
-                    $stepClass = $isApproved   ? 'is-done'
-                                : ($isReturned ? 'is-returned'
-                                : ($isRejected ? 'is-rejected'
-                                : ($isPending  ? 'is-pending'
-                                : ($isCurrent  ? 'is-current'
-                                : 'is-todo'))));
-
-                    $marker = $isApproved ? '<i class="fas fa-check" aria-hidden="true"></i>'
-                            : ($isReturned ? '<i class="fas fa-undo" aria-hidden="true"></i>'
-                            : ($isRejected ? '<i class="fas fa-times" aria-hidden="true"></i>'
-                            : ($isPending  ? '<i class="far fa-clock" aria-hidden="true"></i>'
-                            : ($idx + 1))));
-
-                    $title = \Illuminate\Support\Str::title(str_replace('_', ' ', $stage->stage_name));
-                    $stepUrl = !empty($trackType)
+                    $title = \App\Support\StudentStageProgress::shortStageLabel($stage->stage_name);
+                    $stepUrl = ! empty($trackType)
                         ? route('student.index', ['type' => $trackType, 'stage_id' => $stage->id])
                         : null;
                 @endphp

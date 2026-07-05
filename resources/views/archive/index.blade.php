@@ -273,11 +273,7 @@
         @endforelse
     </div>
 
-    @if ($submissions->hasPages())
-        <div class="d-flex justify-content-center mt-4 px-2">
-            {{ $submissions->withQueryString()->links() }}
-        </div>
-    @endif
+    <x-prms-table-pagination-footer :paginator="$submissions" class="mt-4 px-2" />
     @endif
 @endsection
 

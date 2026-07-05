@@ -35,6 +35,14 @@
             Manage users
         </a>
     @endif
+@if ($isStudentWorkspace && ! empty($availableTracks))
+        <x-slot:footer>
+            @include('student.partials.academic-calendar', [
+                'academicCalendar' => $academicCalendar ?? null,
+                'embeddedInGreeting' => true,
+            ])
+        </x-slot:footer>
+    @endif
 </x-prms-greeting-banner>
 
 @if ($isStudentWorkspace && ($canCreateProjects ?? false))
@@ -127,7 +135,7 @@
 {{-- ────────── Coordinator ────────── --}}
 @if ($user->role === 'coordinator')
     <div class="row g-4 mb-4">
-        <div class="col-md-4">
+        <div class="col-md-6 col-xl-3">
             <a href="{{ route('coordinator.index') }}" class="card card-interactive text-decoration-none h-100">
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
@@ -140,7 +148,7 @@
                 </div>
             </a>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-6 col-xl-3">
             <a href="{{ route('reports.coordinator') }}" class="card card-interactive text-decoration-none h-100">
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
@@ -153,7 +161,7 @@
                 </div>
             </a>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-6 col-xl-3">
             <a href="{{ route('coordinator.submissions') }}" class="card card-interactive text-decoration-none h-100">
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
@@ -163,6 +171,19 @@
                     </div>
                     <h3 class="h5 fw-bold text-primary">Final submissions</h3>
                     <p class="text-muted small mb-0">Approved work waiting for final coordinator approval.</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <a href="{{ route('coordinator.similarities.index') }}" class="card card-interactive text-decoration-none h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-warning-soft rounded-3 d-inline-flex align-items-center justify-content-center" style="width:44px;height:44px; color: var(--prms-color-warning-500, #d97706);">
+                            <i class="fas fa-clone" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                    <h3 class="h5 fw-bold text-primary">Similar projects &amp; research</h3>
+                    <p class="text-muted small mb-0">Background overlap checks between student proposals, reports, and projects.</p>
                 </div>
             </a>
         </div>
@@ -298,13 +319,6 @@
                     <h3 class="card-title h6 fw-bold mb-0">Open your workspace</h3>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted small mb-3">
-                        <strong>Proposal</strong> — chapter drafts before research begins.
-                        <strong>Project</strong> — for computer-based courses, build a working system that
-                        solves a real-world problem and submit your source code.
-                        <strong>Research report</strong> — your thesis, dissertation, or final report,
-                        chapter by chapter.
-                    </p>
                     <div class="row g-2 mb-2">
                         <div class="col-12">
                             <a href="{{ route('student.index') }}" class="btn btn-primary w-100">
@@ -339,6 +353,34 @@
     @endif
 
         <div class="col-12 {{ ! empty($availableTracks) ? 'col-lg-4' : '' }}">
+            @if (! empty($availableTracks))
+                <div class="card mb-3">
+                    <div class="card-header bg-transparent border-bottom py-3">
+                        <h3 class="h6 fw-bold mb-0">Workspace guide</h3>
+                    </div>
+                    <div class="card-body py-3">
+                        <ul class="small mb-0 ps-3" style="list-style-type: disc;">
+                            <li class="py-2 border-bottom border-soft">
+                                <span class="fw-semibold text-strong d-block">Proposal</span>
+                                <span class="text-muted d-block mt-1">Chapter drafts before research begins</span>
+                            </li>
+                            @if (in_array('project', $availableTracks, true))
+                                <li class="py-2 border-bottom border-soft">
+                                    <span class="fw-semibold text-strong d-block">Project</span>
+                                    <span class="text-muted d-block mt-1">Build a working system that solves a real-world problem and submit your source code</span>
+                                </li>
+                            @endif
+                            @if (in_array('research', $availableTracks, true))
+                                <li class="py-2">
+                                    <span class="fw-semibold text-strong d-block">Research report</span>
+                                    <span class="text-muted d-block mt-1">Your thesis, dissertation, or final report, chapter by chapter</span>
+                                </li>
+                            @endif
+                        </ul>
+                    </div>
+                </div>
+            @endif
+
             <h3 class="h5 fw-bold text-strong mb-3">Mentorship</h3>
 
             <div class="card">
@@ -416,7 +458,7 @@
                     </div>
                     <div>
                         <div class="fw-semibold text-primary">Approved project and research</div>
-                        <small class="text-muted">Browse approved work by type — proposal, research, or project.</small>
+                        <small class="text-muted">Browse approved work by type: proposal, research, or project</small>
                     </div>
                 </div>
             </a>

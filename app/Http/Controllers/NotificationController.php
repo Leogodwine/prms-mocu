@@ -16,6 +16,7 @@ class NotificationController extends Controller
         $statusFilter = in_array($request->query('status'), ['unread', 'read'], true)
             ? (string) $request->query('status')
             : 'all';
+        $searchQuery = trim((string) $request->query('q', ''));
 
         $notificationsQuery = $user->notifications()->latest();
 
@@ -23,6 +24,11 @@ class NotificationController extends Controller
             $notificationsQuery->whereNull('read_at');
         } elseif ($statusFilter === 'read') {
             $notificationsQuery->whereNotNull('read_at');
+        }
+
+        if ($searchQuery !== '') {
+            $like = '%'.addcslashes($searchQuery, '%_\\').'%';
+            $notificationsQuery->where('data', 'like', $like);
         }
 
         $stats = [
@@ -35,6 +41,8 @@ class NotificationController extends Controller
             'notifications' => $notificationsQuery->paginate(20)->withQueryString(),
             'stats' => $stats,
             'statusFilter' => $statusFilter,
+            'searchQuery' => $searchQuery,
+            'hasActiveSearch' => $searchQuery !== '',
         ]);
     }
 
@@ -69,15 +77,15 @@ class NotificationController extends Controller
         if ($marked === 0) {
             $owned = $user->notifications()->whereIn('id', $ids)->count();
             if ($owned === 0) {
-                return $this->redirectToNotificationsIndex()
+                return $this->redirectToNotificationsIndex($request)
                     ->withErrors(['notifications' => 'No matching notifications were found.']);
             }
 
-            return $this->redirectToNotificationsIndex()
+            return $this->redirectToNotificationsIndex($request)
                 ->with('status', 'Selected notifications were already marked as read.');
         }
 
-        return $this->redirectToNotificationsIndex()
+        return $this->redirectToNotificationsIndex($request)
             ->with('status', "Marked {$marked} notification(s) as read.");
     }
 
@@ -89,17 +97,29 @@ class NotificationController extends Controller
         $deleted = $user->notifications()->whereIn('id', $ids)->delete();
 
         if ($deleted === 0) {
-            return $this->redirectToNotificationsIndex()
+            return $this->redirectToNotificationsIndex($request)
                 ->withErrors(['notifications' => 'No notifications were cleared.']);
         }
 
-        return $this->redirectToNotificationsIndex()
+        return $this->redirectToNotificationsIndex($request)
             ->with('status', "Cleared {$deleted} notification(s).");
     }
 
-    private function redirectToNotificationsIndex(): RedirectResponse
+    private function redirectToNotificationsIndex(?Request $request = null): RedirectResponse
     {
-        return redirect()->route('notifications.index');
+        $params = [];
+        if ($request !== null) {
+            $status = $request->input('status', $request->query('status'));
+            if (in_array($status, ['unread', 'read'], true)) {
+                $params['status'] = $status;
+            }
+            $search = trim((string) $request->input('q', $request->query('q', '')));
+            if ($search !== '') {
+                $params['q'] = $search;
+            }
+        }
+
+        return redirect()->route('notifications.index', $params);
     }
 
     public function destroy(Request $request, DatabaseNotification $notification): RedirectResponse

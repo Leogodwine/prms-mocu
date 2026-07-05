@@ -47,6 +47,19 @@
                                           class="form-control @error('description') is-invalid @enderror"></textarea>
                                 @error('description') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
+                            <div class="col-12">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="1" id="apply_to_all_supervisors" name="apply_to_all_supervisors"
+                                           @checked(old('apply_to_all_supervisors'))>
+                                    <label class="form-check-label fw-semibold" for="apply_to_all_supervisors">
+                                        Apply to all supervisors
+                                    </label>
+                                    <div class="form-text">
+                                        When enabled, every supervisor must use this scheme for presentation and submission grading.
+                                        Any previous system-wide scheme is replaced.
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

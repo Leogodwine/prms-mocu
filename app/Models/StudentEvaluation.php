@@ -19,6 +19,7 @@ class StudentEvaluation extends Model
         'total_score',
         'general_comments',
         'status',
+        'evaluation_scope',
     ];
 
     protected $casts = [

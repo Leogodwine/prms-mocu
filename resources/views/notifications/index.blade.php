@@ -8,23 +8,25 @@
     $isAllNotifications = ($statusFilter ?? 'all') === 'all';
     $isUnreadNotifications = ($statusFilter ?? 'all') === 'unread';
     $isReadNotifications = ($statusFilter ?? 'all') === 'read';
+    $notifAllParams = array_filter(['q' => ($searchQuery ?? '') !== '' ? $searchQuery : null]);
+    $notifResetParams = ($statusFilter ?? 'all') !== 'all' ? ['status' => $statusFilter] : [];
 @endphp
 
 <x-prms-greeting-banner subtitle="New uploads, review decisions, and email preferences for your account.">
     <div class="d-flex flex-wrap align-items-center justify-content-end gap-3" role="group" aria-label="Notification counts">
-        <a href="{{ route('notifications.index') }}"
+        <a href="{{ route('notifications.index', $notifAllParams) }}"
                class="prms-notif-stat-badge prms-notif-stat-badge--all @if ($isAllNotifications) is-active @endif"
                @if ($isAllNotifications) aria-current="page" @endif>
                 All
                 <span class="badge rounded-pill prms-notif-stat-badge__count">{{ number_format($stats['total']) }}</span>
             </a>
-            <a href="{{ route('notifications.index', ['status' => 'unread']) }}"
+            <a href="{{ route('notifications.index', array_filter(['status' => 'unread', 'q' => $searchQuery ?? null])) }}"
                class="prms-notif-stat-badge prms-notif-stat-badge--unread @if ($isUnreadNotifications) is-active @endif"
                @if ($isUnreadNotifications) aria-current="page" @endif>
                 New / unread
                 <span class="badge rounded-pill prms-notif-stat-badge__count">{{ number_format($stats['unread']) }}</span>
             </a>
-            <a href="{{ route('notifications.index', ['status' => 'read']) }}"
+            <a href="{{ route('notifications.index', array_filter(['status' => 'read', 'q' => $searchQuery ?? null])) }}"
                class="prms-notif-stat-badge prms-notif-stat-badge--read @if ($isReadNotifications) is-active @endif"
                @if ($isReadNotifications) aria-current="page" @endif>
                 Read
@@ -55,6 +57,35 @@
         </h2>
 
         <div class="card">
+            <div class="card-header border-bottom py-3">
+                <form method="GET"
+                      action="{{ route('notifications.index') }}"
+                      id="prmsNotifSearchForm"
+                      class="d-flex flex-nowrap align-items-center gap-2 overflow-auto">
+                    @if ($statusFilter !== 'all')
+                        <input type="hidden" name="status" value="{{ $statusFilter }}">
+                    @endif
+                    <x-prms-search-field
+                        name="q"
+                        id="notif-search-q"
+                        :value="$searchQuery ?? ''"
+                        placeholder="Search by title or message…"
+                        class="flex-grow-1"
+                        style="min-width: 220px;"
+                    />
+                    <div class="d-flex flex-nowrap gap-2 ms-auto flex-shrink-0">
+                        <button type="submit" class="btn btn-sm btn-primary text-nowrap">
+                            <i class="fas fa-search me-1" aria-hidden="true"></i>
+                            Apply
+                        </button>
+                        <a href="{{ route('notifications.index', $notifResetParams) }}"
+                           class="btn btn-sm btn-light border text-nowrap @if (! ($hasActiveSearch ?? false)) disabled @endif"
+                           @if (! ($hasActiveSearch ?? false)) aria-disabled="true" tabindex="-1" @endif>
+                            Clear
+                        </a>
+                    </div>
+                </form>
+            </div>
             <div id="prmsBulkNotifActions" class="d-none align-items-center justify-content-between flex-wrap gap-2 px-3 py-2 border-bottom bg-surface-soft">
                 <span class="small text-muted">
                     <span id="prmsSelectedNotifCount">0</span> selected
@@ -176,7 +207,9 @@
                                 <i class="far fa-bell-slash text-muted" aria-hidden="true" style="font-size: 1.4rem;"></i>
                             </div>
                             <h3 class="h6 fw-bold text-strong">
-                                @if ($isUnreadNotifications)
+                                @if ($hasActiveSearch ?? false)
+                                    No notifications match your search
+                                @elseif ($isUnreadNotifications)
                                     No unread notifications
                                 @elseif ($isReadNotifications)
                                     No read notifications yet
@@ -185,7 +218,9 @@
                                 @endif
                             </h3>
                             <p class="text-muted small mb-0">
-                                @if ($isUnreadNotifications)
+                                @if ($hasActiveSearch ?? false)
+                                    Try a different keyword or clear the search to see all notifications.
+                                @elseif ($isUnreadNotifications)
                                     You have no new notifications right now.
                                 @elseif ($isReadNotifications)
                                     Notifications you mark read or open will appear here.
@@ -212,7 +247,7 @@
         <div class="card">
             <div class="card-body">
                 <p class="text-muted small mb-4">
-                    Choose which emails we send. In-app notifications are always available on this page.
+                    Choose which emails and SMS alerts we send. In-app notifications are always available; success confirmations also appear as on-screen toasts.
                 </p>
 
                 <form action="{{ route('notifications.preferences.update') }}" method="POST">
@@ -243,6 +278,30 @@
                         </div>
                     </div>
 
+                    <div class="form-check form-switch mb-3">
+                        <input type="checkbox" class="form-check-input" id="notif_workflow_email"
+                               name="notify_email_workflow" value="1"
+                               @checked(auth()->user()->notify_email_workflow ?? true)>
+                        <label class="form-check-label fw-semibold" for="notif_workflow_email">
+                            Group &amp; supervisor updates (email)
+                        </label>
+                        <div class="text-muted small">
+                            Email when you are placed in a group, or when a supervisor is assigned.
+                        </div>
+                    </div>
+
+                    <div class="form-check form-switch mb-4">
+                        <input type="checkbox" class="form-check-input" id="notif_workflow_sms"
+                               name="notify_sms_workflow" value="1"
+                               @checked(auth()->user()->notify_sms_workflow ?? true)>
+                        <label class="form-check-label fw-semibold" for="notif_workflow_sms">
+                            Group &amp; supervisor updates (SMS)
+                        </label>
+                        <div class="text-muted small">
+                            Text message alerts when your phone number is on file.
+                        </div>
+                    </div>
+
                     <button type="submit" class="btn btn-primary w-100">
                         <i class="fas fa-save me-1" aria-hidden="true"></i>
                         Save preferences
@@ -255,6 +314,12 @@
 
 <form id="prmsBulkMarkReadForm" action="{{ route('notifications.bulk-read') }}" method="POST" class="d-none">
     @csrf
+    @if ($statusFilter !== 'all')
+        <input type="hidden" name="status" value="{{ $statusFilter }}">
+    @endif
+    @if ($hasActiveSearch ?? false)
+        <input type="hidden" name="q" value="{{ $searchQuery }}">
+    @endif
 </form>
 
 <div class="modal fade" id="bulkDeleteNotificationsModal" tabindex="-1" aria-labelledby="bulkDeleteNotificationsModalTitle" aria-hidden="true">
@@ -269,6 +334,12 @@
             </div>
             <form id="prmsBulkDeleteNotifForm" method="POST" action="{{ route('notifications.bulk-delete') }}">
                 @csrf
+                @if ($statusFilter !== 'all')
+                    <input type="hidden" name="status" value="{{ $statusFilter }}">
+                @endif
+                @if ($hasActiveSearch ?? false)
+                    <input type="hidden" name="q" value="{{ $searchQuery }}">
+                @endif
                 <div class="modal-body p-4">
                     <p class="mb-2">
                         You are about to permanently clear <strong id="prmsBulkDeleteNotifCount">0</strong> notification(s).
@@ -437,6 +508,28 @@
         }
 
         syncSelection();
+    })();
+
+    (function () {
+        const searchForm = document.getElementById('prmsNotifSearchForm');
+        const searchInput = searchForm ? searchForm.querySelector('input[name="q"]') : null;
+        if (!searchForm || !searchInput) {
+            return;
+        }
+
+        let searchTimer = null;
+        searchInput.addEventListener('input', function () {
+            window.clearTimeout(searchTimer);
+            searchTimer = window.setTimeout(function () {
+                searchForm.submit();
+            }, 450);
+        });
+
+        searchInput.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                window.clearTimeout(searchTimer);
+            }
+        });
     })();
 </script>
 @endpush

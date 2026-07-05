@@ -8,10 +8,12 @@ use App\Models\WordDocument;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
-use ZipArchive;
 
 class OnlyOfficeService
 {
+    private const BLANK_TEMPLATE_RELATIVE = 'onlyoffice-templates/blank.docx';
+
+    private const BUNDLED_BLANK_TEMPLATE = 'onlyoffice/blank.docx';
     public function isConfigured(): bool
     {
         return (bool) config('onlyoffice.document_server_url');
@@ -69,7 +71,7 @@ class OnlyOfficeService
 
         $customization = [
             'autosave' => $capabilities['canEdit'],
-            'forcesave' => false,
+            'forcesave' => $capabilities['canEdit'],
             'comments' => true,
             'compactHeader' => false,
             'toolbarNoTabs' => false,
@@ -350,13 +352,58 @@ class OnlyOfficeService
 
     private function ensureBlankTemplate(): string
     {
-        $relative = 'onlyoffice-templates/blank.docx';
+        $relative = self::BLANK_TEMPLATE_RELATIVE;
         $absolute = Storage::disk('public')->path($relative);
 
         Storage::disk('public')->makeDirectory('onlyoffice-templates');
-        $this->generateBlankDocx($absolute);
 
-        return $absolute;
+        if (Storage::disk('public')->exists($relative) && $this->isValidEditableDocx($absolute)) {
+            return $absolute;
+        }
+
+        if ($this->installBlankTemplate($absolute)) {
+            return $absolute;
+        }
+
+        throw new \RuntimeException(
+            'Blank Word template is unavailable. Enable the PHP zip extension in php.ini (extension=zip) and restart the web server.'
+        );
+    }
+
+    private function installBlankTemplate(string $absolutePath): bool
+    {
+        if ($this->copyBundledBlankTemplate($absolutePath)) {
+            return true;
+        }
+
+        if (! $this->canGenerateDocx()) {
+            return false;
+        }
+
+        $this->generateBlankDocx($absolutePath);
+
+        return is_file($absolutePath);
+    }
+
+    private function copyBundledBlankTemplate(string $absolutePath): bool
+    {
+        $bundled = resource_path(self::BUNDLED_BLANK_TEMPLATE);
+
+        if (! is_file($bundled)) {
+            return false;
+        }
+
+        $directory = dirname($absolutePath);
+        if (! is_dir($directory) && ! mkdir($directory, 0755, true) && ! is_dir($directory)) {
+            return false;
+        }
+
+        return copy($bundled, $absolutePath);
+    }
+
+    private function canGenerateDocx(): bool
+    {
+        return class_exists(\ZipArchive::class);
     }
 
     public function repairSubmissionDocumentIfNeeded(ProjectSubmission $submission): void
@@ -381,7 +428,15 @@ class OnlyOfficeService
 
     private function isValidEditableDocx(string $path): bool
     {
-        $zip = new ZipArchive;
+        if (! is_file($path) || filesize($path) < 512) {
+            return false;
+        }
+
+        if (! $this->canGenerateDocx()) {
+            return true;
+        }
+
+        $zip = new \ZipArchive;
 
         if ($zip->open($path) !== true) {
             return false;
@@ -404,9 +459,13 @@ class OnlyOfficeService
 
     private function generateBlankDocx(string $path): void
     {
-        $zip = new ZipArchive;
+        if (! $this->canGenerateDocx()) {
+            throw new \RuntimeException('PHP zip extension is required to generate blank Word documents.');
+        }
 
-        if ($zip->open($path, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+        $zip = new \ZipArchive;
+
+        if ($zip->open($path, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
             throw new \RuntimeException('Unable to create blank Word document.');
         }
 

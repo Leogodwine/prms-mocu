@@ -18,7 +18,7 @@ class StudentFactory extends Factory
     {
         return [
             'user_id' => User::factory()->student(),
-            'registration_number' => fake()->unique()->bothify('MoCU/REG/####/##'),
+            'registration_number' => fake()->unique()->bothify('MoCU/BBICT/###/##'),
             'full_name' => fake()->name(),
             'gender' => fake()->randomElement(['male', 'female']),
             'programme_id' => Program::factory(),

@@ -128,7 +128,7 @@ class AuthController extends Controller
             ]);
 
             $message = $this->looksLikeEmail($idValue)
-                ? 'Invalid email or password.'
+                ? 'Invalid username or password.'
                 : 'Invalid registration number or password.';
 
             return back()

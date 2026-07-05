@@ -13,8 +13,8 @@
     @include('layouts.partials.kaiadmin-styles')
     @php $kai = asset(config('prms.kaiadmin_assets', 'vendor/prms-mocu/assets')); @endphp
     <link rel="stylesheet" href="{{ $kai }}/css/demo.css">
-    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=38">
-    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=53">
+    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=43">
+    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=57">
 
     @stack('styles')
 </head>
@@ -45,6 +45,7 @@
                 <ul class="nav nav-primary">
                     @include('layouts.partials.prms-sidebar-nav')
                 </ul>
+                @include('layouts.partials.prms-sidebar-contributors')
             </div>
         </div>
     </div>
@@ -54,13 +55,6 @@
         <div class="main-header">
             <div class="main-header-logo">
                 <div class="logo-header prms-mobile-toolbar" data-background-color="dark">
-                    @if (auth()->check() && ! request()->routeIs('dashboard'))
-                        <a href="{{ route('dashboard') }}"
-                           class="btn btn-toggle prms-mobile-back d-lg-none"
-                           aria-label="{{ __('Back to dashboard') }}">
-                            <i class="fas fa-arrow-left" aria-hidden="true"></i>
-                        </a>
-                    @endif
                     <div class="nav-toggle">
                         <button type="button" class="btn btn-toggle toggle-sidebar" aria-label="Toggle sidebar">
                             <i class="gg-menu-right"></i>
@@ -73,7 +67,7 @@
                 </div>
             </div>
 
-            <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom" aria-label="Top navigation">
+            <nav class="navbar navbar-header navbar-header-transparent navbar-expand prms-app-topnav border-bottom" aria-label="Top navigation">
                 <div class="container-fluid">
                     <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
                         @if (auth()->check())
@@ -102,16 +96,16 @@
                                 </a>
                             </li>
 
-                            <li class="nav-item topbar-user dropdown">
+                            <li class="nav-item topbar-user dropdown position-relative">
+                                <div id="prmsProfileToastAnchor" class="prms-profile-toast-anchor" aria-hidden="true"></div>
                                 <a class="dropdown-toggle profile-pic d-flex align-items-center gap-2" data-bs-toggle="dropdown" href="#" aria-expanded="false">
                                     <div class="avatar-sm">
                                         <span class="avatar-img rounded-circle d-inline-flex align-items-center justify-content-center bg-primary text-white fw-bold" style="width:2.25rem;height:2.25rem;font-size:0.85rem;">
                                             {{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr(auth()->user()->name, 0, 1)) }}
                                         </span>
                                     </div>
-                                    <span class="profile-username d-none d-md-inline text-start" style="line-height:1.1;">
-                                        <span class="op-7 d-block small">Signed in</span>
-                                        <span class="fw-bold">{{ auth()->user()->name }}</span>
+                                    <span class="profile-username d-none d-md-inline text-start fw-bold" style="line-height:1.1;">
+                                        {{ auth()->user()->name }}
                                     </span>
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end dropdown-user animated fadeIn shadow" style="min-width: 240px;">
@@ -156,6 +150,7 @@
                 <div class="row">
                     <div class="col-12">
                         <x-prms-flash-messages />
+                        <x-prms-notification-toasts />
                         @yield('content')
                     </div>
                 </div>
@@ -179,8 +174,10 @@
 @stack('modals')
 
 @include('layouts.partials.kaiadmin-scripts', ['full' => true])
-<script src="{{ asset('js/prms-header.js') }}?v=6"></script>
-<script src="{{ asset('js/prms-sidebar.js') }}?v=4"></script>
+<x-prms-toast-host />
+<script src="{{ asset('js/prms-header.js') }}?v=7"></script>
+<script src="{{ asset('js/prms-sidebar.js') }}?v=5"></script>
+<script src="{{ asset('js/prms-sidebar-submenu.js') }}?v=1"></script>
 
 @if (auth()->check())
     <script src="{{ asset('js/prms-quick-nav.js') }}?v=6" defer></script>

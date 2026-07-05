@@ -22,14 +22,35 @@
         }
         .editor-toolbar {
             flex: 0 0 auto;
-            display: flex; align-items: center; justify-content: space-between;
+            display: flex; align-items: center; justify-content: space-between; gap: 1rem;
             padding: 0.5rem 1rem; background: #1a2035; color: #fff;
         }
-        .editor-toolbar a {
+        .editor-toolbar a, .editor-toolbar button {
             color: #fff; text-decoration: none; font-size: 0.875rem;
         }
-        .editor-toolbar a:focus-visible {
+        .editor-toolbar a:focus-visible, .editor-toolbar button:focus-visible {
             outline: 2px solid #fff; outline-offset: 2px; border-radius: 4px;
+        }
+        .editor-toolbar-actions {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;
+        }
+        .editor-toolbar .btn-prms {
+            border: 1px solid rgba(255,255,255,0.35);
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            border-radius: 999px;
+            padding: 0.35rem 0.85rem;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .editor-toolbar .btn-prms-primary {
+            background: #2563eb;
+            border-color: #2563eb;
+        }
+        .editor-toolbar .btn-prms:disabled {
+            opacity: 0.6;
+            cursor: wait;
         }
         .editor-hint {
             flex: 0 0 auto;
@@ -72,13 +93,22 @@
         <div>
             <a href="{{ $backUrl }}" aria-label="Back to workspace">← Back</a>
             <span style="opacity:0.8;font-size:0.8rem;margin-left:0.5rem;" aria-hidden="true">
-                {{ \Illuminate\Support\Str::title(str_replace('_', ' ', $submission->stage)) }} · v{{ $submission->version }} · {{ $editorLabel }}
+                {{ \App\Support\StudentStageProgress::shortStageLabel($submission->stage) }} · v{{ $submission->version }} · {{ $editorLabel }}
             </span>
             <div style="font-weight:600;font-size:0.9rem;" id="editor-doc-title">{{ $submission->title }}</div>
         </div>
-        <a href="{{ route('student.submissions.download', $submission) }}"
-           style="color:#fff;font-size:0.85rem;"
-           aria-label="Download current document version">Download</a>
+        <div class="editor-toolbar-actions">
+            @if (! empty($capabilities['canEdit']))
+                <button type="button" class="btn-prms" id="prms-editor-save" aria-label="Save document to server">
+                    Save
+                </button>
+                <button type="button" class="btn-prms btn-prms-primary" id="prms-editor-save-return" aria-label="Save document and return to workspace">
+                    Save &amp; return
+                </button>
+            @endif
+            <a href="{{ route('student.submissions.download', $submission) }}"
+               aria-label="Download current document version">Download</a>
+        </div>
     </header>
 
     @if (! empty($capabilities['hint']))
@@ -99,12 +129,88 @@
             var placeholder = document.getElementById('onlyoffice-editor');
             var readyHint = document.getElementById('editor-ready-hint');
             var statusEl = document.getElementById('editor-status');
+            var saveBtn = document.getElementById('prms-editor-save');
+            var saveReturnBtn = document.getElementById('prms-editor-save-return');
+            var backUrl = @json($backUrl);
             var config = @json($config);
+            var docEditor = null;
+            var savePending = false;
+            var returnAfterSave = false;
 
             function setStatus(message) {
                 if (statusEl) {
                     statusEl.textContent = message;
                 }
+            }
+
+            function setSaving(isSaving) {
+                savePending = isSaving;
+                [saveBtn, saveReturnBtn].forEach(function (btn) {
+                    if (btn) {
+                        btn.disabled = isSaving;
+                    }
+                });
+            }
+
+            function forceSave() {
+                if (! docEditor) {
+                    setStatus('Editor is still loading. Please wait a moment.');
+                    return false;
+                }
+
+                setSaving(true);
+                setStatus('Saving document…');
+
+                if (typeof docEditor.processSave === 'function') {
+                    docEditor.processSave();
+                    return true;
+                }
+
+                if (typeof docEditor.serviceCommand === 'function') {
+                    docEditor.serviceCommand('forcesave', '');
+                    return true;
+                }
+
+                setSaving(false);
+                setStatus('Use the Save icon in the Word toolbar (top-left), then return to your workspace.');
+                return false;
+            }
+
+            function finishSaveFlow() {
+                setSaving(false);
+                if (returnAfterSave) {
+                    returnAfterSave = false;
+                    window.location.href = backUrl;
+                    return;
+                }
+                setStatus('Document saved.');
+            }
+
+            if (saveBtn) {
+                saveBtn.addEventListener('click', function () {
+                    returnAfterSave = false;
+                    forceSave();
+                    window.setTimeout(function () {
+                        if (savePending) {
+                            finishSaveFlow();
+                        }
+                    }, 2500);
+                });
+            }
+
+            if (saveReturnBtn) {
+                saveReturnBtn.addEventListener('click', function () {
+                    returnAfterSave = true;
+                    if (! forceSave()) {
+                        returnAfterSave = false;
+                        return;
+                    }
+                    window.setTimeout(function () {
+                        if (savePending) {
+                            finishSaveFlow();
+                        }
+                    }, 2500);
+                });
             }
 
             config.width = '100%';
@@ -116,7 +222,9 @@
                     setStatus('Editor application ready. Opening document…');
                 },
                 onDocumentReady: function () {
-                    setStatus('Document ready. You can edit now.');
+                    setStatus(@json(($isDraft ?? false)
+                        ? 'Draft ready. Edit, save, then submit to your supervisor from the workspace.'
+                        : 'Document ready. You can edit now.'));
                     if (readyHint) {
                         readyHint.classList.add('visible');
                         readyHint.setAttribute('aria-hidden', 'false');
@@ -127,23 +235,35 @@
                     }
                     placeholder.focus();
                 },
-                onDocumentStateChange: function () {},
+                onDocumentStateChange: function (event) {
+                    if (event && event.data && statusEl && ! savePending) {
+                        setStatus('Unsaved changes — use Save or Save & return.');
+                    }
+                },
+                onRequestSaveAs: function () {},
+                onMetaChange: function () {},
                 onError: function (e) {
+                    setSaving(false);
                     var msg = (e && e.data) ? (e.data.errorCode + ': ' + (e.data.errorDescription || '')) : 'Unknown error';
                     setStatus('Editor error: ' + msg);
-                    placeholder.innerHTML = '<div class="editor-fallback" role="alert"><strong>Editor error</strong><p>' + msg + '</p><p><a href="{{ $backUrl }}">Return to workspace</a></p></div>';
+                    placeholder.innerHTML = '<div class="editor-fallback" role="alert"><strong>Editor error</strong><p>' + msg + '</p><p><a href="' + backUrl + '">Return to workspace</a></p></div>';
                 },
-                onWarning: function () {}
+                onWarning: function () {},
+                onRequestClose: function () {
+                    if (returnAfterSave) {
+                        window.location.href = backUrl;
+                    }
+                }
             };
 
             if (typeof DocsAPI === 'undefined') {
                 setStatus('ONLYOFFICE failed to load.');
                 placeholder.innerHTML =
-                    '<div class="editor-fallback" role="alert"><strong>ONLYOFFICE failed to load</strong><p>Check Docker: <code>docker ps</code> and open <a href="{{ $apiScriptUrl }}">{{ $apiScriptUrl }}</a></p><p><a href="{{ $backUrl }}">Return to workspace</a></p></div>';
+                    '<div class="editor-fallback" role="alert"><strong>ONLYOFFICE failed to load</strong><p>Check Docker: <code>docker ps</code> and open <a href="{{ $apiScriptUrl }}">{{ $apiScriptUrl }}</a></p><p><a href="' + backUrl + '">Return to workspace</a></p></div>';
                 return;
             }
 
-            new DocsAPI.DocEditor('onlyoffice-editor', config);
+            docEditor = new DocsAPI.DocEditor('onlyoffice-editor', config);
         })();
     </script>
 </body>

@@ -21,9 +21,9 @@ final class PrmsTablePagination
         return in_array($value, self::OPTIONS, true) ? $value : self::DEFAULT;
     }
 
-    public static function needsControls(int $total): bool
+    public static function needsControls(int $total, int $perPage = self::DEFAULT): bool
     {
-        return $total > 1;
+        return $total > $perPage;
     }
 
     /**

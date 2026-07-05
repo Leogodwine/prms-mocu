@@ -7,6 +7,7 @@ use App\Models\ProjectGroup;
 use App\Models\User;
 use App\Support\Audit;
 use App\Support\PrmsEventNotifier;
+use App\Support\PrmsTablePagination;
 use App\Support\StudentAcademicRecordSync;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -76,7 +77,7 @@ class HodController extends Controller
                 });
             }, fn ($q) => $q->whereRaw('1 = 0'))
             ->orderBy('name')
-            ->paginate(25)
+            ->paginate(PrmsTablePagination::perPage($request))
             ->withQueryString();
 
         return view('hod.students', [

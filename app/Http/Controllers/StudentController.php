@@ -119,6 +119,12 @@ class StudentController extends Controller
             'onlyOfficeConfigured' => app(OnlyOfficeService::class)->isConfigured(),
             'availableTracks' => $availableTracks,
             'studentAcademic' => $studentAcademic,
+            'stageUploadBlocks' => StudentStageProgress::uploadBlockReasonsForStages(
+                $filteredStages,
+                $user,
+                $projectGroup,
+                $latestByStage
+            ),
         ]);
     }
 
@@ -152,29 +158,6 @@ class StudentController extends Controller
         );
         if ($uploadBlockReason !== null) {
             return back()->withErrors(['stage_id' => $uploadBlockReason]);
-        }
-
-        // Stage-Gate logic (Previous stage must be approved) — for chapter stages only.
-        if (! StudentStageProgress::isCompleteDocumentStage($stage->stage_name)
-            && ! StudentStageProgress::isPresentationStage($stage->stage_name)
-            && $stage->stage_order > 1) {
-            $previousStage = \App\Models\ProjectStage::where('stage_order', $stage->stage_order - 1)->first();
-            if ($previousStage) {
-                $isApproved = ProjectSubmission::query()
-                    ->where('stage', $previousStage->stage_name)
-                    ->where('status', 'approved')
-                    ->where(function ($query) use ($user, $projectGroup) {
-                        $query->where('student_id', $user->id);
-                        if ($projectGroup) {
-                            $query->orWhere('project_group_id', $projectGroup->id);
-                        }
-                    })
-                    ->exists();
-                
-                if (!$isApproved) {
-                    return back()->withErrors(['stage_id' => "Approve " . $previousStage->stage_name . " first."]);
-                }
-            }
         }
 
         // 2. Check Deadlines
@@ -357,6 +340,90 @@ class StudentController extends Controller
         return back()->with('status', 'Stage successfully submitted to the coordinator for final review.');
     }
 
+    public function submitToSupervisor(Request $request, ProjectSubmission $submission): RedirectResponse
+    {
+        $user = $request->user();
+        SubmissionFileAccess::authorize($user, $submission);
+
+        $projectGroup = $user->projectGroups()->first();
+        $isOwner = $submission->student_id === $user->id
+            || ($projectGroup && $submission->project_group_id === $projectGroup->id);
+
+        abort_if(! $isOwner, 403);
+
+        if (($submission->status ?? '') !== 'draft') {
+            return back()->withErrors(['error' => 'This submission has already been sent to your supervisor.']);
+        }
+
+        $latestByStage = StudentStageProgress::latestSubmissionByStage($user, $projectGroup);
+        if ($blockReason = StudentStageProgress::canUploadStage(
+            (string) $submission->stage,
+            $user,
+            $projectGroup,
+            $latestByStage
+        )) {
+            return back()->withErrors(['error' => $blockReason]);
+        }
+
+        if (! $submission->file_path || ! Storage::disk('public')->exists($submission->file_path)) {
+            return back()->withErrors(['error' => 'Document file not found. Open the editor, save your work, and try again.']);
+        }
+
+        $submission->update([
+            'status' => 'pending',
+            'submitted_at' => now(),
+        ]);
+
+        Audit::log(
+            $request,
+            'student.submission_submitted_to_supervisor',
+            'ProjectSubmission',
+            (string) $submission->id,
+            ['status' => 'draft'],
+            ['status' => 'pending']
+        );
+
+        $supervisor = null;
+
+        if ($projectGroup) {
+            $supervisor = optional($projectGroup->supervisorAssignment)->supervisor;
+        } else {
+            $assignment = SupervisorAssignment::query()->with('supervisor')->where('student_id', $user->id)->first();
+            $supervisor = $assignment?->supervisor;
+        }
+
+        if ($supervisor) {
+            $supervisor->notify(new NewSubmissionNotification($submission->fresh()));
+        }
+
+        return back()->with('status', 'Submission sent to your supervisor for review.');
+    }
+
+    public function destroySubmission(Request $request, ProjectSubmission $submission): RedirectResponse
+    {
+        $user = $request->user();
+        SubmissionFileAccess::authorize($user, $submission);
+
+        if ($blockReason = SubmissionFileAccess::canStudentRemove($user, $submission)) {
+            return back()->withErrors(['error' => $blockReason]);
+        }
+
+        $this->deleteSubmissionFiles($submission);
+
+        Audit::log(
+            $request,
+            'student.submission_removed',
+            'ProjectSubmission',
+            (string) $submission->id,
+            ['stage' => $submission->stage, 'status' => $submission->status],
+            null
+        );
+
+        $submission->delete();
+
+        return back()->with('status', 'Submission removed.');
+    }
+
     public function download(ProjectSubmission $submission): StreamedResponse
     {
         $this->authorizeFileAccess($submission);
@@ -485,5 +552,27 @@ class StudentController extends Controller
     private function authorizeFileAccess(ProjectSubmission $submission): void
     {
         SubmissionFileAccess::authorize(request()->user(), $submission);
+    }
+
+    private function deleteSubmissionFiles(ProjectSubmission $submission): void
+    {
+        $disk = Storage::disk('public');
+
+        foreach (['file_path', 'screenshot_path', 'documentation_path'] as $column) {
+            $path = $submission->{$column};
+            if (is_string($path) && $path !== '' && $disk->exists($path)) {
+                $disk->delete($path);
+            }
+        }
+
+        $submission->loadMissing('interfaceScreenshots');
+
+        foreach ($submission->interfaceScreenshots as $screenshot) {
+            if ($screenshot->file_path && $disk->exists($screenshot->file_path)) {
+                $disk->delete($screenshot->file_path);
+            }
+        }
+
+        $submission->interfaceScreenshots()->delete();
     }
 }

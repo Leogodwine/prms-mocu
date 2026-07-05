@@ -8,11 +8,8 @@
     @endphp
 
     <x-prms-greeting-banner subtitle="Monitor platform performance, server resources, error logs, and maintenance tasks.">
-        <a href="{{ route('admin.backups.index') }}" class="btn btn-light border rounded-pill px-3">
-            <i class="fas fa-database me-1" aria-hidden="true"></i> Backup &amp; recovery
-        </a>
-        <a href="{{ route('dashboard') }}" class="btn btn-light border rounded-pill px-3">
-            <i class="fas fa-arrow-left me-1" aria-hidden="true"></i> Back
+        <a href="{{ route('admin.backups.index') }}" class="btn btn-primary rounded-pill px-4 fw-semibold">
+            <i class="fas fa-database me-1" aria-hidden="true"></i> Backup and recovery
         </a>
     </x-prms-greeting-banner>
 

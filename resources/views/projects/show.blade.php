@@ -78,20 +78,6 @@
                         @endif
                     </div>
                     <div class="card-body">
-                        @if (session('status'))
-                            <div class="alert alert-success small py-2 mb-3">{{ session('status') }}</div>
-                        @endif
-
-                        @if ($errors->any())
-                            <div class="alert alert-danger small py-2 mb-3">
-                                <ul class="mb-0 ps-3">
-                                    @foreach ($errors->all() as $err)
-                                        <li>{{ $err }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
-
                         @if (($project->contributors ?? collect())->isEmpty())
                             <p class="text-muted small mb-3">No contributors listed yet. Add group members who helped build this project.</p>
                         @else
@@ -160,6 +146,7 @@
                     'project' => $project,
                     'similarProjects' => $similarProjects ?? collect(),
                     'ollamaReachable' => $ollamaReachable ?? true,
+                    'canRerunSimilarity' => $canRerunSimilarity ?? false,
                 ])
             @endif
 

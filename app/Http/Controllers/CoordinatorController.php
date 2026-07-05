@@ -18,11 +18,13 @@ use App\Support\PrmsTablePagination;
 use App\Support\PresentationConsentForm;
 use App\Support\RepositoryPublication;
 use App\Support\StudentStageProgress;
+use App\Support\StudentResearchEligibility;
 use App\Support\GroupAutoFormer;
 use App\Support\StaffProfileProvisioner;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -48,22 +50,36 @@ class CoordinatorController extends Controller
     {
         $validated = $request->validated();
 
-        EvaluationRubric::create([
+        $rubric = EvaluationRubric::create([
             'name' => $validated['name'],
             'description' => $validated['description'],
             'total_marks' => $validated['total_marks'],
             'criteria' => $validated['criteria'],
             'is_active' => true,
+            'is_system_default' => $request->boolean('apply_to_all_supervisors'),
         ]);
 
+        if ($rubric->is_system_default) {
+            EvaluationRubric::setSystemDefault($rubric);
+        }
+
         return redirect()->route('coordinator.rubrics.index')->with('status', 'Grading scheme has been saved successfully.');
+    }
+
+    public function setDefaultRubric(Request $request, EvaluationRubric $rubric): RedirectResponse
+    {
+        EvaluationRubric::setSystemDefault($rubric);
+
+        return redirect()
+            ->route('coordinator.rubrics.index')
+            ->with('status', '"'.$rubric->name.'" is now the grading scheme for all supervisors.');
     }
     public function index(Request $request): View|RedirectResponse
     {
         $coordinator = $request->user();
+        StaffProfileProvisioner::syncFromUser($coordinator);
 
         $defaults = [
-            'department_id' => '',
             'programme_id' => '',
             'year' => '',
         ];
@@ -82,7 +98,10 @@ class CoordinatorController extends Controller
         }
 
         $filters = $resolved['filters'];
-        $deptId = $this->coordinatorDepartmentId($filters['department_id']);
+        $deptId = $this->coordinatorDepartmentId($coordinator);
+        $coordinatorDepartment = $deptId !== null
+            ? Department::query()->find($deptId)
+            : null;
         $progId = $filters['programme_id'] !== '' ? $filters['programme_id'] : null;
         $year = (int) ($filters['year'] ?? 0);
         if ($year < 1) {
@@ -91,15 +110,19 @@ class CoordinatorController extends Controller
 
         StaffProfileProvisioner::syncAllSupervisorStaffProfiles();
 
-        $eligibleStudentsAll = $this->eligibleStudentsQuery($deptId, $progId, $year)->get();
+        $eligibleStudentsAll = $this->eligibleStudentsForAssignment($deptId, $progId, $year);
 
-        $eligibleStudents = $this->eligibleStudentsQuery($deptId, $progId, $year)
-            ->paginate(PrmsTablePagination::perPage($request), ['*'], 'students_page')
+        $eligibleStudents = $this->paginateEligibleStudents($eligibleStudentsAll, $request)
             ->withQueryString();
 
         $supervisors = \App\Models\Staff::query()
             ->with(['user', 'department'])
             ->where('is_active', true)
+            ->when(
+                $deptId !== null,
+                fn ($q) => $q->where('department_id', $deptId),
+                fn ($q) => $q->whereRaw('1 = 0')
+            )
             ->whereHas('user', fn ($q) => $q->where('role', 'supervisor')->where('account_status', 'active'))
             ->orderBy('full_name')
             ->get();
@@ -115,8 +138,14 @@ class CoordinatorController extends Controller
             ->paginate(PrmsTablePagination::perPage($request), ['*'], 'groups_page')
             ->withQueryString();
 
-        $departments = \App\Models\Department::all();
-        $programmes = \App\Models\Program::all();
+        $programmes = \App\Models\Program::query()
+            ->when(
+                $deptId !== null && Schema::hasColumn('programmes', 'department_id'),
+                fn ($q) => $q->where('department_id', $deptId),
+                fn ($q) => $deptId === null ? $q->whereRaw('1 = 0') : $q
+            )
+            ->orderBy('programme_code')
+            ->get();
         $projectTypes = \App\Models\ProjectType::all();
 
         return view('coordinator.index', [
@@ -125,7 +154,7 @@ class CoordinatorController extends Controller
             'groups' => $groups,
             'recentGroups' => $recentGroups,
             'supervisors' => $supervisors,
-            'departments' => $departments,
+            'coordinatorDepartment' => $coordinatorDepartment,
             'programmes' => $programmes,
             'projectTypes' => $projectTypes,
             'filters' => [
@@ -137,30 +166,53 @@ class CoordinatorController extends Controller
         ]);
     }
 
+    public function showGroup(Request $request, ProjectGroup $group): View
+    {
+        if ((int) $group->coordinator_id !== (int) $request->user()->id) {
+            abort(403);
+        }
+
+        $group->load([
+            'members.studentProfile.programme',
+            'members.studentProfile.department',
+            'supervisorAssignment.supervisor.staffProfile.department',
+            'coordinator',
+        ]);
+
+        $members = $group->members->sortBy('name')->values();
+        $supervisor = $group->supervisorAssignment?->supervisor;
+        $supervisorStaff = $supervisor?->staffProfile;
+
+        return view('coordinator.groups.show', [
+            'group' => $group,
+            'members' => $members,
+            'supervisor' => $supervisor,
+            'supervisorStaff' => $supervisorStaff,
+        ]);
+    }
+
     /**
      * @param  array<string, mixed>  $filters
      * @return array<string, mixed>
      */
     private function sanitizeCoordinatorFilters(array $filters): array
     {
-        $deptId = $this->coordinatorDepartmentId($filters['department_id'] ?? '');
-
         return [
-            'department_id' => $deptId ?? '',
             'programme_id' => $filters['programme_id'] ?? '',
             'year' => $filters['year'] ?? '',
         ];
     }
 
-    private function coordinatorDepartmentId(mixed $value): ?int
+    private function coordinatorDepartmentId(User $coordinator): ?int
     {
-        $deptId = (int) $value;
+        $coordinator->loadMissing('staffProfile');
+        $deptId = (int) ($coordinator->staffProfile?->department_id ?? 0);
 
-        if ($deptId < 1 || ! Department::query()->whereKey($deptId)->exists()) {
-            return null;
+        if ($deptId > 0 && Department::query()->whereKey($deptId)->exists()) {
+            return $deptId;
         }
 
-        return $deptId;
+        return StaffProfileProvisioner::resolveDepartmentIdFromLabel($coordinator->department);
     }
 
     /**
@@ -169,7 +221,6 @@ class CoordinatorController extends Controller
     private function coordinatorFiltersFromRequest(Request $request): array
     {
         $defaults = [
-            'department_id' => '',
             'programme_id' => '',
             'year' => '',
         ];
@@ -177,7 +228,7 @@ class CoordinatorController extends Controller
         $year = (int) ($filters['year'] ?? 0);
 
         return [
-            'deptId' => $this->coordinatorDepartmentId($filters['department_id']),
+            'deptId' => $this->coordinatorDepartmentId($request->user()),
             'progId' => $filters['programme_id'] !== '' ? $filters['programme_id'] : null,
             'year' => $year > 0 ? $year : null,
         ];
@@ -186,7 +237,7 @@ class CoordinatorController extends Controller
     public function storeGroup(Request $request): RedirectResponse
     {
         $studentUserRule = Rule::exists('users', 'id')->where(fn ($q) => $q
-            ->whereIn('role', ['project_student', 'research_student', 'normal_student'])
+            ->whereIn('role', ['student', 'normal_student', 'project_student', 'research_student'])
             ->where('enrollment_status', 'active'));
 
         $formationType = $request->input('formation_type', 'group');
@@ -222,9 +273,10 @@ class CoordinatorController extends Controller
         }
 
         $this->assertStudentsNotAlreadyGrouped($memberIds);
+        $this->assertStudentsEligibleForAssignment($memberIds);
 
         if ($formationType !== 'individual') {
-            $this->assertStudentsSameProgramme($memberIds);
+            $this->assertStudentsSameProgrammeAndYear($memberIds);
         }
 
         $group = ProjectGroup::create([
@@ -234,7 +286,7 @@ class CoordinatorController extends Controller
 
         $group->members()->sync($memberIds);
 
-        PrmsEventNotifier::notifyGroupCreated($group->load('members'));
+        PrmsEventNotifier::notifyGroupCreated($group->load('members'), $request->user());
 
         Audit::log(
             $request,
@@ -262,7 +314,6 @@ class CoordinatorController extends Controller
             'group_size' => ['required', 'integer', Rule::in([1, 2, 3])],
             'name_prefix' => ['nullable', 'string', 'max:80'],
             'programme_id' => ['nullable'],
-            'department_id' => ['nullable', 'integer'],
             'year' => ['nullable', 'integer'],
         ], [
             'group_size.required' => 'Select how many students each group should have.',
@@ -274,7 +325,7 @@ class CoordinatorController extends Controller
         $progId = $filterState['progId'];
         $year = $filterState['year'];
 
-        $students = $this->eligibleStudentsQuery($deptId, $progId, $year)->get();
+        $students = $this->eligibleStudentsForAssignment($deptId, $progId, $year);
 
         if ($students->isEmpty()) {
             return redirect()
@@ -284,7 +335,7 @@ class CoordinatorController extends Controller
 
         $groupSize = (int) $validated['group_size'];
         $former = new GroupAutoFormer;
-        $groupsByProgramme = $former->formGroupsByProgramme($students, $groupSize);
+        $groupsByProgramme = $former->formGroupsByProgrammeAndYear($students, $groupSize);
 
         if ($groupsByProgramme === []) {
             return back()->with('warning', 'Could not build any groups from the selected students.');
@@ -310,9 +361,13 @@ class CoordinatorController extends Controller
         ) {
             $groupSequence = $existingCount;
 
-            foreach ($groupsByProgramme as $programmeId => $groupPlans) {
+            foreach ($groupsByProgramme as $cohortKey => $groupPlans) {
+                [$programmeId, $studyYear] = array_pad(explode('|', (string) $cohortKey, 2), 2, null);
+                $programmeId = (int) $programmeId;
+                $studyYear = (int) $studyYear;
                 $cohort = $students->filter(
-                    fn (\App\Models\Student $student) => ($student->programme_id ?? 0) == $programmeId
+                    fn (\App\Models\Student $student) => (int) ($student->programme_id ?? 0) === $programmeId
+                        && (int) ($student->year_of_study ?? 0) === $studyYear
                 );
 
                 $prefix = $namePrefix !== ''
@@ -321,7 +376,8 @@ class CoordinatorController extends Controller
 
                 foreach ($groupPlans as $memberIds) {
                     $this->assertStudentsNotAlreadyGrouped($memberIds);
-                    $this->assertStudentsSameProgramme($memberIds);
+                    $this->assertStudentsEligibleForAssignment($memberIds);
+                    $this->assertStudentsSameProgrammeAndYear($memberIds);
 
                     $groupSequence++;
                     $name = count($memberIds) === 1 && $groupSize === 1
@@ -336,22 +392,23 @@ class CoordinatorController extends Controller
                     $group->members()->sync($memberIds);
                     $createdCount++;
 
-                    PrmsEventNotifier::notifyGroupCreated($group->load('members'));
+                    PrmsEventNotifier::notifyGroupCreated($group->load('members'), $request->user());
 
-                    Audit::log(
-                        $request,
-                        'coordinator.group_auto_created',
-                        'ProjectGroup',
-                        (string) $group->id,
-                        null,
-                        [
-                            'name' => $group->name,
-                            'group_size' => $groupSize,
-                            'member_count' => count($memberIds),
-                            'member_ids' => $memberIds,
-                            'programme_id' => $programmeId > 0 ? $programmeId : null,
-                        ]
-                    );
+                Audit::log(
+                    $request,
+                    'coordinator.group_auto_created',
+                    'ProjectGroup',
+                    (string) $group->id,
+                    null,
+                    [
+                        'name' => $group->name,
+                        'group_size' => $groupSize,
+                        'member_count' => count($memberIds),
+                        'member_ids' => $memberIds,
+                        'programme_id' => $programmeId > 0 ? $programmeId : null,
+                        'year_of_study' => $studyYear > 0 ? $studyYear : null,
+                    ]
+                );
                 }
             }
         });
@@ -362,7 +419,7 @@ class CoordinatorController extends Controller
             : "Auto-formed {$createdCount} group(s) with up to {$groupSize} students each within the same programme, balancing gender where data is available.";
 
         if ($programmeCount > 1) {
-            $message .= " Groups were created separately for {$programmeCount} programme(s).";
+            $message .= " Groups were created separately for {$programmeCount} programme/year cohort(s).";
         }
 
         if ($withoutGender > 0 && $groupSize > 1) {
@@ -380,15 +437,81 @@ class CoordinatorController extends Controller
     private function eligibleStudentsQuery(?int $deptId, mixed $progId, ?int $year)
     {
         return \App\Models\Student::query()
-            ->with(['user', 'programme'])
+            ->with(['user.studentProfile.programme.department', 'programme.department'])
             ->where('enrollment_status', 'active')
+            ->whereNotNull('programme_id')
+            ->whereNotNull('year_of_study')
+            ->whereHas('programme')
+            ->whereHas('user', fn ($q) => $q
+                ->whereIn('role', ['project_student', 'research_student', 'normal_student'])
+                ->where('enrollment_status', 'active')
+                ->where('account_status', 'active'))
+            ->when($deptId !== null, function ($q) use ($deptId) {
+                $q->where(function ($departmentQuery) use ($deptId) {
+                    if (Schema::hasColumn('students', 'department_id')) {
+                        $departmentQuery->where('department_id', $deptId);
+
+                        if (Schema::hasColumn('programmes', 'department_id')) {
+                            $departmentQuery->orWhereHas('programme', fn ($pq) => $pq->where('department_id', $deptId));
+                        }
+
+                        return;
+                    }
+
+                    if (Schema::hasColumn('programmes', 'department_id')) {
+                        $departmentQuery->whereHas('programme', fn ($pq) => $pq->where('department_id', $deptId));
+                    }
+                });
+            })
             ->when($progId, fn ($q) => $q->where('programme_id', $progId))
             ->when($year > 0, fn ($q) => $q->where('year_of_study', $year))
-            ->when($deptId && Schema::hasColumn('programmes', 'department_id'), function ($q) use ($deptId) {
-                $q->whereHas('programme', fn ($pq) => $pq->where('department_id', $deptId));
-            })
             ->whereDoesntHave('user.projectGroups')
             ->orderBy('full_name');
+    }
+
+    /**
+     * @return Collection<int, \App\Models\Student>
+     */
+    private function eligibleStudentsForAssignment(?int $deptId, mixed $progId, ?int $year): Collection
+    {
+        return $this->eligibleStudentsQuery($deptId, $progId, $year)
+            ->get()
+            ->filter(fn (\App\Models\Student $student) => $this->studentEligibleForAssignment($student))
+            ->values();
+    }
+
+    /**
+     * @param  Collection<int, \App\Models\Student>  $students
+     */
+    private function paginateEligibleStudents(Collection $students, Request $request): LengthAwarePaginator
+    {
+        $perPage = PrmsTablePagination::perPage($request);
+        $page = LengthAwarePaginator::resolveCurrentPage('students_page');
+
+        return new LengthAwarePaginator(
+            $students->forPage($page, $perPage)->values(),
+            $students->count(),
+            $perPage,
+            $page,
+            [
+                'path' => $request->url(),
+                'pageName' => 'students_page',
+            ],
+        );
+    }
+
+    private function studentEligibleForAssignment(\App\Models\Student $student): bool
+    {
+        $student->loadMissing(['user.studentProfile.programme.department', 'programme.department']);
+
+        if ($student->user === null || $student->programme_id === null || $student->programme === null) {
+            return false;
+        }
+
+        $student->user->setRelation('studentProfile', $student);
+
+        return StudentResearchEligibility::isInResearchYear($student->user)
+            && StudentResearchEligibility::availableTracks($student->user) !== [];
     }
 
     /**
@@ -443,17 +566,49 @@ class CoordinatorController extends Controller
     /**
      * @param  list<int>  $userIds
      */
-    private function assertStudentsSameProgramme(array $userIds): void
+    private function assertStudentsEligibleForAssignment(array $userIds): void
     {
-        $programmeIds = \App\Models\Student::query()
+        $students = \App\Models\Student::query()
+            ->with(['user.studentProfile.programme.department', 'programme.department'])
             ->whereIn('user_id', $userIds)
-            ->pluck('programme_id')
-            ->unique()
-            ->values();
+            ->get()
+            ->keyBy('user_id');
+
+        $invalid = collect($userIds)->contains(function ($userId) use ($students): bool {
+            $student = $students->get($userId);
+
+            return ! $student || ! $this->studentEligibleForAssignment($student);
+        });
+
+        if ($invalid) {
+            throw ValidationException::withMessages([
+                'student_ids' => ['Only active final-year students with a programme can be assigned.'],
+                'student_id' => ['Only an active final-year student with a programme can be assigned.'],
+            ]);
+        }
+    }
+
+    /**
+     * @param  list<int>  $userIds
+     */
+    private function assertStudentsSameProgrammeAndYear(array $userIds): void
+    {
+        $students = \App\Models\Student::query()
+            ->whereIn('user_id', $userIds)
+            ->get(['programme_id', 'year_of_study']);
+
+        $programmeIds = $students->pluck('programme_id')->unique()->values();
+        $studyYears = $students->pluck('year_of_study')->unique()->values();
 
         if ($programmeIds->count() !== 1) {
             throw ValidationException::withMessages([
                 'student_ids' => ['All students in a group must be from the same programme.'],
+            ]);
+        }
+
+        if ($studyYears->count() !== 1) {
+            throw ValidationException::withMessages([
+                'student_ids' => ['All students in a group must be from the same year of study.'],
             ]);
         }
     }
@@ -485,7 +640,7 @@ class CoordinatorController extends Controller
 
         $group = ProjectGroup::query()->with('members')->findOrFail($validated['project_group_id']);
         $supervisor = User::query()->findOrFail($validated['supervisor_id']);
-        PrmsEventNotifier::notifySupervisorAssigned($group, $supervisor);
+        PrmsEventNotifier::notifySupervisorAssigned($group, $supervisor, $request->user());
 
         Audit::log(
             $request,
@@ -532,7 +687,7 @@ class CoordinatorController extends Controller
                 'supervisor_id' => $targetSupervisor->id,
             ]);
 
-            PrmsEventNotifier::notifySupervisorAssigned($group->load('members'), $targetSupervisor);
+            PrmsEventNotifier::notifySupervisorAssigned($group->load('members'), $targetSupervisor, $request->user());
 
             // Increment workload locally so we don't dump everyone on one person in the same loop
             $targetSupervisor->supervisor_assignments_count++;
@@ -579,6 +734,7 @@ class CoordinatorController extends Controller
             'deadlines' => $deadlines,
             'deadlineStats' => $deadlineStats,
             'groups' => ProjectGroup::where('coordinator_id', $request->user()->id)->get(),
+            'now' => $now,
         ]);
     }
 
@@ -677,8 +833,8 @@ class CoordinatorController extends Controller
 
         $submissions = $this->applyCoordinatorSubmissionFilters(
             ProjectSubmission::query()
-                ->with(['projectGroup.members', 'student', 'feedback.supervisor'])
-                ->where('submitted_to_coordinator', true)
+            ->with(['projectGroup.members', 'student', 'feedback.supervisor'])
+            ->where('submitted_to_coordinator', true)
                 ->whereIn('stage', StudentStageProgress::completeDocumentStageNames()),
             $filters
         )
@@ -857,7 +1013,7 @@ class CoordinatorController extends Controller
     private function coordinatorApproveRelatedConsent(\App\Models\ProjectSubmission $submission): int
     {
         // Consent must be coordinator-signed via the dedicated sign page.
-        return 0;
+            return 0;
     }
 
     /**
@@ -931,13 +1087,18 @@ class CoordinatorController extends Controller
     }
 
     /**
+     * @param  Collection<int, ProjectSubmission>|LengthAwarePaginator<int, ProjectSubmission>  $submissions
      * @return array<int, ProjectSubmission> keyed by parent final submission id
      */
-    private function consentMapForFinalSubmissions(Collection $submissions): array
+    private function consentMapForFinalSubmissions(Collection|LengthAwarePaginator $submissions): array
     {
         $map = [];
 
-        foreach ($submissions as $submission) {
+        $items = $submissions instanceof LengthAwarePaginator
+            ? $submissions->getCollection()
+            : $submissions;
+
+        foreach ($items as $submission) {
             $student = $submission->student;
             if ($student === null) {
                 continue;

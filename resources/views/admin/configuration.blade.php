@@ -23,9 +23,6 @@
                 <i class="fas fa-sync-alt me-1" aria-hidden="true"></i> Re-evaluate students
             </button>
         </form>
-        <a href="{{ route('dashboard') }}" class="btn btn-light border rounded-pill px-3">
-            <i class="fas fa-arrow-left me-1" aria-hidden="true"></i> Dashboard
-        </a>
     </x-prms-greeting-banner>
 
     {{-- Overview --}}
@@ -291,6 +288,16 @@
                                        value="{{ old('configs.eligibility_min_year', $map['eligibility_min_year'] ?? '3') }}"
                                        class="form-control @error('configs.eligibility_min_year') is-invalid @enderror" required>
                                 @error('configs.eligibility_min_year')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                                </div>
+                            <div class="col-12">
+                                <hr class="my-1">
+                                <span class="prms-eyebrow">Important announcements</span>
+                                <p class="small text-muted mb-2">Shown on the student dashboard academic calendar. One announcement per line; optional date prefix <code>YYYY-MM-DD | Title — message</code>.</p>
+                                <label class="form-label" for="calendar_announcements">Announcements</label>
+                                <textarea id="calendar_announcements" name="configs[calendar_announcements]" rows="5"
+                                          class="form-control @error('configs.calendar_announcements') is-invalid @enderror"
+                                          placeholder="2026-07-15 | Faculty presentation week — All project groups must confirm presentation slots with their supervisor.">{{ old('configs.calendar_announcements', $map['calendar_announcements'] ?? '') }}</textarea>
+                                @error('configs.calendar_announcements')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                             </div>
                         </div>
                     </div>
@@ -440,7 +447,7 @@
         <script>
             document.addEventListener('DOMContentLoaded', function () {
                 if (!window.bootstrap) return;
-                @if ($errors->has('configs.academic_year') || $errors->has('configs.project_cycle') || $errors->has('configs.deadline_proposal') || $errors->has('configs.deadline_final') || $errors->has('configs.eligibility_min_year'))
+                @if ($errors->has('configs.academic_year') || $errors->has('configs.project_cycle') || $errors->has('configs.deadline_proposal') || $errors->has('configs.deadline_final') || $errors->has('configs.eligibility_min_year') || $errors->has('configs.calendar_announcements'))
                     var general = document.getElementById('generalSettingsModal');
                     if (general) bootstrap.Modal.getOrCreateInstance(general).show();
                 @elseif ($errors->has('department_id') || $errors->has('academic_level'))

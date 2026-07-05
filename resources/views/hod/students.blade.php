@@ -26,6 +26,7 @@
             <small class="text-muted">{{ $students->total() }} total</small>
         </div>
         <div class="card-body p-0">
+            <x-prms-table-pagination-toolbar :paginator="$students" noun="students" />
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead>
@@ -68,9 +69,7 @@
                 </table>
             </div>
         </div>
-        @if ($students->hasPages())
-            <div class="card-footer">{{ $students->links() }}</div>
-        @endif
+        <x-prms-table-pagination-footer :paginator="$students" class="card-footer bg-white border-top" />
     </div>
 @endif
 

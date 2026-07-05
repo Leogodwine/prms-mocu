@@ -197,8 +197,52 @@ final class StudentStageProgress
             return null;
         }
 
-        // Default chapter gate: previous stage in global order must be approved.
+        if (self::isCompleteSystemStage($stageName) || preg_match('/chapter\s*\d+/i', $stageName)) {
+            $previousStageName = self::previousGlobalStageName($stageName);
+            if ($previousStageName !== null) {
+                $previousApproved = ($latestByStage->get($previousStageName)?->status ?? '') === 'approved';
+                if (! $previousApproved) {
+                    return 'Your supervisor must approve '
+                        .self::shortStageLabel($previousStageName)
+                        .' before you can submit '
+                        .self::shortStageLabel($stageName).'.';
+                }
+            }
+        }
+
         return null;
+    }
+
+    /**
+     * @return Collection<int, string|null> stage id => block reason (null when upload is allowed)
+     */
+    public static function uploadBlockReasonsForStages(
+        Collection $stages,
+        User $user,
+        ?ProjectGroup $projectGroup,
+        Collection $latestByStage,
+    ): Collection {
+        return $stages->mapWithKeys(fn (ProjectStage $stage) => [
+            $stage->id => self::canUploadStage($stage->stage_name, $user, $projectGroup, $latestByStage),
+        ]);
+    }
+
+    /**
+     * Previous workflow stage by global {@see ProjectStage::$stage_order}.
+     */
+    public static function previousGlobalStageName(string $stageName): ?string
+    {
+        $currentOrder = ProjectStage::query()
+            ->where('stage_name', trim($stageName))
+            ->value('stage_order');
+
+        if ($currentOrder === null || (int) $currentOrder <= 1) {
+            return null;
+        }
+
+        return ProjectStage::query()
+            ->where('stage_order', (int) $currentOrder - 1)
+            ->value('stage_name');
     }
 
     public static function workTypeFromCompleteDocumentStage(string $stageName): string
@@ -326,7 +370,7 @@ final class StudentStageProgress
 
     private static function isInProgressStatus(string $status): bool
     {
-        return in_array($status, ['pending', 'submitted', 'under_review', 'needs_revision'], true);
+        return in_array($status, ['draft', 'pending', 'submitted', 'under_review', 'needs_revision'], true);
     }
 
     /**

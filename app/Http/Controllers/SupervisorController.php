@@ -13,6 +13,7 @@ use App\Models\SupervisionLog;
 use App\Notifications\SubmissionReviewedNotification;
 use App\Services\OnlyOfficeService;
 use App\Support\Audit;
+use App\Support\EvaluationScoring;
 use App\Support\PrmsEventNotifier;
 use App\Support\PrmsListFilters;
 use App\Support\PrmsTablePagination;
@@ -25,6 +26,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class SupervisorController extends Controller
@@ -68,6 +70,7 @@ class SupervisorController extends Controller
         $submissions = $this->applySupervisorSubmissionFilters(
             ProjectSubmission::query()
                 ->with(['projectGroup.members', 'student', 'feedback.supervisor'])
+                ->whereRaw('LOWER(COALESCE(status, "")) != ?', ['draft'])
                 ->where(function ($query) use ($supervisorId) {
                     $query->whereHas('projectGroup.supervisorAssignment', fn ($q) => $q->where('supervisor_id', $supervisorId))
                         ->orWhereHas('student.studentAssignment', fn ($q) => $q->where('supervisor_id', $supervisorId));
@@ -451,71 +454,208 @@ class SupervisorController extends Controller
     {
         $this->authorizeSubmissionForSupervisor($request, $submission);
 
-        $rubrics = EvaluationRubric::query()
-            ->where('is_active', true)
-            ->latest()
-            ->get();
+        $submission->load(['student', 'projectGroup.members']);
+        $rubrics = EvaluationRubric::forSupervisorGrading();
+        $systemRubric = EvaluationRubric::systemDefault();
+        $presentationGroupGrading = $this->usesPresentationGroupGrading($submission);
 
-        $existing = StudentEvaluation::query()
+        $existingEvaluations = StudentEvaluation::query()
             ->where('project_submission_id', $submission->id)
             ->where('evaluator_id', $request->user()->id)
-            ->latest()
-            ->first();
+            ->get();
+
+        $existingGroup = $existingEvaluations->firstWhere('evaluation_scope', 'group');
+        $existingMembers = $existingEvaluations
+            ->where('evaluation_scope', 'individual')
+            ->keyBy(fn (StudentEvaluation $evaluation) => (int) $evaluation->student_id);
+        $existing = $presentationGroupGrading
+            ? null
+            : ($existingEvaluations->firstWhere('evaluation_scope', 'submission') ?? $existingEvaluations->first());
 
         return view('supervisor.evaluate', [
-            'submission' => $submission->load(['student', 'projectGroup.members']),
+            'submission' => $submission,
             'rubrics' => $rubrics,
+            'systemRubric' => $systemRubric,
+            'presentationGroupGrading' => $presentationGroupGrading,
+            'groupMembers' => $presentationGroupGrading
+                ? $submission->projectGroup?->members ?? collect()
+                : collect(),
             'existing' => $existing,
+            'existingGroup' => $existingGroup,
+            'existingMembers' => $existingMembers,
         ]);
     }
 
-    /**
-     * FR-04: Persist scheme-based scores. Computes the total weighted
-     * score from individual criterion scores so the grading scheme remains the
-     * source of truth on weighting.
-     */
     public function storeEvaluation(Request $request, ProjectSubmission $submission): RedirectResponse
     {
         $this->authorizeSubmissionForSupervisor($request, $submission);
 
-        $validated = $request->validate([
-            'evaluation_rubric_id' => ['required', 'integer', 'exists:evaluation_rubrics,id'],
-            'scores' => ['required', 'array', 'min:1'],
-            'scores.*.criterion' => ['required', 'string', 'max:120'],
-            'scores.*.score' => ['required', 'numeric', 'min:0', 'max:100'],
-            'scores.*.weight' => ['required', 'numeric', 'min:0', 'max:100'],
-            'scores.*.comments' => ['nullable', 'string', 'max:1000'],
-            'general_comments' => ['nullable', 'string', 'max:3000'],
-            'status' => ['required', Rule::in(['draft', 'finalized'])],
-        ]);
+        $submission->load(['projectGroup.members']);
+        $presentationGroupGrading = $this->usesPresentationGroupGrading($submission);
 
-        // Weighted score: sum( score * weight / 100 ).
-        $totalScore = 0;
-        $cleanScores = [];
-        foreach ($validated['scores'] as $row) {
-            $weighted = ((float) $row['score']) * ((float) $row['weight']) / 100.0;
-            $totalScore += $weighted;
-            $cleanScores[] = [
-                'criterion' => $row['criterion'],
-                'weight' => (float) $row['weight'],
-                'score' => (float) $row['score'],
-                'weighted_score' => round($weighted, 2),
-                'comments' => $row['comments'] ?? null,
-            ];
+        $allowedRubricIds = EvaluationRubric::forSupervisorGrading()->pluck('id')->all();
+
+        $baseRules = [
+            'evaluation_rubric_id' => ['required', 'integer', Rule::in($allowedRubricIds)],
+            'status' => ['required', Rule::in(['draft', 'finalized'])],
+        ];
+
+        if ($presentationGroupGrading) {
+            $validated = $request->validate(array_merge($baseRules, $this->nestedScoreRules('group'), $this->memberScoreRules($submission)));
+            $saved = $this->persistPresentationGroupEvaluations($request, $submission, $validated);
+        } else {
+            $validated = $request->validate(array_merge($baseRules, $this->nestedScoreRules('scores', false)));
+            $saved = [$this->persistSingleEvaluation($request, $submission, $validated, 'submission')];
         }
 
-        $evaluation = StudentEvaluation::updateOrCreate(
-            [
-                'project_submission_id' => $submission->id,
-                'evaluator_id' => $request->user()->id,
-            ],
+        if ($validated['status'] === 'finalized') {
+            foreach ($saved as $evaluation) {
+                $this->notifyFinalizedEvaluation($submission, $evaluation);
+            }
+        }
+
+        $message = $validated['status'] === 'finalized'
+            ? 'Evaluation(s) finalized successfully.'
+            : 'Evaluation draft saved.';
+
+        return redirect()
+            ->route('supervisor.index')
+            ->with('status', $message);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function nestedScoreRules(string $prefix, bool $nested = true): array
+    {
+        $scoresKey = $nested ? "{$prefix}.scores" : $prefix;
+
+        return [
+            $scoresKey => ['required', 'array', 'min:1'],
+            "{$scoresKey}.*.criterion" => ['required', 'string', 'max:120'],
+            "{$scoresKey}.*.score" => ['required', 'numeric', 'min:0', 'max:100'],
+            "{$scoresKey}.*.weight" => ['required', 'numeric', 'min:0', 'max:100'],
+            "{$scoresKey}.*.comments" => ['nullable', 'string', 'max:1000'],
+            ($nested ? "{$prefix}.general_comments" : 'general_comments') => ['nullable', 'string', 'max:3000'],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function memberScoreRules(ProjectSubmission $submission): array
+    {
+        $rules = [];
+        $members = $submission->projectGroup?->members ?? collect();
+
+        foreach ($members as $member) {
+            $prefix = "members.{$member->id}";
+            $rules = array_merge($rules, $this->nestedScoreRules($prefix));
+        }
+
+        $rules['members'] = ['required', 'array'];
+
+        if ($members->isEmpty()) {
+            throw ValidationException::withMessages([
+                'members' => 'This presentation submission has no group members to grade individually.',
+            ]);
+        }
+
+        return $rules;
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return list<StudentEvaluation>
+     */
+    private function persistPresentationGroupEvaluations(Request $request, ProjectSubmission $submission, array $validated): array
+    {
+        $saved = [];
+        $saved[] = $this->persistScopedEvaluation(
+            $request,
+            $submission,
+            $validated,
+            'group',
+            null,
+            $validated['group'] ?? []
+        );
+
+        foreach ($submission->projectGroup?->members ?? [] as $member) {
+            $memberPayload = $validated['members'][$member->id] ?? null;
+            if ($memberPayload === null) {
+                continue;
+            }
+
+            $saved[] = $this->persistScopedEvaluation(
+                $request,
+                $submission,
+                $validated,
+                'individual',
+                (int) $member->id,
+                $memberPayload
+            );
+        }
+
+        return $saved;
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    private function persistSingleEvaluation(Request $request, ProjectSubmission $submission, array $validated, string $scope): StudentEvaluation
+    {
+        $payload = [
+            'scores' => $validated['scores'],
+            'general_comments' => $validated['general_comments'] ?? null,
+        ];
+
+        return $this->persistScopedEvaluation(
+            $request,
+            $submission,
+            $validated,
+            $scope,
+            $submission->student_id ? (int) $submission->student_id : null,
+            $payload
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @param  array<string, mixed>  $scopePayload
+     */
+    private function persistScopedEvaluation(
+        Request $request,
+        ProjectSubmission $submission,
+        array $validated,
+        string $scope,
+        ?int $studentId,
+        array $scopePayload
+    ): StudentEvaluation {
+        $computed = EvaluationScoring::fromRows($scopePayload['scores'] ?? []);
+
+        $lookup = [
+            'project_submission_id' => $submission->id,
+            'evaluator_id' => $request->user()->id,
+            'evaluation_scope' => $scope,
+        ];
+
+        if ($scope === 'individual') {
+            $lookup['student_id'] = $studentId;
+        } elseif ($scope === 'group') {
+            $lookup['student_id'] = null;
+        } else {
+            $lookup['student_id'] = $studentId;
+        }
+
+        $evaluation = StudentEvaluation::query()->updateOrCreate(
+            $lookup,
             [
                 'evaluation_rubric_id' => $validated['evaluation_rubric_id'],
-                'student_id' => $submission->student_id,
+                'student_id' => $scope === 'group' ? null : $studentId,
                 'project_group_id' => $submission->project_group_id,
-                'scores' => $cleanScores,
-                'total_score' => (int) round($totalScore),
-                'general_comments' => $validated['general_comments'] ?? null,
+                'scores' => $computed['scores'],
+                'total_score' => $computed['total_score'],
+                'general_comments' => $scopePayload['general_comments'] ?? null,
                 'status' => $validated['status'],
             ]
         );
@@ -528,22 +668,52 @@ class SupervisorController extends Controller
             null,
             [
                 'submission_id' => $submission->id,
+                'evaluation_scope' => $scope,
+                'student_id' => $studentId,
                 'total_score' => $evaluation->total_score,
                 'status' => $evaluation->status,
             ]
         );
 
-        if ($validated['status'] === 'finalized') {
-            PrmsEventNotifier::notifyEvaluationFinalized($submission, (int) $evaluation->total_score);
+        return $evaluation;
+    }
+
+    private function notifyFinalizedEvaluation(ProjectSubmission $submission, StudentEvaluation $evaluation): void
+    {
+        if ($evaluation->evaluation_scope === 'group') {
+            PrmsEventNotifier::notifyEvaluationFinalized(
+                $submission,
+                (int) $evaluation->total_score,
+                'Group presentation grade'
+            );
+
+            return;
         }
 
-        $message = $validated['status'] === 'finalized'
-            ? 'Evaluation finalized with score '.$evaluation->total_score.'/100.'
-            : 'Evaluation draft saved.';
+        if ($evaluation->evaluation_scope === 'individual' && $evaluation->student_id) {
+            $student = User::query()->find($evaluation->student_id);
+            if ($student) {
+                PrmsEventNotifier::notifyStudentEvaluationScore(
+                    $student,
+                    $submission,
+                    (int) $evaluation->total_score,
+                    'Individual presentation grade'
+                );
+            }
 
-        return redirect()
-            ->route('supervisor.index')
-            ->with('status', $message);
+            return;
+        }
+
+        PrmsEventNotifier::notifyEvaluationFinalized($submission, (int) $evaluation->total_score);
+    }
+
+    private function usesPresentationGroupGrading(ProjectSubmission $submission): bool
+    {
+        if ($submission->project_group_id === null) {
+            return false;
+        }
+
+        return StudentStageProgress::isPresentationStage((string) $submission->stage);
     }
 
     /**

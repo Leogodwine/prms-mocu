@@ -13,13 +13,6 @@
 </div>
 
 <div class="card-body">
-    @if (session('status'))
-        <div class="alert alert-success d-flex align-items-start gap-2 mb-3" role="status">
-            <i class="fas fa-check-circle mt-1" aria-hidden="true"></i>
-            <div class="small">{{ session('status') }}</div>
-        </div>
-    @endif
-
     <form action="{{ route('password.email') }}" method="POST" novalidate>
         @csrf
 

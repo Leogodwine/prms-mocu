@@ -5,6 +5,8 @@
 @section('content')
 
 @php
+    use App\Support\PrmsAccountIdentifierFormat;
+
     $roleLabels = [
         'admin'             => ['label' => 'Admin',             'tone' => 'bg-danger'],
         'hod'               => ['label' => 'Head of Dept.',     'tone' => 'bg-info'],
@@ -113,56 +115,61 @@
 {{-- ────────── User table ────────── --}}
 <div class="card">
     <div class="card-header">
-        <div class="row g-2 align-items-center">
-            <div class="col-md-5">
-                <h3 class="card-title h6 fw-bold mb-0 d-flex align-items-center">
-                    <i class="fas fa-users-cog text-primary me-2" aria-hidden="true"></i>
-                    System users
-                </h3>
+        <h3 class="card-title h6 fw-bold mb-3 d-flex align-items-center">
+            <i class="fas fa-users-cog text-primary me-2" aria-hidden="true"></i>
+            System users
+        </h3>
+        <form method="GET"
+              action="{{ route('admin.users.index') }}"
+              id="prmsUserFilterForm"
+              class="d-flex flex-nowrap align-items-center gap-2 overflow-auto">
+            <div class="position-relative flex-grow-1" style="min-width: 220px;">
+                <i class="fas fa-search position-absolute text-muted" aria-hidden="true"
+                   style="left: 0.85rem; top: 50%; transform: translateY(-50%); pointer-events: none;"></i>
+                <input type="search" name="q" value="{{ $filters['q'] }}"
+                       class="form-control form-control-sm ps-4"
+                       placeholder="Name, email, reg. no., staff email, dept…"
+                       aria-label="Search users"
+                       autocomplete="off">
             </div>
-            <div class="col-md-7">
-                <form method="GET" action="{{ route('admin.users.index') }}" id="prmsUserFilterForm" class="d-flex flex-wrap gap-2 justify-content-md-end align-items-center">
-                    <div class="position-relative flex-grow-1" style="min-width: 200px;">
-                        <i class="fas fa-search position-absolute text-muted" aria-hidden="true"
-                           style="left: 0.85rem; top: 50%; transform: translateY(-50%); pointer-events: none;"></i>
-                        <input type="search" name="q" value="{{ $filters['q'] }}"
-                               class="form-control form-control-sm ps-4"
-                               placeholder="Name, email, reg. no., staff ID, dept…"
-                               aria-label="Search users"
-                               autocomplete="off">
-                    </div>
-                    <select name="role" class="form-select form-select-sm prms-user-filter-auto" style="max-width: 160px;" aria-label="Filter by role">
-                        <option value="">All roles</option>
-                        @foreach ($roles as $r)
-                            <option value="{{ $r }}" @selected($filters['role'] === $r)>
-                                {{ $roleLabels[$r]['label'] ?? \Illuminate\Support\Str::title(str_replace('_',' ',$r)) }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <select name="status" class="form-select form-select-sm prms-user-filter-auto" style="max-width: 180px;" aria-label="Filter by status">
-                        <option value="">All statuses</option>
-                        <option value="suspended_locked" @selected(($filters['status'] ?? '') === 'suspended_locked')>Suspended or locked</option>
-                        @foreach ($statuses as $s)
-                            <option value="{{ $s }}" @selected($filters['status'] === $s)>
-                                {{ $statusLabels[$s]['label'] ?? \Illuminate\Support\Str::title($s) }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @if (! empty($filters['must_change_password']))
-                        <input type="hidden" name="must_change_password" value="1">
-                    @endif
-                    <button type="submit" class="btn btn-sm btn-primary">
-                        <i class="fas fa-filter me-1" aria-hidden="true"></i>
-                        Apply
-                    </button>
-                    @if ($hasActiveFilters ?? false)
-                        <a href="{{ $filterResetUrl }}" class="btn btn-sm btn-light border">
-                            Clear
-                        </a>
-                    @endif
-                </form>
+            <select name="role"
+                    class="form-select form-select-sm prms-user-filter-auto flex-shrink-0"
+                    style="width: 160px;"
+                    aria-label="Filter by role">
+                <option value="">All roles</option>
+                @foreach ($roles as $r)
+                    <option value="{{ $r }}" @selected($filters['role'] === $r)>
+                        {{ $roleLabels[$r]['label'] ?? \Illuminate\Support\Str::title(str_replace('_',' ',$r)) }}
+                    </option>
+                @endforeach
+            </select>
+            <select name="status"
+                    class="form-select form-select-sm prms-user-filter-auto flex-shrink-0"
+                    style="width: 180px;"
+                    aria-label="Filter by status">
+                <option value="">All statuses</option>
+                <option value="suspended_locked" @selected(($filters['status'] ?? '') === 'suspended_locked')>Suspended or locked</option>
+                @foreach ($statuses as $s)
+                    <option value="{{ $s }}" @selected($filters['status'] === $s)>
+                        {{ $statusLabels[$s]['label'] ?? \Illuminate\Support\Str::title($s) }}
+                    </option>
+                @endforeach
+            </select>
+            @if (! empty($filters['must_change_password']))
+                <input type="hidden" name="must_change_password" value="1">
+            @endif
+            <div class="d-flex flex-nowrap gap-2 ms-auto flex-shrink-0">
+                <button type="submit" class="btn btn-sm btn-primary text-nowrap">
+                    <i class="fas fa-filter me-1" aria-hidden="true"></i>
+                    Apply
+                </button>
+                <a href="{{ $filterResetUrl }}"
+                   class="btn btn-sm btn-light border text-nowrap @if (! ($hasActiveFilters ?? false)) disabled @endif"
+                   @if (! ($hasActiveFilters ?? false)) aria-disabled="true" tabindex="-1" @endif>
+                    Clear
+                </a>
             </div>
-        </div>
+        </form>
         @if ($hasActiveFilters ?? false)
             <div class="px-3 pb-2 d-flex flex-wrap gap-2 align-items-center small">
                 <span class="text-muted">Showing filtered results:</span>
@@ -185,6 +192,7 @@
     </div>
 
     <div class="card-body p-0">
+        <x-prms-table-pagination-toolbar :paginator="$users" noun="users" />
         <div id="prmsBulkUserActions" class="d-none align-items-center justify-content-between flex-wrap gap-2 px-3 py-2 border-bottom bg-surface-soft">
             <span class="small text-muted">
                 <span id="prmsSelectedUserCount">0</span> selected
@@ -207,7 +215,7 @@
                             <input type="checkbox" class="form-check-input" id="prmsSelectAllUsers" aria-label="Select all users on this page">
                         </th>
                         <th scope="col">User</th>
-                        <th scope="col">Reg. no / Staff ID</th>
+                        <th scope="col">Reg. no / Staff email</th>
                         <th scope="col">Role</th>
                         <th scope="col">Status</th>
                         <th scope="col" class="text-end">Actions</th>
@@ -236,13 +244,13 @@
                                         {{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($user->name, 0, 1)) }}
                                     </span>
                                     <div class="min-w-0">
-                                        <div class="fw-semibold text-strong">{{ $user->name }}</div>
+                                        <div class="text-body">{{ $user->name }}</div>
                                         <div class="small text-muted text-truncate" style="max-width: 240px;">{{ $user->email }}</div>
                                     </div>
                                 </div>
                             </td>
                             <td>
-                                <code class="bg-surface-soft px-2 py-1 rounded small text-strong">{{ $user->displayIdentifier() }}</code>
+                                <code class="bg-surface-soft px-2 py-1 rounded small fw-normal">{{ $user->displayIdentifier() }}</code>
                             </td>
                             <td>
                                 <span class="badge {{ $role['tone'] }}">{{ $role['label'] }}</span>
@@ -274,6 +282,13 @@
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#editUserModal-{{ $user->id }}">
                                             <i class="fas fa-pen" aria-hidden="true"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="btn btn-light btn-sm border"
+                                                title="Generate reset password"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#resetPasswordModal-{{ $user->id }}">
+                                            <i class="fas fa-key" aria-hidden="true"></i>
                                         </button>
                                         <button type="button"
                                                 class="btn btn-light btn-sm border text-danger"
@@ -313,14 +328,7 @@
         </div>
     </div>
 
-    @if ($users->hasPages())
-        <div class="card-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <small class="text-muted">
-                Showing {{ $users->firstItem() }}–{{ $users->lastItem() }} of {{ $users->total() }} users
-            </small>
-            {{ $users->links() }}
-        </div>
-    @endif
+    <x-prms-table-pagination-footer :paginator="$users" class="card-footer bg-white border-top" />
 </div>
 
 @endsection
@@ -413,8 +421,11 @@
                                            @if ($createRoleIsStudent) name="login_id" @endif
                                            value="{{ $createFormFailed && $createRoleIsStudent ? old('login_id') : '' }}"
                                            class="form-control prms-student-login-id {{ $createFormFailed && $errors->has('login_id') ? 'is-invalid' : '' }}"
-                                           placeholder="MoCU/REG/1134/24"
+                                           placeholder="{{ PrmsAccountIdentifierFormat::STUDENT_EXAMPLE }}"
+                                           maxlength="80"
+                                           pattern="MoCU/[A-Z0-9]+(?:-[A-Z0-9]+)*/[0-9]+/[0-9]{2}"
                                            @if(! $createRoleIsStudent) disabled @endif>
+                                    <div class="form-text">{{ PrmsAccountIdentifierFormat::STUDENT_HELP }}</div>
                                     @if ($createFormFailed && $errors->has('login_id'))
                                         <div class="invalid-feedback d-block">{{ $errors->first('login_id') }}</div>
                                     @endif
@@ -422,11 +433,19 @@
 
                                 <div class="col-md-6">
                                     <label for="create_department" class="form-label">Department <span class="text-danger">*</span></label>
-                                    <input id="create_department" type="text" name="department"
-                                           value="{{ $createFormFailed ? old('department') : '' }}"
-                                           class="form-control {{ $createFormFailed && $errors->has('department') ? 'is-invalid' : '' }}"
-                                           placeholder="e.g. Computing &amp; ICT"
-                                           @if(! $createRoleIsStudent) disabled @endif>
+                                    @php $createDepartment = $createFormFailed ? old('department') : ''; @endphp
+                                    <select id="create_department" name="department"
+                                            class="form-select {{ $createFormFailed && $errors->has('department') ? 'is-invalid' : '' }}"
+                                            @if(! $createRoleIsStudent) disabled @endif>
+                                        <option value="">Select department…</option>
+                                        @foreach ($departments as $department)
+                                            <option value="{{ $department->department_code }}"
+                                                    data-department-id="{{ $department->id }}"
+                                                    @selected($createDepartment === $department->department_code || $createDepartment === $department->department_name)>
+                                                {{ $department->department_name }} ({{ $department->department_code }})
+                                            </option>
+                                        @endforeach
+                                    </select>
                                     @if ($createFormFailed && $errors->has('department'))
                                         <div class="invalid-feedback d-block">{{ $errors->first('department') }}</div>
                                     @endif
@@ -434,10 +453,19 @@
 
                                 <div class="col-md-6">
                                     <label for="create_programme" class="form-label">Programme <span class="text-danger">*</span></label>
-                                    <input id="create_programme" type="text" name="programme"
-                                           value="{{ $createFormFailed ? old('programme') : '' }}"
-                                           class="form-control {{ $createFormFailed && $errors->has('programme') ? 'is-invalid' : '' }}"
-                                           placeholder="e.g. BBICT">
+                                    @php $createProgramme = $createFormFailed ? old('programme') : ''; @endphp
+                                    <select id="create_programme" name="programme"
+                                            class="form-select {{ $createFormFailed && $errors->has('programme') ? 'is-invalid' : '' }}"
+                                            @if(! $createRoleIsStudent) disabled @endif>
+                                        <option value="">Select programme…</option>
+                                        @foreach ($programmes as $programme)
+                                            <option value="{{ $programme->programme_code }}"
+                                                    data-department-id="{{ $programme->department_id ?? '' }}"
+                                                    @selected($createProgramme === $programme->programme_code || $createProgramme === $programme->programme_name)>
+                                                {{ $programme->programme_code }} — {{ $programme->programme_name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                     @if ($createFormFailed && $errors->has('programme'))
                                         <div class="invalid-feedback d-block">{{ $errors->first('programme') }}</div>
                                     @endif
@@ -461,6 +489,23 @@
                                     @endif
                                 </div>
 
+                                @php
+                                    $createGender = $createFormFailed ? old('gender') : null;
+                                @endphp
+                                <div class="col-md-6">
+                                    <label for="create_gender" class="form-label">Gender <span class="text-danger">*</span></label>
+                                    <select id="create_gender" name="gender"
+                                            class="form-select {{ $createFormFailed && $errors->has('gender') ? 'is-invalid' : '' }}"
+                                            @if(! $createRoleIsStudent) disabled @endif>
+                                        <option value="" @selected($createGender === null || $createGender === '')>—</option>
+                                        <option value="male" @selected($createGender === 'male')>Male</option>
+                                        <option value="female" @selected($createGender === 'female')>Female</option>
+                                    </select>
+                                    @if ($createFormFailed && $errors->has('gender'))
+                                        <div class="invalid-feedback d-block">{{ $errors->first('gender') }}</div>
+                                    @endif
+                                </div>
+
                                 <div class="col-12">
                                     <p class="form-text mb-0">
                                         Research student, project student, or standard student access is assigned automatically from department, programme, and year of study.
@@ -477,8 +522,11 @@
                                            @if ($createRoleIsStaff) name="login_id" @endif
                                            value="{{ $createFormFailed && $createRoleIsStaff ? old('login_id') : '' }}"
                                            class="form-control prms-staff-login-id {{ $createFormFailed && $errors->has('login_id') ? 'is-invalid' : '' }}"
-                                           placeholder="MoCU/STAFF/2024/001"
+                                           placeholder="{{ PrmsAccountIdentifierFormat::STAFF_EXAMPLE }}"
+                                           maxlength="80"
+                                           pattern="MoCU/[A-Z0-9]+(?:-[A-Z0-9]+)*/[0-9]+/[0-9]{2}"
                                            @if(! $createRoleIsStaff) disabled @endif>
+                                    <div class="form-text">{{ PrmsAccountIdentifierFormat::STAFF_HELP }}</div>
                                     @if ($createFormFailed && $errors->has('login_id'))
                                         <div class="invalid-feedback d-block">{{ $errors->first('login_id') }}</div>
                                     @endif
@@ -486,13 +534,37 @@
 
                                 <div class="col-md-6 prms-staff-department-field" @if($createFormRole === 'admin') hidden @endif>
                                     <label for="create_staff_department" class="form-label">Department <span class="text-danger">*</span></label>
-                                    <input id="create_staff_department" type="text" name="department"
-                                           value="{{ $createFormFailed ? old('department') : '' }}"
-                                           class="form-control prms-staff-department {{ $createFormFailed && $errors->has('department') ? 'is-invalid' : '' }}"
-                                           placeholder="e.g. Computing &amp; ICT"
-                                           @if(! $createRoleIsStaff || $createFormRole === 'admin') disabled @endif>
+                                    @php $createStaffDepartment = $createFormFailed ? old('department') : ''; @endphp
+                                    <select id="create_staff_department" name="department"
+                                            class="form-select prms-staff-department {{ $createFormFailed && $errors->has('department') ? 'is-invalid' : '' }}"
+                                            @if(! $createRoleIsStaff || $createFormRole === 'admin') disabled @endif>
+                                        <option value="">Select department…</option>
+                                        @foreach ($departments as $department)
+                                            <option value="{{ $department->department_code }}"
+                                                    @selected($createStaffDepartment === $department->department_code || $createStaffDepartment === $department->department_name)>
+                                                {{ $department->department_name }} ({{ $department->department_code }})
+                                            </option>
+                                        @endforeach
+                                    </select>
                                     @if ($createFormFailed && $errors->has('department'))
                                         <div class="invalid-feedback d-block">{{ $errors->first('department') }}</div>
+                                    @endif
+                                </div>
+
+                                @php
+                                    $createStaffGender = $createFormFailed ? old('gender') : null;
+                                @endphp
+                                <div class="col-md-6">
+                                    <label for="create_staff_gender" class="form-label">Gender <span class="text-danger">*</span></label>
+                                    <select id="create_staff_gender" name="gender"
+                                            class="form-select {{ $createFormFailed && $errors->has('gender') ? 'is-invalid' : '' }}"
+                                            @if(! $createRoleIsStaff) disabled @endif>
+                                        <option value="" @selected($createStaffGender === null || $createStaffGender === '')>—</option>
+                                        <option value="male" @selected($createStaffGender === 'male')>Male</option>
+                                        <option value="female" @selected($createStaffGender === 'female')>Female</option>
+                                    </select>
+                                    @if ($createFormFailed && $errors->has('gender'))
+                                        <div class="invalid-feedback d-block">{{ $errors->first('gender') }}</div>
                                     @endif
                                 </div>
                             </div>
@@ -608,8 +680,10 @@
                                            @if ($editRoleIsStudent) name="login_id" @endif
                                            value="{{ $editLoginId }}"
                                            class="form-control prms-student-login-id {{ $editFormFailed && $errors->has('login_id') ? 'is-invalid' : '' }}"
-                                           maxlength="80" placeholder="MoCU/REG/1134/24"
+                                           maxlength="80" placeholder="{{ PrmsAccountIdentifierFormat::STUDENT_EXAMPLE }}"
+                                           pattern="MoCU/[A-Z0-9]+(?:-[A-Z0-9]+)*/[0-9]+/[0-9]{2}"
                                            @if(! $editRoleIsStudent) disabled @endif>
+                                    <div class="form-text">{{ PrmsAccountIdentifierFormat::STUDENT_HELP }}</div>
                                     @if ($editFormFailed && $errors->has('login_id'))
                                         <div class="invalid-feedback d-block">{{ $errors->first('login_id') }}</div>
                                     @endif
@@ -665,8 +739,10 @@
                                            @if ($editRoleIsStaff) name="login_id" @endif
                                            value="{{ $editLoginId }}"
                                            class="form-control prms-staff-login-id {{ $editFormFailed && $errors->has('login_id') ? 'is-invalid' : '' }}"
-                                           maxlength="80" placeholder="MoCU/STAFF/2024/001"
+                                           maxlength="80" placeholder="{{ PrmsAccountIdentifierFormat::STAFF_EXAMPLE }}"
+                                           pattern="MoCU/[A-Z0-9]+(?:-[A-Z0-9]+)*/[0-9]+/[0-9]{2}"
                                            @if(! $editRoleIsStaff) disabled @endif>
+                                    <div class="form-text">{{ PrmsAccountIdentifierFormat::STAFF_HELP }}</div>
                                     @if ($editFormFailed && $errors->has('login_id'))
                                         <div class="invalid-feedback d-block">{{ $errors->first('login_id') }}</div>
                                     @endif
@@ -713,6 +789,41 @@
                         <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save me-1" aria-hidden="true"></i> Save changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- Reset password modal --}}
+    <div class="modal fade" id="resetPasswordModal-{{ $user->id }}" tabindex="-1" aria-labelledby="resetPasswordModalTitle-{{ $user->id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0">
+                <div class="modal-header bg-surface-soft">
+                    <h2 class="modal-title h5 fw-bold text-strong" id="resetPasswordModalTitle-{{ $user->id }}">
+                        <i class="fas fa-key text-primary me-2" aria-hidden="true"></i>
+                        Reset password
+                    </h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="{{ route('admin.users.reset-password', $user) }}">
+                    @csrf
+                    <div class="modal-body p-4">
+                        <p class="mb-3">
+                            Generate a new temporary password for <strong>{{ $user->name }}</strong>
+                            and send it by in-app notification and email.
+                        </p>
+                        <ul class="small text-muted mb-0">
+                            <li>The user must change this password at next sign-in.</li>
+                            <li>Use this when a user has forgotten their password.</li>
+                            <li>If email delivery fails, share the temporary password manually from the confirmation message.</li>
+                        </ul>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-key me-1" aria-hidden="true"></i> Generate &amp; send reset password
                         </button>
                     </div>
                 </form>
@@ -770,7 +881,7 @@
         <div class="modal-content border-0">
             <div class="modal-header bg-surface-soft">
                 <h2 class="modal-title h5 fw-bold text-strong" id="bulkImportModalTitle">
-                    <i class="fas fa-file-csv text-primary me-2" aria-hidden="true"></i>
+                    <i class="fas fa-file-import text-primary me-2" aria-hidden="true"></i>
                     Bulk user import
                 </h2>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -782,22 +893,21 @@
                         <i class="fas fa-info-circle mt-1" aria-hidden="true"></i>
                         <div class="small">
                             <p class="mb-1 fw-semibold">Student</p>
-                            <code class="d-block mb-3">name, email, login_id, role, department, programme, year_of_study</code>
+                            <code class="d-block mb-1">name, email, reg_no, role, department, programme, year_of_study, gender</code>
+                            <p class="small text-muted mb-3">Reg. no: {{ PrmsAccountIdentifierFormat::STUDENT_HELP }}. Gender: <code>male</code> or <code>female</code>.</p>
 
                             <p class="mb-1 fw-semibold">Staff</p>
-                            <code class="d-block mb-3">name, email, login_id, role, department</code>
-
-                            <p class="mb-0 text-muted">Each imported user receives individual temporary credentials by email and in-app notification. Every active administrator receives a separate in-app alert per imported account.</p>
+                            <code class="d-block mb-1">name, email, staff_email, role, department, gender</code>
+                            <p class="small text-muted mb-0">Staff email: university email address used for sign-in (same value as the <code>email</code> column, or omit <code>staff_email</code> to use <code>email</code> automatically).</p>
                         </div>
                     </div>
 
                     <div class="mb-3 mt-3">
-                        <label for="csv_file" class="form-label">CSV file</label>
-                        <input id="csv_file" type="file" name="csv_file"
-                               class="form-control @error('csv_file') is-invalid @enderror"
-                               accept=".csv,text/csv" required>
-                        @error('csv_file') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        <div class="form-text">Maximum size: 2 MB</div>
+                        <label for="import_file" class="form-label">Import file</label>
+                        <input id="import_file" type="file" name="import_file"
+                               class="form-control @error('import_file') is-invalid @enderror"
+                               accept=".csv,.txt,.xml,.pdf,text/csv,text/plain,application/xml,application/pdf" required>
+                        @error('import_file') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -919,6 +1029,40 @@
             field.disabled = !enabled;
         }
 
+        function syncCreateProgrammeOptions() {
+            const departmentSelect = document.getElementById('create_department');
+            const programmeSelect = document.getElementById('create_programme');
+
+            if (!departmentSelect || !programmeSelect) {
+                return;
+            }
+
+            const selectedDepartmentId = departmentSelect.selectedOptions[0]?.getAttribute('data-department-id') || '';
+            const currentValue = programmeSelect.value;
+            let currentStillVisible = currentValue === '';
+
+            Array.from(programmeSelect.options).forEach(function (option) {
+                if (option.value === '') {
+                    option.hidden = false;
+                    option.disabled = false;
+                    return;
+                }
+
+                const optionDepartmentId = option.getAttribute('data-department-id') || '';
+                const visible = selectedDepartmentId === '' || optionDepartmentId === selectedDepartmentId;
+                option.hidden = !visible;
+                option.disabled = !visible;
+
+                if (visible && option.value === currentValue) {
+                    currentStillVisible = true;
+                }
+            });
+
+            if (!currentStillVisible) {
+                programmeSelect.value = '';
+            }
+        }
+
         function syncUserFormFields(form) {
             if (!form) {
                 return;
@@ -934,6 +1078,8 @@
             const staffPanel = form.querySelector('.prms-user-fields-staff');
             const studentLogin = form.querySelector('.prms-student-login-id');
             const staffLogin = form.querySelector('.prms-staff-login-id');
+            const studentGender = form.querySelector('#create_gender, [id^="edit_gender_"]');
+            const staffGender = form.querySelector('#create_staff_gender');
             const studentDepartment = form.querySelector('#create_department, [id^="edit_department_"]');
             const staffDepartment = form.querySelector('.prms-staff-department');
             const staffDepartmentWrap = form.querySelector('.prms-staff-department-field');
@@ -975,6 +1121,9 @@
                     studentDepartment.removeAttribute('name');
                 }
                 setFieldEnabled(studentDepartment, showStudent);
+                if (studentDepartment.id === 'create_department') {
+                    syncCreateProgrammeOptions();
+                }
             }
 
             if (staffDepartment) {
@@ -991,15 +1140,33 @@
                 staffDepartmentWrap.hidden = !showStaff || role === 'admin';
             }
 
+            if (studentGender) {
+                if (showStudent) {
+                    studentGender.setAttribute('name', 'gender');
+                } else {
+                    studentGender.removeAttribute('name');
+                }
+                setFieldEnabled(studentGender, showStudent);
+            }
+
+            if (staffGender) {
+                if (showStaff) {
+                    staffGender.setAttribute('name', 'gender');
+                } else {
+                    staffGender.removeAttribute('name');
+                }
+                setFieldEnabled(staffGender, showStaff);
+            }
+
             studentFields.forEach(function (field) {
-                if (field === studentLogin || field === studentDepartment) {
+                if (field === studentLogin || field === studentDepartment || field === studentGender) {
                     return;
                 }
                 setFieldEnabled(field, showStudent);
             });
 
             staffFields.forEach(function (field) {
-                if (field === staffLogin || field === staffDepartment) {
+                if (field === staffLogin || field === staffDepartment || field === staffGender) {
                     return;
                 }
                 setFieldEnabled(field, showStaff);
@@ -1014,10 +1181,15 @@
                     syncUserFormFields(createForm);
                 });
             }
+            const createDepartment = createForm.querySelector('#create_department');
+            if (createDepartment) {
+                createDepartment.addEventListener('change', syncCreateProgrammeOptions);
+            }
             createForm.addEventListener('submit', function () {
                 syncUserFormFields(createForm);
             });
             syncUserFormFields(createForm);
+            syncCreateProgrammeOptions();
         }
 
         document.querySelectorAll('[id^="editUserModal-"] form').forEach(function (form) {
@@ -1032,6 +1204,13 @@
             });
             syncUserFormFields(form);
         });
+
+        @if ($errors->has('import_file'))
+            const bulkImportModal = document.getElementById('bulkImportModal');
+            if (bulkImportModal && window.bootstrap) {
+                bootstrap.Modal.getOrCreateInstance(bulkImportModal).show();
+            }
+        @endif
 
         @if ($errors->any() && old('form_context') === 'create')
             const createModal = document.getElementById('createUserModal');

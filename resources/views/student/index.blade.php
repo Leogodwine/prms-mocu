@@ -85,6 +85,16 @@
         color: #b91c1c;
         border-color: #ef4444;
     }
+    .prms-step.is-draft .prms-step-marker {
+        background: #e2e8f0;
+        color: #334155;
+        border-color: #94a3b8;
+    }
+    .prms-step.is-locked .prms-step-marker {
+        background: #f1f5f9;
+        color: #94a3b8;
+        border-color: #e2e8f0;
+    }
 
     .prms-step-text { line-height: 1.2; min-width: 0; }
     .prms-step-title {
@@ -109,6 +119,8 @@
     .prms-step.is-pending .prms-step-status,
     .prms-step.is-returned .prms-step-status { color: #b45309; }
     .prms-step.is-rejected .prms-step-status { color: #b91c1c; }
+    .prms-step.is-draft .prms-step-status { color: #475569; }
+    .prms-step.is-locked .prms-step-status { color: #94a3b8; }
 
     /* On narrow screens, stack vertically with vertical connectors so the
        order remains readable. */
@@ -222,6 +234,9 @@
                     $isProjectWorkspace = strtolower((string) $workspaceType) === 'project';
                     $activeStage = $currentStage ?? $stages->firstWhere('id', (int) old('stage_id'));
                     $activeStageName = strtolower((string) ($activeStage->stage_name ?? ''));
+                    $activeUploadBlock = $activeStage
+                        ? ($stageUploadBlocks[$activeStage->id] ?? null)
+                        : null;
                     $isCompleteSystemStage = $isProjectWorkspace
                         && $activeStage
                         && \App\Support\StudentStageProgress::isCompleteSystemStage($activeStage->stage_name);
@@ -247,7 +262,7 @@
                         : ($isPresentationStageSelected ? 'Submit presentation or consent letter' : 'Submit a new document');
                 @endphp
 
-                <div class="card mb-4">
+                <div class="card mb-4" id="prms-submit-stage-card">
                     <div class="card-header d-flex align-items-center">
                         <i class="fas fa-cloud-upload-alt text-primary me-2" aria-hidden="true"></i>
                         <h3 class="card-title h6 fw-bold">{{ $headerLabel }}</h3>
@@ -309,7 +324,14 @@
                             </p>
                         @endif
 
-                        <form action="{{ route('student.submissions.store') }}" method="POST" enctype="multipart/form-data" novalidate>
+                        @if (filled($activeUploadBlock))
+                            <div class="alert alert-warning d-flex align-items-start gap-2" role="alert">
+                                <i class="fas fa-lock mt-1" aria-hidden="true"></i>
+                                <div class="small mb-0">{{ $activeUploadBlock }}</div>
+                            </div>
+                        @endif
+
+                        <form action="{{ route('student.submissions.store') }}" method="POST" enctype="multipart/form-data" novalidate @if(filled($activeUploadBlock)) aria-disabled="true" @endif>
                             @csrf
                             <div class="row g-3">
                                 <div class="col-md-6">
@@ -454,7 +476,7 @@
                                                 <i class="fas fa-file-word text-primary me-1" aria-hidden="true"></i>
                                                 Start a new chapter without uploading a file — create a blank Word document and write directly in the editor.
                                             </p>
-                                            <button type="button" class="btn btn-outline-primary btn-sm mt-2" data-bs-toggle="modal" data-bs-target="#createBlankSubmissionModal">
+                                            <button type="button" class="btn btn-outline-primary btn-sm mt-2" data-bs-toggle="modal" data-bs-target="#createBlankSubmissionModal" @disabled(filled($activeUploadBlock))>
                                                 <i class="fas fa-plus me-1" aria-hidden="true"></i> Create blank Word document
                                             </button>
                                         </div>
@@ -462,7 +484,7 @@
                                 @endif
 
                                 <div class="col-12 d-flex justify-content-end mt-2">
-                                    <button class="btn btn-primary" type="submit">
+                                    <button class="btn btn-primary" type="submit" @disabled(filled($activeUploadBlock))>
                                         <i class="fas fa-paper-plane me-1" aria-hidden="true"></i>
                                         Send to supervisor
                                     </button>
@@ -506,14 +528,22 @@
                         ])
                         ->filter(fn (array $section) => $section['items']->isNotEmpty());
                 } else {
-                    $submissionSections = collect([
-                        (string) $workspaceType => [
-                            'label' => $submissionsHeading,
-                            'items' => $submissions,
-                            'total' => method_exists($submissions, 'total') ? $submissions->total() : $submissions->count(),
-                        ],
-                    ]);
+                $submissionSections = collect([
+                    (string) $workspaceType => [
+                        'label' => $submissionsHeading,
+                        'items' => $submissions,
+                        'total' => method_exists($submissions, 'total') ? $submissions->total() : $submissions->count(),
+                    ],
+                ]);
                 }
+
+                $submissionDocIcons = $submissionSource
+                    ->take(4)
+                    ->map(fn ($item) => \App\Support\SubmissionFileAccess::documentIconMeta(
+                        $item->mime_type,
+                        $item->original_filename
+                    ))
+                    ->values();
             @endphp
 
             <div class="d-flex align-items-center justify-content-between mb-3 mt-2">
@@ -521,27 +551,27 @@
                     <i class="fas fa-history text-primary me-2" aria-hidden="true"></i>
                     {{ $submissionsHeading }}
                 </h3>
-                <span class="badge bg-secondary">
-                    {{ $submissionTotal }} {{ $submissionTotal === 1 ? 'submission' : 'submissions' }}
-                </span>
+                @if ($submissionTotal > 0)
+                    <div class="d-flex align-items-center gap-1"
+                         title="{{ $submissionTotal }} {{ $submissionTotal === 1 ? 'submission' : 'submissions' }}">
+                        @foreach ($submissionDocIcons as $icon)
+                            <span class="badge bg-secondary d-inline-flex align-items-center justify-content-center p-2 rounded-circle"
+                                  style="width: 2rem; height: 2rem;"
+                                  title="{{ $icon['label'] }}">
+                                <i class="{{ $icon['icon'] }} {{ $icon['class'] }}" aria-hidden="true"></i>
+                                <span class="visually-hidden">{{ $icon['label'] }}</span>
+                            </span>
+                        @endforeach
+                        @if ($submissionTotal > $submissionDocIcons->count())
+                            <span class="badge bg-secondary rounded-pill">+{{ $submissionTotal - $submissionDocIcons->count() }}</span>
+                        @endif
+                    </div>
+                @endif
             </div>
 
             <x-prms-table-pagination-toolbar :paginator="$submissions" noun="submissions" />
 
             @foreach ($submissionSections as $sectionTrack => $section)
-                @if (! ($isOverview ?? false) && ! $isCompleteSystemListStage)
-                <div class="d-flex align-items-center justify-content-between mb-3 {{ ! $loop->first ? 'mt-4 pt-2' : '' }}">
-                    <h3 class="h6 fw-bold text-strong d-flex align-items-center mb-0">
-                        <i class="fas fa-history text-primary me-2" aria-hidden="true"></i>
-                        {{ $section['label'] }}
-                    </h3>
-                    <span class="badge bg-secondary">
-                        {{ $section['total'] ?? $section['items']->count() }}
-                        {{ ($section['total'] ?? $section['items']->count()) === 1 ? 'submission' : 'submissions' }}
-                    </span>
-                </div>
-                @endif
-
             @php
                 $useGroupedProjectHistory = in_array($sectionTrack, ['project'], true)
                     || ($workspaceType ?? '') === 'project';
@@ -638,7 +668,7 @@
                     </div>
                     <div class="modal-footer border-top-0 pt-0">
                         <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold">
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold" @disabled(filled($activeUploadBlock ?? null))>
                             <i class="fas fa-file-word me-1" aria-hidden="true"></i> Create &amp; open editor
                         </button>
                     </div>

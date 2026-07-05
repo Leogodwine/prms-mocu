@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Support\PrmsAccountIdentifierFormat;
+use App\Support\StudentGenderNormalizer;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -48,6 +50,17 @@ class StoreAdminUserRequest extends FormRequest
             $merge['year_of_study'] = null;
         }
 
+        if ($this->filled('login_id')) {
+            $merge['login_id'] = PrmsAccountIdentifierFormat::normalize($this->input('login_id'));
+        }
+
+        if ($this->filled('gender')) {
+            $normalizedGender = StudentGenderNormalizer::normalize($this->input('gender'));
+            if ($normalizedGender !== null) {
+                $merge['gender'] = $normalizedGender;
+            }
+        }
+
         $this->merge($merge);
     }
 
@@ -81,6 +94,11 @@ class StoreAdminUserRequest extends FormRequest
                 'integer',
                 'between:1,'.self::MAX_YEAR_OF_STUDY,
             ],
+            'gender' => [
+                Rule::requiredIf($isStudent || $isStaff),
+                'nullable',
+                Rule::in(['male', 'female']),
+            ],
         ];
     }
 
@@ -96,7 +114,112 @@ class StoreAdminUserRequest extends FormRequest
             'department.required' => 'Department is required for this role.',
             'programme.required' => 'Programme is required for student accounts.',
             'year_of_study.required' => 'Year of study is required for student accounts.',
+            'gender.required' => 'Gender is required for student and staff accounts.',
+            'gender.in' => 'Gender must be male or female.',
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator): void {
+            $role = (string) $this->input('role');
+            $loginId = trim((string) $this->input('login_id'));
+
+            if ($loginId === '') {
+                return;
+            }
+
+            if (self::isStudentFormRole($role)) {
+                if (! PrmsAccountIdentifierFormat::hasValidRegistrationNumberFormat($loginId)) {
+                    $validator->errors()->add(
+                        'login_id',
+                        'Registration number must follow '.PrmsAccountIdentifierFormat::STUDENT_HELP
+                    );
+
+                    return;
+                }
+
+                $programmeCode = PrmsAccountIdentifierFormat::parsedProgrammeCode($loginId);
+                if (! PrmsAccountIdentifierFormat::programmeCodeIsRegistered($programmeCode)) {
+                    $validator->errors()->add(
+                        'login_id',
+                        'Programme code «'.$programmeCode.'» in this registration number was not found in the programme register.'
+                    );
+
+                    return;
+                }
+
+                if (! PrmsAccountIdentifierFormat::registrationMatchesProgramme($loginId, $this->input('programme'))) {
+                    $validator->errors()->add(
+                        'login_id',
+                        'The programme code in the registration number must match the selected programme (e.g. '.PrmsAccountIdentifierFormat::STUDENT_EXAMPLE.').'
+                    );
+                }
+
+                $selectedDepartmentCode = PrmsAccountIdentifierFormat::resolveDepartmentCode($this->input('department'));
+                $selectedProgrammeCode = PrmsAccountIdentifierFormat::resolveProgrammeCode($this->input('programme'));
+
+                if ($selectedDepartmentCode === null) {
+                    $validator->errors()->add('department', 'Please select a valid department.');
+
+                    return;
+                }
+
+                $programme = $selectedProgrammeCode !== null
+                    ? \App\Models\Program::query()->with('department')->where('programme_code', $selectedProgrammeCode)->first()
+                    : null;
+
+                if ($programme?->department && $programme->department->department_code !== $selectedDepartmentCode) {
+                    $validator->errors()->add(
+                        'programme',
+                        'The selected programme must belong to the selected department.'
+                    );
+                }
+
+                return;
+            }
+
+            if (! self::isStaffFormRole($role)) {
+                return;
+            }
+
+            if ($role === 'admin') {
+                if (! PrmsAccountIdentifierFormat::isValidAdminIdentifier($loginId)) {
+                    $validator->errors()->add(
+                        'login_id',
+                        'Staff ID must follow '.PrmsAccountIdentifierFormat::STAFF_HELP.' or the legacy MoCU/ADMIN/NUMBER format.'
+                    );
+                }
+
+                return;
+            }
+
+            if (! PrmsAccountIdentifierFormat::hasValidStaffIdFormat($loginId)) {
+                $validator->errors()->add(
+                    'login_id',
+                    'Staff ID must follow '.PrmsAccountIdentifierFormat::STAFF_HELP
+                );
+
+                return;
+            }
+
+            $departmentCode = PrmsAccountIdentifierFormat::parsedDepartmentCode($loginId);
+            if (! PrmsAccountIdentifierFormat::departmentCodeIsRegistered($departmentCode)) {
+                $validator->errors()->add(
+                    'login_id',
+                    'Department code «'.$departmentCode.'» in this staff ID was not found in the department register.'
+                );
+
+                return;
+            }
+
+            if (! PrmsAccountIdentifierFormat::staffIdMatchesDepartment($loginId, $this->input('department'))) {
+                $validator->errors()->add(
+                    'login_id',
+                    'The department code in the staff ID must match the selected department (e.g. '.PrmsAccountIdentifierFormat::STAFF_EXAMPLE.').'
+                );
+            }
+        });
     }
 
     protected function getRedirectUrl(): string

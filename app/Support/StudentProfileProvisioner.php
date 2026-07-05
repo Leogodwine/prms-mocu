@@ -35,7 +35,7 @@ final class StudentProfileProvisioner
     /**
      * Create a `students` row when missing. Returns true if a new row was inserted.
      */
-    public static function ensureStudentProfile(User $user): bool
+    public static function ensureStudentProfile(User $user, ?string $gender = null): bool
     {
         if (! Schema::hasTable('students') || ! $user->isStudentUser()) {
             return false;
@@ -46,17 +46,30 @@ final class StudentProfileProvisioner
             $studyYear = 1;
         }
 
+        $genderNorm = StudentGenderNormalizer::normalize($gender);
+
+        $attributes = [
+            'registration_number' => $user->login_id,
+            'full_name' => $user->name,
+            'programme_id' => self::resolveProgrammeIdFromLabel($user->programme),
+            'year_of_study' => $studyYear,
+            'enrollment_status' => 'active',
+            'university_email' => $user->email,
+        ];
+
+        if ($genderNorm !== null && Schema::hasColumn('students', 'gender')) {
+            $attributes['gender'] = $genderNorm;
+        }
+
         $student = Student::query()->firstOrCreate(
             ['user_id' => $user->id],
-            [
-                'registration_number' => $user->login_id,
-                'full_name' => $user->name,
-                'programme_id' => self::resolveProgrammeIdFromLabel($user->programme),
-                'year_of_study' => $studyYear,
-                'enrollment_status' => 'active',
-                'university_email' => $user->email,
-            ]
+            $attributes
         );
+
+        if ($genderNorm !== null && Schema::hasColumn('students', 'gender') && $student->gender !== $genderNorm) {
+            $student->gender = $genderNorm;
+            $student->save();
+        }
 
         StudentWorkflowAssigner::syncForUser($user->fresh());
 

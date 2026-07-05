@@ -4,6 +4,7 @@
         'rejected'       => 'bg-danger',
         'needs_revision' => 'bg-warning text-dark',
         'pending'        => 'bg-warning text-dark',
+        'draft'          => 'bg-secondary',
         default          => 'bg-secondary',
     };
     $statusIcon = match ($submission->status) {
@@ -11,6 +12,7 @@
         'rejected'       => 'fas fa-times-circle',
         'needs_revision' => 'fas fa-undo',
         'pending'        => 'far fa-clock',
+        'draft'          => 'far fa-file',
         default          => 'far fa-question-circle',
     };
     $statusLabel = match ($submission->status) {
@@ -18,24 +20,36 @@
         'rejected'       => 'Rejected',
         'needs_revision' => 'Returned for revision',
         'pending'        => 'Awaiting review',
+        'draft'          => 'Draft — ready to submit',
         default          => \Illuminate\Support\Str::title(str_replace('_', ' ', $submission->status)),
     };
     $isPdf = str_contains((string) $submission->mime_type, 'pdf')
         || str_ends_with(strtolower((string) $submission->original_filename), '.pdf');
     $previewExt = strtolower(pathinfo((string) $submission->original_filename, PATHINFO_EXTENSION));
     $nestedInGroup = $nestedInGroup ?? false;
+    $docIcon = \App\Support\SubmissionFileAccess::documentIconMeta(
+        $submission->mime_type,
+        $submission->original_filename
+    );
 @endphp
 
 <div class="card mb-3 {{ ($nestedInGroup ?? false) ? 'border-0 border-bottom rounded-0 shadow-none mb-0' : '' }}">
     <div class="card-body {{ ($nestedInGroup ?? false) ? 'px-0 pt-0' : '' }}">
         <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
             <div class="d-flex gap-3 align-items-start">
-                @include('partials.project-interface-preview', [
-                    'submission' => $submission,
-                    'statusLabel' => $statusLabel,
-                    'statusBadge' => $statusBadge,
-                    'size' => 'md',
-                ])
+                @if ($submission->isProjectShowcase())
+                    @include('partials.project-interface-preview', [
+                        'submission' => $submission,
+                        'statusLabel' => $statusLabel,
+                        'statusBadge' => $statusBadge,
+                        'size' => 'md',
+                    ])
+                @else
+                    @include('partials.submission-document-thumb', [
+                        'submission' => $submission,
+                        'size' => 'md',
+                    ])
+                @endif
                 <div>
                     <h4 class="h6 fw-bold text-strong mb-1">{{ $submission->title }}</h4>
                     <div class="small text-muted">
@@ -44,8 +58,6 @@
                         <span class="mx-1">·</span>
                         <i class="fas fa-layer-group me-1" aria-hidden="true"></i>
                         {{ \Illuminate\Support\Str::title(str_replace('_', ' ', $submission->stage)) }}
-                        <span class="mx-1">·</span>
-                        v{{ $submission->version }}
                     </div>
                     @if ($submission->description)
                         <p class="small text-strong mt-2 mb-0" style="max-width: 56ch; line-height: 1.45;">
@@ -71,6 +83,7 @@
                         'statusBadge' => $statusBadge,
                         'onlyOfficeConfigured' => $onlyOfficeConfigured ?? false,
                         'context' => 'student',
+                        'compactActions' => true,
                     ])
                 @endif
             </div>

@@ -14,25 +14,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Initial administrator (production seed)
-    |--------------------------------------------------------------------------
-    |
-    | Used by AdminUserSeeder during `php artisan db:seed`. Set a strong
-    | PRMS_ADMIN_PASSWORD before deploying; the account is created once and
-    | can be updated safely on re-seed via updateOrCreate.
-    |
-    */
-    'admin' => [
-        'name' => env('PRMS_ADMIN_NAME', 'System Administrator'),
-        'email' => env('PRMS_ADMIN_EMAIL'),
-        'password' => env('PRMS_ADMIN_PASSWORD'),
-        'login_id' => env('PRMS_ADMIN_LOGIN_ID', 'MoCU/ADMIN/001'),
-        'staff_id' => env('PRMS_ADMIN_STAFF_ID', env('PRMS_ADMIN_LOGIN_ID', 'MoCU/ADMIN/001')),
-        'must_change_password' => env('PRMS_ADMIN_MUST_CHANGE_PASSWORD', true),
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
     | Help desk (sign-in page and support links)
     |--------------------------------------------------------------------------
     */
@@ -71,5 +52,22 @@ return [
         ],
         /** Only this diploma programme code may conduct a PRMS project. */
         'project_diploma_programme_code' => env('PRMS_PROJECT_DIPLOMA_CODE', 'DBICT'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | SMS gateway (group formation, supervisor assignment, workflow alerts)
+    |--------------------------------------------------------------------------
+    |
+    | When disabled, SMS bodies are written to the application log only.
+    | Set driver to "http" and PRMS_SMS_HTTP_URL when a gateway is available.
+    |
+    */
+    'sms' => [
+        'enabled' => env('PRMS_SMS_ENABLED', false),
+        'driver' => env('PRMS_SMS_DRIVER', 'log'),
+        'http_url' => env('PRMS_SMS_HTTP_URL'),
+        'http_token' => env('PRMS_SMS_HTTP_TOKEN'),
+        'sender_id' => env('PRMS_SMS_SENDER_ID', 'MoCU-PRMS'),
     ],
 ];

@@ -32,7 +32,5 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
-        <env name="PRMS_ADMIN_EMAIL" value="admin@test.local"/>
-        <env name="PRMS_ADMIN_PASSWORD" value="TestPassword12!"/>
     </php>
 </phpunit>

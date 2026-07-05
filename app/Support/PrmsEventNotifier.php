@@ -7,6 +7,7 @@ use App\Models\ProjectSubmission;
 use App\Models\StageDeadline;
 use App\Models\User;
 use App\Notifications\ProjectNotification;
+use App\Notifications\WorkflowNotification;
 use Illuminate\Support\Collection;
 
 /**
@@ -20,6 +21,25 @@ final class PrmsEventNotifier
             $user->notify(new ProjectNotification($title, $message, $actionUrl, $actionText));
         } catch (\Throwable $e) {
             SafeReport::call($e);
+        }
+    }
+
+    public static function notifyWorkflow(User $user, string $title, string $message, ?string $actionUrl = null, ?string $actionText = null, string $toastType = 'info'): void
+    {
+        try {
+            $user->notify(new WorkflowNotification($title, $message, $actionUrl, $actionText, $toastType));
+        } catch (\Throwable $e) {
+            SafeReport::call($e);
+        }
+    }
+
+    /**
+     * @param  iterable<User>  $users
+     */
+    public static function notifyWorkflowMany(iterable $users, string $title, string $message, ?string $actionUrl = null, ?string $actionText = null, string $toastType = 'info'): void
+    {
+        foreach ($users as $user) {
+            self::notifyWorkflow($user, $title, $message, $actionUrl, $actionText, $toastType);
         }
     }
 
@@ -90,36 +110,116 @@ final class PrmsEventNotifier
         return $submission->student?->studentAssignment?->supervisor;
     }
 
-    public static function notifyGroupCreated(ProjectGroup $group): void
+    public static function notifyGroupCreated(ProjectGroup $group, ?User $coordinator = null): void
     {
-        self::notifyGroupMembers(
-            $group,
-            'Project group created — '.$group->name,
-            'You have been placed in project group '.$group->name.'. Your coordinator will assign a supervisor when ready.',
-            route('student.index'),
-            'Open student workspace'
-        );
+        $group->loadMissing(['members', 'supervisorAssignment.supervisor']);
+        $coordinator = self::resolveCoordinator($group, $coordinator);
+        $supervisor = $group->supervisorAssignment?->supervisor;
+        $memberCount = $group->members->count();
+        $isIndividual = $memberCount === 1;
+        $recordLabel = $isIndividual ? 'individual supervision record' : 'project group';
+
+        foreach ($group->members as $student) {
+            $peerNames = $group->members
+                ->where('id', '!=', $student->id)
+                ->pluck('name')
+                ->join(', ');
+
+            $peerNote = $isIndividual
+                ? ''
+                : ' Group members: '.$peerNames.'.';
+
+            $supervisorNote = $supervisor !== null
+                ? ' '.$supervisor->name.' is your supervisor.'
+                : ' Your coordinator will assign a supervisor when ready.';
+
+            self::notifyWorkflow(
+                $student,
+                ucfirst($recordLabel).' created — '.$group->name,
+                'You have been placed in '.$recordLabel.' '.$group->name.'.'.$peerNote.$supervisorNote,
+                route('student.index'),
+                'Open student workspace',
+                'info'
+            );
+        }
+
+        if ($coordinator !== null) {
+            $studentNames = $group->members->pluck('name')->join(', ');
+            $supervisorNote = $supervisor !== null
+                ? ' Supervisor: '.$supervisor->name.'.'
+                : ' Assign a supervisor when ready.';
+
+            self::notifyWorkflow(
+                $coordinator,
+                ucfirst($recordLabel).' formed — '.$group->name,
+                'You formed '.$recordLabel.' '.$group->name.' with '.$memberCount.' member(s): '.$studentNames.'.'.$supervisorNote,
+                route('coordinator.index'),
+                'Open coordinator hub',
+                'success'
+            );
+        }
+
+        if ($supervisor !== null) {
+            self::notifySupervisorAssigned($group, $supervisor, $coordinator, notifyStudents: false);
+        }
     }
 
-    public static function notifySupervisorAssigned(ProjectGroup $group, User $supervisor): void
-    {
+    public static function notifySupervisorAssigned(
+        ProjectGroup $group,
+        User $supervisor,
+        ?User $coordinator = null,
+        bool $notifyStudents = true,
+    ): void {
         $group->loadMissing('members');
+        $coordinator = self::resolveCoordinator($group, $coordinator);
+        $memberCount = $group->members->count();
+        $isIndividual = $memberCount === 1;
+        $recordLabel = $isIndividual ? 'individual student' : 'group';
+        $studentNames = $group->members->pluck('name')->join(', ');
 
-        self::notify(
+        self::notifyWorkflow(
             $supervisor,
-            'New group assignment — '.$group->name,
-            'You have been assigned as supervisor for '.$group->name.'.',
-            route('supervisor.index'),
-            'Open supervisor workspace'
+            'New supervisor assignment — '.$group->name,
+            'You have been assigned as supervisor for '.$recordLabel.' '.$group->name.' ('.$studentNames.').',
+            route('supervisor.workload'),
+            'View assigned students',
+            'info'
         );
 
-        self::notifyMany(
-            $group->members,
-            'Supervisor assigned — '.$group->name,
-            $supervisor->name.' is now your supervisor for '.$group->name.'.',
-            route('student.index'),
-            'Open student workspace'
-        );
+        if ($notifyStudents) {
+            self::notifyWorkflowMany(
+                $group->members,
+                'Supervisor assigned — '.$group->name,
+                $supervisor->name.' is now your supervisor for '.$group->name.'.',
+                route('student.index'),
+                'Open student workspace',
+                'success'
+            );
+        }
+
+        if ($coordinator !== null) {
+            self::notifyWorkflow(
+                $coordinator,
+                'Supervisor assigned — '.$group->name,
+                $supervisor->name.' is now supervisor for '.$recordLabel.' '.$group->name.' ('.$studentNames.').',
+                route('coordinator.index'),
+                'Open coordinator hub',
+                'success'
+            );
+        }
+    }
+
+    private static function resolveCoordinator(ProjectGroup $group, ?User $coordinator): ?User
+    {
+        if ($coordinator !== null) {
+            return $coordinator;
+        }
+
+        if ($group->coordinator_id) {
+            return User::query()->find($group->coordinator_id);
+        }
+
+        return null;
     }
 
     public static function notifySubmittedToCoordinator(ProjectSubmission $submission, User $student): void
@@ -208,12 +308,25 @@ final class PrmsEventNotifier
         }
     }
 
-    public static function notifyEvaluationFinalized(ProjectSubmission $submission, int $totalScore): void
+    public static function notifyEvaluationFinalized(ProjectSubmission $submission, int $totalScore, ?string $gradeLabel = null): void
     {
+        $prefix = $gradeLabel ? $gradeLabel.': ' : '';
+
         self::notifyMany(
             self::submissionStudents($submission),
             'Evaluation finalized',
-            'Your submission "'.$submission->title.'" was evaluated with a score of '.$totalScore.'/100.',
+            $prefix.'Your submission "'.$submission->title.'" was evaluated with a score of '.$totalScore.'/100.',
+            route('student.index'),
+            'Open student workspace'
+        );
+    }
+
+    public static function notifyStudentEvaluationScore(User $student, ProjectSubmission $submission, int $totalScore, string $gradeLabel): void
+    {
+        self::notify(
+            $student,
+            'Evaluation finalized',
+            $gradeLabel.': Your submission "'.$submission->title.'" was scored '.$totalScore.'/100.',
             route('student.index'),
             'Open student workspace'
         );

@@ -36,12 +36,19 @@ class AccountCreatedNotification extends Notification
         $isStudent = $notifiable->isStudentUser();
         $identifierLabel = $notifiable->displayIdentifierLabel();
 
-        $intro = $this->source === 'bulk_import'
-            ? 'An administrator imported your account in bulk on the Project and Research Management System.'
-            : 'An administrator has created an account for you on the Project and Research Management System.';
+        $intro = match ($this->source) {
+            'bulk_import' => 'An administrator imported your account in bulk on the Project and Research Management System.',
+            'password_reset' => 'An administrator reset your password on the Project and Research Management System.',
+            default => 'An administrator has created an account for you on the Project and Research Management System.',
+        };
+
+        $subject = match ($this->source) {
+            'password_reset' => config('app.name', 'PRMS').': password reset',
+            default => config('app.name', 'PRMS').': your new account',
+        };
 
         $mail = (new MailMessage)
-            ->subject(config('app.name', 'PRMS').': your new account')
+            ->subject($subject)
             ->greeting('Hello '.$notifiable->name.',')
             ->line($intro)
             ->line('**'.$identifierLabel.':** '.$this->username)
@@ -68,7 +75,10 @@ class AccountCreatedNotification extends Notification
         /** @var User $notifiable */
         $isStudent = $notifiable->isStudentUser();
         $identifierLabel = $notifiable->displayIdentifierLabel();
-        $title = 'Your account was created';
+        $title = match ($this->source) {
+            'password_reset' => 'Your password was reset',
+            default => 'Your account was created',
+        };
 
         $signInHint = $isStudent
             ? 'Sign in with your registration number.'

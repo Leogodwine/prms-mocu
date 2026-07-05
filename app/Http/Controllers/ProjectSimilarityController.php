@@ -18,7 +18,8 @@ class ProjectSimilarityController extends Controller
 {
     public function index(Request $request): View|RedirectResponse
     {
-        $this->ensureAdmin($request);
+        $this->ensureViewer($request);
+        $context = $this->listContext($request);
 
         $defaults = [
             'min_score' => (string) config('ollama.similarity.store_threshold', 35),
@@ -26,9 +27,9 @@ class ProjectSimilarityController extends Controller
 
         $resolved = PrmsListFilters::resolve(
             $request,
-            'admin.similarities',
+            $context['filter_key'],
             $defaults,
-            'admin.similarities.index',
+            $context['index_route'],
             [],
             fn (array $filters) => [
                 'min_score' => (string) max(0, min(100, (int) ($filters['min_score'] ?? $defaults['min_score']))),
@@ -51,14 +52,14 @@ class ProjectSimilarityController extends Controller
 
         $ollama = app(OllamaClient::class);
 
-        return view('similarities.index', [
+        return view('similarities.index', array_merge($context, [
             'pairs' => $pairs,
             'minScore' => $minScore,
             'filters' => $resolved['filters'],
-            'filterResetUrl' => PrmsListFilters::resetUrl('admin.similarities.index'),
+            'filterResetUrl' => PrmsListFilters::resetUrl($context['index_route']),
             'ollamaReachable' => $ollama->isReachable(),
             'ollamaEnabled' => $ollama->isEnabled(),
-        ]);
+        ]));
     }
 
     public function rerun(Request $request, ResearchProject $researchProject): RedirectResponse
@@ -94,11 +95,57 @@ class ProjectSimilarityController extends Controller
         }
     }
 
+    private function ensureViewer(Request $request): void
+    {
+        if (! in_array($request->user()?->role, ['admin', 'coordinator'], true)) {
+            abort(403);
+        }
+    }
+
     private function ensureAdmin(Request $request): void
     {
         if ($request->user()?->role !== 'admin') {
             abort(403);
         }
+    }
+
+    /**
+     * @return array{
+     *     filter_key: string,
+     *     index_route: string,
+     *     panel: string,
+     *     subtitle: string,
+     *     canRerun: bool,
+     *     showBatchCommand: bool,
+     *     breadcrumb_parent_label: string|null,
+     *     breadcrumb_parent_url: string|null,
+     * }
+     */
+    private function listContext(Request $request): array
+    {
+        if ($request->user()?->role === 'coordinator') {
+            return [
+                'filter_key' => 'coordinator.similarities',
+                'index_route' => 'coordinator.similarities.index',
+                'panel' => 'coordinator',
+                'subtitle' => 'Review overlap between student projects and research before final approval.',
+                'canRerun' => false,
+                'showBatchCommand' => false,
+                'breadcrumb_parent_label' => 'Coordinator',
+                'breadcrumb_parent_url' => route('coordinator.index'),
+            ];
+        }
+
+        return [
+            'filter_key' => 'admin.similarities',
+            'index_route' => 'admin.similarities.index',
+            'panel' => 'admin',
+            'subtitle' => 'Admin-only: background overlap checks between student projects and research.',
+            'canRerun' => true,
+            'showBatchCommand' => true,
+            'breadcrumb_parent_label' => 'Administration',
+            'breadcrumb_parent_url' => route('admin.configuration.index'),
+        ];
     }
 
     private function ollamaUnavailableMessage(): string

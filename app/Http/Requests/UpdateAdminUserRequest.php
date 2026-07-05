@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\User;
+use App\Support\PrmsAccountIdentifierFormat;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
@@ -25,6 +26,10 @@ class UpdateAdminUserRequest extends FormRequest
 
         if ($this->input('year_of_study') === '') {
             $merge['year_of_study'] = null;
+        }
+
+        if ($this->filled('login_id')) {
+            $merge['login_id'] = PrmsAccountIdentifierFormat::normalize($this->input('login_id'));
         }
 
         $this->merge($merge);
@@ -101,6 +106,89 @@ class UpdateAdminUserRequest extends FormRequest
             'programme.required' => 'Programme is required for student accounts.',
             'year_of_study.required' => 'Year of study is required for student accounts.',
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator): void {
+            $role = (string) $this->input('role');
+            $loginId = trim((string) $this->input('login_id'));
+
+            if ($loginId === '') {
+                return;
+            }
+
+            if (StoreAdminUserRequest::isStudentFormRole($role)) {
+                if (! PrmsAccountIdentifierFormat::hasValidRegistrationNumberFormat($loginId)) {
+                    $validator->errors()->add(
+                        'login_id',
+                        'Registration number must follow '.PrmsAccountIdentifierFormat::STUDENT_HELP
+                    );
+
+                    return;
+                }
+
+                $programmeCode = PrmsAccountIdentifierFormat::parsedProgrammeCode($loginId);
+                if (! PrmsAccountIdentifierFormat::programmeCodeIsRegistered($programmeCode)) {
+                    $validator->errors()->add(
+                        'login_id',
+                        'Programme code «'.$programmeCode.'» in this registration number was not found in the programme register.'
+                    );
+
+                    return;
+                }
+
+                if (! PrmsAccountIdentifierFormat::registrationMatchesProgramme($loginId, $this->input('programme'))) {
+                    $validator->errors()->add(
+                        'login_id',
+                        'The programme code in the registration number must match the selected programme (e.g. '.PrmsAccountIdentifierFormat::STUDENT_EXAMPLE.').'
+                    );
+                }
+
+                return;
+            }
+
+            if (! StoreAdminUserRequest::isStaffFormRole($role)) {
+                return;
+            }
+
+            if ($role === 'admin') {
+                if (! PrmsAccountIdentifierFormat::isValidAdminIdentifier($loginId)) {
+                    $validator->errors()->add(
+                        'login_id',
+                        'Staff ID must follow '.PrmsAccountIdentifierFormat::STAFF_HELP.' or the legacy MoCU/ADMIN/NUMBER format.'
+                    );
+                }
+
+                return;
+            }
+
+            if (! PrmsAccountIdentifierFormat::hasValidStaffIdFormat($loginId)) {
+                $validator->errors()->add(
+                    'login_id',
+                    'Staff ID must follow '.PrmsAccountIdentifierFormat::STAFF_HELP
+                );
+
+                return;
+            }
+
+            $departmentCode = PrmsAccountIdentifierFormat::parsedDepartmentCode($loginId);
+            if (! PrmsAccountIdentifierFormat::departmentCodeIsRegistered($departmentCode)) {
+                $validator->errors()->add(
+                    'login_id',
+                    'Department code «'.$departmentCode.'» in this staff ID was not found in the department register.'
+                );
+
+                return;
+            }
+
+            if (! PrmsAccountIdentifierFormat::staffIdMatchesDepartment($loginId, $this->input('department'))) {
+                $validator->errors()->add(
+                    'login_id',
+                    'The department code in the staff ID must match the selected department (e.g. '.PrmsAccountIdentifierFormat::STAFF_EXAMPLE.').'
+                );
+            }
+        });
     }
 
     protected function getRedirectUrl(): string

@@ -7,12 +7,17 @@ use App\Http\Requests\BulkImportUsersRequest;
 use App\Http\Requests\StoreAdminUserRequest;
 use App\Http\Requests\UpdateAdminUserRequest;
 use App\Models\User;
+use App\Support\AdminPasswordResetNotifier;
 use App\Support\AdminUserCreatedNotifier;
+use App\Support\AdminUserImportReader;
 use App\Support\Audit;
+use App\Support\PrmsAccountIdentifierFormat;
 use App\Support\PrmsEventNotifier;
+use App\Support\PrmsTablePagination;
 use App\Support\SafeReport;
 use App\Support\StaffProfileProvisioner;
 use App\Support\StudentAcademicRecordSync;
+use App\Support\StudentGenderNormalizer;
 use App\Support\StudentProfileProvisioner;
 use App\Support\StudentWorkflowAssigner;
 use Illuminate\Http\RedirectResponse;
@@ -28,14 +33,14 @@ class AdminUserController extends Controller
     {
         $request->validated();
 
-        $file = $request->file('csv_file');
-        $handle = fopen($file->getRealPath(), 'r');
-        $header = array_map(static fn ($col) => trim((string) $col), fgetcsv($handle) ?: []);
+        try {
+            $rows = AdminUserImportReader::read($request->file('import_file'));
+        } catch (\Throwable $e) {
+            return back()->withErrors(['import_file' => $e->getMessage()]);
+        }
 
-        if ($header === []) {
-            fclose($handle);
-
-            return back()->withErrors(['csv_file' => 'The CSV file is empty or has no header row.']);
+        if ($rows === []) {
+            return back()->withErrors(['import_file' => 'No valid user rows were found in the import file.']);
         }
 
         $staffRoles = StaffProfileProvisioner::staffProfileRoles();
@@ -46,28 +51,38 @@ class AdminUserController extends Controller
         $userNotifyFailed = 0;
         $rowNumber = 1;
 
-        while (($data = fgetcsv($handle)) !== false) {
+        foreach ($rows as $row) {
             $rowNumber++;
 
-            if (count(array_filter($data, static fn ($v) => trim((string) $v) !== '')) === 0) {
-                continue;
-            }
+            $email = trim((string) ($row['email'] ?? ''));
+            $name = trim((string) ($row['name'] ?? ''));
+            $identifierRaw = trim((string) ($row['login_id'] ?? $row['reg_no'] ?? $row['staff_email'] ?? ''));
 
-            if (count($data) < count($header)) {
-                $data = array_pad($data, count($header), '');
-            }
-
-            /** @var array<string, string>|false $row */
-            $row = array_combine($header, $data);
-            if ($row === false) {
+            $role = $this->normalizeBulkImportRole(trim((string) ($row['role'] ?? '')));
+            if (! in_array($role, StoreAdminUserRequest::BULK_IMPORT_ROLES, true)) {
                 $skipped++;
 
                 continue;
             }
 
-            $email = trim((string) ($row['email'] ?? ''));
-            $name = trim((string) ($row['name'] ?? ''));
-            $loginId = trim((string) ($row['login_id'] ?? ''));
+            $isStudent = StoreAdminUserRequest::isStudentFormRole($role);
+
+            if (! $isStudent && $identifierRaw === '') {
+                $identifierRaw = $email;
+            }
+
+            if ($isStudent) {
+                $loginId = PrmsAccountIdentifierFormat::normalize($identifierRaw) ?? '';
+            } elseif (filter_var($identifierRaw, FILTER_VALIDATE_EMAIL)) {
+                $loginId = $identifierRaw;
+                if (strcasecmp($loginId, $email) !== 0) {
+                    $skipped++;
+
+                    continue;
+                }
+            } else {
+                $loginId = PrmsAccountIdentifierFormat::normalize($identifierRaw) ?? '';
+            }
 
             if ($email === '' || $name === '' || $loginId === '') {
                 $skipped++;
@@ -81,26 +96,25 @@ class AdminUserController extends Controller
                 continue;
             }
 
-            $role = $this->normalizeBulkImportRole(trim((string) ($row['role'] ?? '')));
-            if (! in_array($role, StoreAdminUserRequest::BULK_IMPORT_ROLES, true)) {
+            $department = trim((string) ($row['department'] ?? '')) ?: null;
+            $programme = trim((string) ($row['programme'] ?? '')) ?: null;
+            $yearOfStudyRaw = trim((string) ($row['year_of_study'] ?? ''));
+            $yearOfStudy = $yearOfStudyRaw !== '' ? (int) $yearOfStudyRaw : null;
+            $gender = StudentGenderNormalizer::normalize($row['gender'] ?? '');
+
+            if ($isStudent) {
+                if ($department === null || $programme === null || $yearOfStudy === null || $yearOfStudy < 1 || $yearOfStudy > StoreAdminUserRequest::MAX_YEAR_OF_STUDY || $gender === null) {
+                    $skipped++;
+
+                    continue;
+                }
+            } elseif ($department === null || $gender === null) {
                 $skipped++;
 
                 continue;
             }
 
-            $isStudent = StoreAdminUserRequest::isStudentFormRole($role);
-            $department = trim((string) ($row['department'] ?? '')) ?: null;
-            $programme = trim((string) ($row['programme'] ?? '')) ?: null;
-            $yearOfStudyRaw = trim((string) ($row['year_of_study'] ?? ''));
-            $yearOfStudy = $yearOfStudyRaw !== '' ? (int) $yearOfStudyRaw : null;
-
-            if ($isStudent) {
-                if ($department === null || $programme === null || $yearOfStudy === null || $yearOfStudy < 1 || $yearOfStudy > StoreAdminUserRequest::MAX_YEAR_OF_STUDY) {
-                    $skipped++;
-
-                    continue;
-                }
-            } elseif ($department === null) {
+            if (! $this->isBulkImportLoginIdValid($loginId, $role, $isStudent, $department, $programme)) {
                 $skipped++;
 
                 continue;
@@ -119,6 +133,7 @@ class AdminUserController extends Controller
                     $department,
                     $programme,
                     $yearOfStudy,
+                    $gender,
                     $tempPassword,
                     $staffRoles
                 ): User {
@@ -136,6 +151,8 @@ class AdminUserController extends Controller
                         'must_change_password' => true,
                         'notify_email_new_submission' => true,
                         'notify_email_submission_reviewed' => true,
+                        'notify_email_workflow' => true,
+                        'notify_sms_workflow' => true,
                     ]);
 
                     if ($isStudent) {
@@ -147,20 +164,23 @@ class AdminUserController extends Controller
                         }
                         $user->save();
 
-                        StudentProfileProvisioner::ensureStudentProfile($user);
+                        StudentProfileProvisioner::ensureStudentProfile($user, $gender);
                         $user->refresh();
                         StudentAcademicRecordSync::syncLinkedStudentRowFromUser($user);
                         StudentWorkflowAssigner::syncForUser($user->fresh());
                     } elseif (in_array($role, $staffRoles, true)) {
                         if (Schema::hasColumn('users', 'staff_id')) {
-                            $user->staff_id = $loginId;
+                            $user->staff_id = filter_var($loginId, FILTER_VALIDATE_EMAIL) ? null : $loginId;
                         }
                         if (Schema::hasColumn('users', 'registration_number')) {
                             $user->registration_number = null;
                         }
+                        if (Schema::hasColumn('users', 'gender')) {
+                            $user->gender = $gender;
+                        }
                         $user->save();
 
-                        StaffProfileProvisioner::syncFromUser($user);
+                        StaffProfileProvisioner::syncFromUser($user, $gender);
                     }
 
                     Audit::log($request, 'admin.user_created', 'User', (string) $user->id, null, [
@@ -194,18 +214,14 @@ class AdminUserController extends Controller
             } catch (\Throwable $e) {
                 SafeReport::call($e);
 
-                fclose($handle);
-
                 return back()->withErrors([
-                    'csv_file' => "Import stopped at CSV row {$rowNumber}: ".$e->getMessage(),
+                    'import_file' => "Import stopped at row {$rowNumber}: ".$e->getMessage(),
                 ]);
             }
         }
 
-        fclose($handle);
-
         if ($imported === 0 && $skipped === 0) {
-            return back()->withErrors(['csv_file' => 'No valid user rows were found in the CSV file.']);
+            return back()->withErrors(['import_file' => 'No valid user rows were found in the import file.']);
         }
 
         $message = "Successfully imported {$imported} user(s).";
@@ -218,7 +234,7 @@ class AdminUserController extends Controller
             $message .= " {$userNotifyFailed} user(s) could not be notified — check mail configuration or share credentials manually.";
         }
         if ($skipped > 0) {
-            $message .= " {$skipped} row(s) skipped (duplicate account, invalid role, or missing required fields).";
+            $message .= " {$skipped} row(s) skipped (duplicate account, invalid role, invalid ID format, missing gender, or missing required fields).";
         }
 
         return back()->with('status', $message);
@@ -234,6 +250,31 @@ class AdminUserController extends Controller
             default => $role,
         };
     }
+
+    private function isBulkImportLoginIdValid(
+        string $loginId,
+        string $role,
+        bool $isStudent,
+        ?string $department,
+        ?string $programme,
+    ): bool {
+        if ($isStudent) {
+            return PrmsAccountIdentifierFormat::isValidRegistrationNumber($loginId)
+                && PrmsAccountIdentifierFormat::registrationMatchesProgramme($loginId, $programme);
+        }
+
+        if (filter_var($loginId, FILTER_VALIDATE_EMAIL)) {
+            return true;
+        }
+
+        if ($role === 'admin') {
+            return PrmsAccountIdentifierFormat::isValidAdminIdentifier($loginId);
+        }
+
+        return PrmsAccountIdentifierFormat::isValidStaffId($loginId)
+            && PrmsAccountIdentifierFormat::staffIdMatchesDepartment($loginId, $department);
+    }
+
     public function index(Request $request): View|RedirectResponse
     {
         if ($request->boolean('reset_filters')) {
@@ -259,7 +300,7 @@ class AdminUserController extends Controller
         $statusFilter = $filters['status'];
         $pendingPasswordFilter = (bool) $filters['must_change_password'];
 
-        $allowedRoles = ['admin', 'hod', 'coordinator', 'supervisor', 'project_student', 'research_student', 'normal_student'];
+        $allowedRoles = ['admin', 'hod', 'coordinator', 'supervisor', StoreAdminUserRequest::FORM_STUDENT_ROLE];
         $allowedStatuses = ['active', 'inactive', 'suspended', 'locked'];
 
         $usersQuery = User::query();
@@ -297,7 +338,11 @@ class AdminUserController extends Controller
         }
 
         if (in_array($roleFilter, $allowedRoles, true)) {
-            $usersQuery->where('role', $roleFilter);
+            if ($roleFilter === StoreAdminUserRequest::FORM_STUDENT_ROLE) {
+                $usersQuery->whereIn('role', StoreAdminUserRequest::STUDENT_ROLES);
+            } else {
+                $usersQuery->where('role', $roleFilter);
+            }
         }
 
         if ($pendingPasswordFilter) {
@@ -314,7 +359,7 @@ class AdminUserController extends Controller
             $usersQuery->with('studentProfile');
         }
 
-        $users = $usersQuery->latest()->paginate(20)->withQueryString();
+        $users = $usersQuery->latest()->paginate(PrmsTablePagination::perPage($request))->withQueryString();
 
         $stats = [
             'total'         => User::query()->count(),
@@ -333,6 +378,8 @@ class AdminUserController extends Controller
             'roles' => $allowedRoles,
             'formRoles' => StoreAdminUserRequest::FORM_ROLES,
             'statuses' => $allowedStatuses,
+            'departments' => \App\Models\Department::query()->orderBy('department_name')->get(),
+            'programmes' => \App\Models\Program::query()->with('department')->orderBy('programme_code')->get(),
             'stats' => $stats,
             'filters' => $filters,
             'hasActiveFilters' => $hasActiveFilters,
@@ -346,7 +393,7 @@ class AdminUserController extends Controller
      */
     private function sanitizeAdminUserFilters(array $filters): array
     {
-        $allowedRoles = ['admin', 'hod', 'coordinator', 'supervisor', 'project_student', 'research_student', 'normal_student'];
+        $allowedRoles = ['admin', 'hod', 'coordinator', 'supervisor', StoreAdminUserRequest::FORM_STUDENT_ROLE];
         $allowedStatuses = ['active', 'inactive', 'suspended', 'locked', 'suspended_locked'];
 
         return [
@@ -491,8 +538,9 @@ class AdminUserController extends Controller
         $tempPassword = Str::password(12);
 
         $yearOfStudy = $isStudent ? ($validated['year_of_study'] ?? null) : null;
+        $gender = $validated['gender'] ?? null;
 
-        $user = DB::transaction(function () use ($request, $validated, $formRole, $isStudent, $yearOfStudy, $tempPassword) {
+        $user = DB::transaction(function () use ($request, $validated, $formRole, $isStudent, $yearOfStudy, $gender, $tempPassword) {
             $user = User::query()->create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
@@ -501,12 +549,15 @@ class AdminUserController extends Controller
                 'department' => $validated['department'] ?? null,
                 'programme' => $isStudent ? ($validated['programme'] ?? null) : null,
                 'year_of_study' => $yearOfStudy,
+                'gender' => $isStudent ? null : $gender,
                 'enrollment_status' => 'active',
                 'account_status' => 'active',
                 'password' => $tempPassword,
                 'must_change_password' => true,
                 'notify_email_new_submission' => true,
                 'notify_email_submission_reviewed' => true,
+                'notify_email_workflow' => true,
+                'notify_sms_workflow' => true,
             ]);
 
             if ($isStudent) {
@@ -518,7 +569,7 @@ class AdminUserController extends Controller
                 }
                 $user->save();
 
-                StudentProfileProvisioner::ensureStudentProfile($user);
+                StudentProfileProvisioner::ensureStudentProfile($user, $gender);
                 $user->refresh();
                 StudentAcademicRecordSync::syncLinkedStudentRowFromUser($user);
                 try {
@@ -534,13 +585,16 @@ class AdminUserController extends Controller
                     $user->registration_number = null;
                 }
                 $user->save();
-                StaffProfileProvisioner::syncFromUser($user);
+                StaffProfileProvisioner::syncFromUser($user, $gender);
             } elseif ($formRole === 'admin') {
                 if (Schema::hasColumn('users', 'staff_id')) {
                     $user->staff_id = $validated['login_id'];
                 }
                 if (Schema::hasColumn('users', 'registration_number')) {
                     $user->registration_number = null;
+                }
+                if (Schema::hasColumn('users', 'gender')) {
+                    $user->gender = $gender;
                 }
                 $user->save();
             }
@@ -685,6 +739,59 @@ class AdminUserController extends Controller
         PrmsEventNotifier::notifyAccountUpdated($user, $request->user());
 
         return back()->with('status', 'User updated successfully.');
+    }
+
+    public function resetPassword(Request $request, User $user): RedirectResponse
+    {
+        if ((int) $request->user()->id === (int) $user->id) {
+            return back()->withErrors([
+                'error' => 'Reset your own password from My profile instead of user management.',
+            ]);
+        }
+
+        $tempPassword = Str::password(12);
+
+        try {
+            $user->password = $tempPassword;
+            $user->must_change_password = true;
+            $user->save();
+
+            $loginId = $user->isStudentUser()
+                ? (string) ($user->regNo() ?? $user->login_id)
+                : (string) ($user->login_id ?: $user->email);
+
+            $notifyResult = AdminPasswordResetNotifier::notify(
+                $user,
+                $loginId,
+                $tempPassword,
+                $request->user(),
+            );
+
+            Audit::log($request, 'admin.user_password_reset', 'User', (string) $user->id, null, [
+                'login_id' => $loginId,
+                'notified_in_app' => $notifyResult['user_in_app'],
+                'notified_email' => $notifyResult['user_email'],
+            ]);
+
+            $message = 'A new temporary password was generated for '.$user->name.'.';
+            if ($notifyResult['user_in_app'] && $notifyResult['user_email']) {
+                $message .= ' It was sent by in-app notification and email.';
+            } elseif ($notifyResult['user_in_app']) {
+                $message .= ' It was sent by in-app notification; email could not be delivered.';
+            } elseif ($notifyResult['user_email']) {
+                $message .= ' It was sent by email; in-app notification could not be delivered.';
+            } else {
+                $message .= ' Notifications could not be sent — share the temporary password manually: '.$tempPassword;
+            }
+
+            return back()->with('status', $message);
+        } catch (\Throwable $e) {
+            SafeReport::call($e);
+
+            return back()->withErrors([
+                'error' => 'Password reset failed: '.$e->getMessage(),
+            ]);
+        }
     }
 }
 

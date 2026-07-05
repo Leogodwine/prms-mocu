@@ -84,8 +84,8 @@ class ProjectController extends Controller
 
         $researchProject->load(['student', 'supervisor', 'contributors']);
 
-        $isAdmin = $request->user()->role === 'admin';
-        $similarProjects = $isAdmin && Schema::hasTable('project_similarities')
+        $canViewSimilarity = in_array($request->user()->role, ['admin', 'coordinator'], true);
+        $similarProjects = $canViewSimilarity && Schema::hasTable('project_similarities')
             ? app(ProjectSimilarityAnalyzer::class)->similarProjectsFor($researchProject)
             : collect();
 
@@ -103,8 +103,9 @@ class ProjectController extends Controller
         return view('projects.show', [
             'project' => $researchProject,
             'similarProjects' => $similarProjects,
-            'showSimilarityPanel' => $isAdmin,
-            'ollamaReachable' => $isAdmin ? app(\App\Services\Ollama\OllamaClient::class)->isReachable() : true,
+            'showSimilarityPanel' => $canViewSimilarity,
+            'canRerunSimilarity' => $request->user()->role === 'admin',
+            'ollamaReachable' => $canViewSimilarity ? app(\App\Services\Ollama\OllamaClient::class)->isReachable() : true,
             'canManageContributors' => PrmsUserCapabilities::canManageProjectContributors($user, $researchProject),
             'eligibleContributors' => $eligibleContributors,
         ]);

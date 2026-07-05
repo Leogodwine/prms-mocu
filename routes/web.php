@@ -122,6 +122,7 @@ Route::middleware(['auth', 'password.changed', 'role:coordinator'])->prefix('coo
     Route::put('/deadlines/{deadline}', [CoordinatorController::class, 'updateDeadline'])->name('deadlines.update');
     Route::delete('/deadlines/{deadline}', [CoordinatorController::class, 'destroyDeadline'])->name('deadlines.destroy');
     Route::post('/groups', [CoordinatorController::class, 'storeGroup'])->name('groups.store');
+    Route::get('/groups/{group}', [CoordinatorController::class, 'showGroup'])->name('groups.show');
     Route::post('/groups/auto-form', [CoordinatorController::class, 'autoGroupStudents'])->name('groups.auto-form');
     Route::post('/groups/auto-assign', [CoordinatorController::class, 'autoAssignSupervisors'])->name('groups.auto-assign');
     Route::post('/assign-supervisor', [CoordinatorController::class, 'assignSupervisor'])->name('supervisor.assign');
@@ -130,6 +131,9 @@ Route::middleware(['auth', 'password.changed', 'role:coordinator'])->prefix('coo
     Route::get('/rubrics', [CoordinatorController::class, 'rubrics'])->name('rubrics.index');
     Route::get('/rubrics/create', [CoordinatorController::class, 'createRubric'])->name('rubrics.create');
     Route::post('/rubrics', [CoordinatorController::class, 'storeRubric'])->name('rubrics.store');
+    Route::post('/rubrics/{rubric}/default', [CoordinatorController::class, 'setDefaultRubric'])->name('rubrics.default');
+
+    Route::match(['get', 'post'], '/similarities', [ProjectSimilarityController::class, 'index'])->name('similarities.index');
 
     Route::match(['get', 'post'], '/submissions', [CoordinatorController::class, 'submissions'])->name('submissions');
     Route::get('/submissions/consent/{submission}/sign', [CoordinatorController::class, 'consentSign'])->name('submissions.consent.sign');
@@ -199,6 +203,8 @@ Route::post('/student/submissions/{submission}/onlyoffice-callback', [Submission
 Route::middleware(['auth', 'password.changed', 'role:project_student,research_student,normal_student'])->prefix('student')->name('student.')->group(function () {
     Route::post('/submissions', [StudentController::class, 'storeSubmission'])->name('submissions.store');
     Route::post('/submissions/create-blank', [SubmissionEditorController::class, 'createBlank'])->name('submissions.create-blank');
+    Route::post('/submissions/{submission}/submit-to-supervisor', [StudentController::class, 'submitToSupervisor'])->name('submissions.submit-to-supervisor');
+    Route::delete('/submissions/{submission}', [StudentController::class, 'destroySubmission'])->name('submissions.destroy');
     Route::post('/submissions/{submission}/submit-to-coordinator', [StudentController::class, 'submitToCoordinator'])->name('submissions.submit-to-coordinator');
 });
 
@@ -236,6 +242,7 @@ Route::middleware(['auth', 'password.changed', 'role:admin'])->prefix('admin')->
     Route::post('/users/bulk-delete', [AdminUserController::class, 'bulkDestroy'])->name('users.bulk-delete');
     Route::get('/users/bulk-delete', fn () => redirect()->route('admin.users.index'));
     Route::put('/users/{user}', [AdminUserController::class, 'update'])->name('users.update');
+    Route::post('/users/{user}/reset-password', [AdminUserController::class, 'resetPassword'])->name('users.reset-password');
     Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
 });
 

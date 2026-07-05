@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\AdminUserImportReader;
 use Illuminate\Foundation\Http\FormRequest;
 
 class BulkImportUsersRequest extends FormRequest
@@ -14,15 +15,21 @@ class BulkImportUsersRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'csv_file' => ['required', 'file', 'mimes:csv,txt', 'max:2048'],
+            'import_file' => [
+                'required',
+                'file',
+                'mimes:csv,txt,xml,pdf',
+                'max:'.AdminUserImportReader::MAX_KILOBYTES,
+            ],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'csv_file.required' => 'Please choose a CSV file to import.',
-            'csv_file.mimes' => 'The import file must be a CSV.',
+            'import_file.required' => 'Please choose a file to import.',
+            'import_file.mimes' => 'The import file must be CSV, XML, or PDF.',
+            'import_file.max' => 'The import file may not be larger than 10 MB.',
         ];
     }
 }

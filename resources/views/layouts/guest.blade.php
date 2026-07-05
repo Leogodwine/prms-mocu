@@ -9,7 +9,7 @@
     <title>@yield('title', 'Sign in') | {{ config('app.name', 'MoCU-PRMS') }}</title>
 
     @include('layouts.partials.kaiadmin-styles')
-    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=27">
+    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=42">
     <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=14">
 </head>
 <body class="prms-guest-page">
@@ -33,6 +33,8 @@
     </div>
 
     @include('layouts.partials.kaiadmin-scripts', ['full' => false])
+    <x-prms-flash-messages />
+    <x-prms-toast-host />
     @stack('scripts')
 </body>
 </html>
