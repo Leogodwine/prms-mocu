@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Support\PrmsNotificationChannels;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -17,20 +18,12 @@ class ProjectNotification extends Notification
         protected ?string $actionText = null,
     ) {}
 
+    /**
+     * @return list<string|class-string>
+     */
     public function via(object $notifiable): array
     {
-        // Students: in-app only for registration acknowledgements (avoid unsolicited email).
-        if (in_array($notifiable->role ?? '', ['project_student', 'research_student', 'normal_student', 'student'], true)) {
-            return ['database'];
-        }
-
-        $channels = ['database'];
-
-        if ($notifiable->notify_email_new_submission || $notifiable->notify_email_submission_reviewed) {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
+        return PrmsNotificationChannels::projectAlert($notifiable);
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -46,6 +39,9 @@ class ProjectNotification extends Notification
         return $mail->line('Thank you for using MoCU PRMS!');
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(object $notifiable): array
     {
         $route = $this->actionUrl ?? route('notifications.index');

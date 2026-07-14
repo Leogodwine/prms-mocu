@@ -11,6 +11,7 @@ use App\Models\SupervisorAssignment;
 use App\Models\User;
 use App\Models\EvaluationRubric;
 use App\Models\ProjectStage;
+use App\Models\SubmissionFeedback;
 use App\Support\Audit;
 use App\Support\PrmsEventNotifier;
 use App\Support\PrmsListFilters;
@@ -28,8 +29,8 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -957,6 +958,56 @@ class CoordinatorController extends Controller
         return redirect()
             ->route('coordinator.submissions')
             ->with('status', $message);
+    }
+
+    public function consentReview(Request $request, ProjectSubmission $submission): RedirectResponse
+    {
+        $coordinator = $request->user();
+        PresentationConsentForm::authorizeCoordinatorForSubmission($coordinator, $submission);
+
+        if ($submission->coordinator_approved_at !== null) {
+            return back()->withErrors(['error' => 'Consent was already finalized and cannot be returned.']);
+        }
+
+        if ($submission->supervisor_consent_signed_at === null || ! $submission->submitted_to_coordinator) {
+            return back()->withErrors(['error' => 'Supervisor consent must be signed before coordinator review.']);
+        }
+
+        $validated = $request->validate([
+            'comments' => ['required', 'string', 'max:3000'],
+            'decision' => ['required', Rule::in(['rejected', 'needs_revision'])],
+        ], [
+            'comments.required' => 'Please explain why you are rejecting or returning this consent request.',
+        ]);
+
+        SubmissionFeedback::create([
+            'project_submission_id' => $submission->id,
+            'supervisor_id' => $coordinator->id,
+            'comments' => trim($validated['comments']),
+            'decision' => $validated['decision'],
+        ]);
+
+        PresentationConsentForm::clearCoordinatorConsentSignature($submission);
+        PresentationConsentForm::clearSupervisorConsentSignature($submission);
+
+        $submission->update(['status' => $validated['decision']]);
+
+        Audit::log(
+            $request,
+            'coordinator.consent_returned',
+            'ProjectSubmission',
+            (string) $submission->id,
+            null,
+            ['decision' => $validated['decision']]
+        );
+
+        PrmsEventNotifier::notifyConsentReturnedByCoordinator($submission, $coordinator, $validated['decision']);
+
+        $label = $validated['decision'] === 'rejected' ? 'rejected' : 'returned for revision';
+
+        return redirect()
+            ->route('coordinator.submissions')
+            ->with('status', 'Consent request '.$label.' successfully. The student and supervisor have been notified.');
     }
 
     public function consentPdf(Request $request, ProjectSubmission $submission): Response

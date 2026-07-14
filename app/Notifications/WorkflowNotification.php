@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Support\PrmsNotificationChannels;
+use App\Support\PrmsSms;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -42,13 +43,7 @@ class WorkflowNotification extends Notification
 
     public function toSms(object $notifiable): string
     {
-        $text = $this->title.': '.$this->message;
-
-        if ($this->actionUrl) {
-            $text .= ' '.$this->actionUrl;
-        }
-
-        return mb_substr($text, 0, 480);
+        return PrmsSms::formatBody($this->title, $this->message, 'Log in to PRMS for details.');
     }
 
     /**

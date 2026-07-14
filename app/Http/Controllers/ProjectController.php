@@ -12,6 +12,7 @@ use App\Models\Semester;
 use App\Models\SupervisorAssignment;
 use App\Models\User;
 use App\Notifications\ProjectNotification;
+use App\Support\PrmsEventNotifier;
 use App\Support\Audit;
 use App\Support\ProjectSimilarityQueue;
 use App\Support\PrmsUserCapabilities;
@@ -463,24 +464,26 @@ class ProjectController extends Controller
         $supervisor = $supervisorId ? User::find($supervisorId) : null;
 
         if ($supervisor) {
-            $supervisor->notify(new ProjectNotification(
+            PrmsEventNotifier::notify(
+                $supervisor,
                 'New proposal / project idea — '.$validated['proposal_name'],
                 $user->name.' registered '.$projectCode.' with a proposed problem and title for your review: '.$validated['title'],
                 route('projects.show', $project),
                 'View full details'
-            ));
+            );
         }
 
         $studentBody = $supervisor
             ? 'Your '.$projectTypeLabel.' idea was saved as '.$projectCode.'. '.$supervisor->name.' has been notified to review your problem statement and working title.'
             : 'Your '.$projectTypeLabel.' idea was saved as '.$projectCode.'. You do not have an assigned supervisor yet — please contact your coordinator.';
 
-        $user->notify(new ProjectNotification(
+        PrmsEventNotifier::notify(
+            $user,
             'Idea registered — '.$projectCode,
             $studentBody,
             $studentWorkspaceUrl,
             'Open workspace'
-        ));
+        );
 
         $msg = 'Your idea was registered as '.$projectCode.'. ';
         $msg .= $supervisor

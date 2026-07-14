@@ -134,6 +134,34 @@ body.prms-public-page {
   }
 }
 
+@media screen and (max-width: 767.98px) {
+  .main-panel .page-header,
+  .prms-public-page .page-header {
+    flex-direction: column !important;
+    flex-wrap: wrap !important;
+    align-items: flex-start !important;
+    gap: 0.35rem;
+  }
+
+  .main-panel .page-header .page-title,
+  .prms-public-page .page-header .page-title {
+    max-width: 100%;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+  }
+
+  .main-panel .page-header .breadcrumbs,
+  .prms-public-page .page-header .breadcrumbs {
+    max-width: 100%;
+    margin-left: 0 !important;
+    text-align: left;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+  }
+}
+
 /* Very small — icon-only breadcrumb trail */
 @media screen and (max-width: 575.98px) {
   .main-panel .breadcrumbs .prms-breadcrumb-label,

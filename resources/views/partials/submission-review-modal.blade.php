@@ -40,9 +40,9 @@
                             <div class="alert alert-warning d-flex align-items-start gap-2 small mb-3" role="note">
                                 <i class="fas fa-file-signature mt-1" aria-hidden="true"></i>
                                 <div>
-                                    <strong>Consent letter.</strong> Signing approves the final system presentation and
-                                    forwards this consent to the coordinator. Once the coordinator finalizes it, all
-                                    approved complete documents for this student or group are published to the repository.
+                                    <strong>Consent letter.</strong> Review the proposed presentation date, complete the required
+                                    fields, sign digitally, and send the signed consent back to the student. It is also forwarded
+                                    to the coordinator for final sign-off.
                                 </div>
                             </div>
                         @endif
@@ -112,12 +112,13 @@
                                 <input type="hidden" name="redirect_to" value="{{ $redirectTo }}">
                             @endif
                             <div class="mb-3">
-                                <label for="comments-consent-{{ $submission->id }}" class="form-label">Feedback comments <span class="text-muted fw-normal">(optional)</span></label>
+                                <label for="comments-consent-{{ $submission->id }}" class="form-label">Reason for rejection or revision <span class="text-danger">*</span></label>
                                 <textarea
                                     id="comments-consent-{{ $submission->id }}"
                                     name="comments"
                                     rows="4"
-                                    placeholder="Explain what must be revised or why the submission is rejected…"
+                                    required
+                                    placeholder="Explain what must be revised or why the consent request is rejected…"
                                     class="form-control @if ($errors->has('comments') && (int) old('_submission_id') === $submission->id) is-invalid @endif">{{ (int) old('_submission_id') === $submission->id ? old('comments') : '' }}</textarea>
                                 @if ($errors->has('comments') && (int) old('_submission_id') === $submission->id)
                                     <div class="invalid-feedback d-block">{{ $errors->first('comments') }}</div>

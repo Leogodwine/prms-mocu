@@ -12,7 +12,7 @@
     $notifResetParams = ($statusFilter ?? 'all') !== 'all' ? ['status' => $statusFilter] : [];
 @endphp
 
-<x-prms-greeting-banner subtitle="New uploads, review decisions, and email preferences for your account.">
+<x-prms-greeting-banner subtitle="New uploads, review decisions, and notification preferences for your account.">
     <div class="d-flex flex-wrap align-items-center justify-content-end gap-3" role="group" aria-label="Notification counts">
         <a href="{{ route('notifications.index', $notifAllParams) }}"
                class="prms-notif-stat-badge prms-notif-stat-badge--all @if ($isAllNotifications) is-active @endif"
@@ -61,7 +61,7 @@
                 <form method="GET"
                       action="{{ route('notifications.index') }}"
                       id="prmsNotifSearchForm"
-                      class="d-flex flex-nowrap align-items-center gap-2 overflow-auto">
+                      class="prms-filter-toolbar">
                     @if ($statusFilter !== 'all')
                         <input type="hidden" name="status" value="{{ $statusFilter }}">
                     @endif
@@ -73,7 +73,7 @@
                         class="flex-grow-1"
                         style="min-width: 220px;"
                     />
-                    <div class="d-flex flex-nowrap gap-2 ms-auto flex-shrink-0">
+                    <div class="d-flex flex-nowrap gap-2 ms-auto flex-shrink-0 prms-filter-toolbar__actions">
                         <button type="submit" class="btn btn-sm btn-primary text-nowrap">
                             <i class="fas fa-search me-1" aria-hidden="true"></i>
                             Apply
@@ -242,13 +242,27 @@
 
     {{-- ────────── Preferences ────────── --}}
     <div class="col-lg-4">
-        <h2 class="h5 fw-bold text-strong mb-3">Email preferences</h2>
+        @php
+            $userPhone = \App\Support\PrmsNotificationChannels::phoneFor(auth()->user());
+        @endphp
+        <h2 class="h5 fw-bold text-strong mb-3">Notification preferences</h2>
 
         <div class="card">
             <div class="card-body">
                 <p class="text-muted small mb-4">
-                    Choose which emails and SMS alerts we send. In-app notifications are always available; success confirmations also appear as on-screen toasts.
+                    Choose which email and SMS alerts we send. In-app notifications are always available; success confirmations also appear as on-screen toasts.
                 </p>
+
+                @if ($userPhone === null)
+                    <div class="alert alert-light border small py-2 mb-4">
+                        SMS alerts require a phone number on your profile.
+                        <a href="{{ route('profile.edit') }}" class="fw-semibold">Update profile</a>
+                    </div>
+                @else
+                    <p class="text-muted small mb-4">
+                        SMS will be sent to <span class="fw-semibold">{{ $userPhone }}</span> when enabled below.
+                    </p>
+                @endif
 
                 <form action="{{ route('notifications.preferences.update') }}" method="POST">
                     @csrf
@@ -290,15 +304,16 @@
                         </div>
                     </div>
 
-                    <div class="form-check form-switch mb-4">
+                    <div class="form-check form-switch mb-3">
                         <input type="checkbox" class="form-check-input" id="notif_workflow_sms"
                                name="notify_sms_workflow" value="1"
-                               @checked(auth()->user()->notify_sms_workflow ?? true)>
+                               @checked(auth()->user()->notify_sms_workflow ?? true)
+                               @disabled($userPhone === null)>
                         <label class="form-check-label fw-semibold" for="notif_workflow_sms">
-                            Group &amp; supervisor updates (SMS)
+                            Workflow updates (SMS)
                         </label>
                         <div class="text-muted small">
-                            Text message alerts when your phone number is on file.
+                            Text alerts for groups, supervisors, deadlines, submissions, and review decisions when your phone number is on file.
                         </div>
                     </div>
 

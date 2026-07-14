@@ -3,6 +3,8 @@
 namespace App\Notifications;
 
 use App\Models\ProjectSubmission;
+use App\Support\PrmsNotificationChannels;
+use App\Support\PrmsSms;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -14,43 +16,26 @@ class SubmissionReviewedNotification extends Notification
     public function __construct(
         private readonly ProjectSubmission $submission,
         private readonly string $decision
-    ) {
-    }
+    ) {}
 
-    /**
-     * Friendly verb for the decision string. Keeps the database/mail
-     * copy readable for `needs_revision` (which would otherwise read as
-     * the snake-cased token).
-     */
     private function decisionLabel(): string
     {
         return match ($this->decision) {
-            'approved'       => 'approved',
-            'rejected'       => 'rejected',
+            'approved' => 'approved',
+            'rejected' => 'rejected',
             'needs_revision' => 'returned for revision',
-            default          => str_replace('_', ' ', $this->decision),
+            default => str_replace('_', ' ', $this->decision),
         };
     }
 
     /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
+     * @return list<string|class-string>
      */
     public function via(object $notifiable): array
     {
-        $channels = ['database'];
-
-        if ($notifiable->notify_email_submission_reviewed) {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
+        return PrmsNotificationChannels::reviewAlert($notifiable);
     }
 
-    /**
-     * Get the mail representation of the notification.
-     */
     public function toMail(object $notifiable): MailMessage
     {
         $label = $this->decisionLabel();
@@ -62,9 +47,18 @@ class SubmissionReviewedNotification extends Notification
             ->action('Open Student Workspace', route('student.index'));
     }
 
+    public function toSms(object $notifiable): string
+    {
+        $label = $this->decisionLabel();
+
+        return PrmsSms::formatBody(
+            'Submission reviewed',
+            "Your {$this->submission->stage} submission \"{$this->submission->title}\" was {$label}.",
+            'Log in to PRMS.'
+        );
+    }
+
     /**
-     * Get the array representation of the notification.
-     *
      * @return array<string, mixed>
      */
     public function toArray(object $notifiable): array

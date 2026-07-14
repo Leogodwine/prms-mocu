@@ -64,6 +64,45 @@
                               style="max-width: 640px;">
                             @csrf
 
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label for="consent_group_number" class="form-label fw-semibold">Group number</label>
+                                    <input type="text"
+                                           id="consent_group_number"
+                                           name="consent_group_number"
+                                           class="form-control @error('consent_group_number') is-invalid @enderror"
+                                           value="{{ old('consent_group_number', $groupNumber ?? '') }}"
+                                           required>
+                                    @error('consent_group_number')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="presentation_date" class="form-label fw-semibold">Proposed presentation date</label>
+                                    <input type="date"
+                                           id="presentation_date"
+                                           name="presentation_date"
+                                           class="form-control @error('presentation_date') is-invalid @enderror"
+                                           value="{{ old('presentation_date', optional($submission->presentation_date)->format('Y-m-d') ?: ($presentationDateRaw ?? '')) }}"
+                                           required>
+                                    @error('presentation_date')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-12">
+                                    <label for="consent_project_title" class="form-label fw-semibold">Project title</label>
+                                    <input type="text"
+                                           id="consent_project_title"
+                                           name="consent_project_title"
+                                           class="form-control @error('consent_project_title') is-invalid @enderror"
+                                           value="{{ old('consent_project_title', $submission->consent_project_title ?: (str_contains((string) ($projectTitle ?? ''), '____') ? '' : ($projectTitle ?? ''))) }}"
+                                           required>
+                                    @error('consent_project_title')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+
                             <div class="form-check mb-4">
                                 <input class="form-check-input @error('consent_agreed') is-invalid @enderror"
                                        type="checkbox"
@@ -119,7 +158,35 @@
                                 </button>
                                 <button type="submit" class="btn btn-success rounded-pill px-4">
                                     <i class="fas fa-file-signature me-1" aria-hidden="true"></i>
-                                    Sign &amp; forward to coordinator
+                                    Sign &amp; send to student &amp; coordinator
+                                </button>
+                            </div>
+                        </form>
+
+                        <hr class="my-4">
+
+                        <form method="POST"
+                              action="{{ route('supervisor.review', $submission) }}"
+                              class="mx-auto"
+                              style="max-width: 640px;"
+                              onsubmit="return confirm('Return or reject this consent request? The student will be notified with your reason.');">
+                            @csrf
+                            <p class="fw-semibold text-center mb-3">Reject or return for revision</p>
+                            <div class="mb-3">
+                                <label for="consent-reject-comments" class="form-label fw-semibold">Reason <span class="text-danger">*</span></label>
+                                <textarea id="consent-reject-comments"
+                                          name="comments"
+                                          rows="3"
+                                          class="form-control"
+                                          required
+                                          placeholder="Explain what must be corrected or why the consent request is rejected…"></textarea>
+                            </div>
+                            <div class="d-flex flex-wrap justify-content-center gap-2">
+                                <button type="submit" name="decision" value="needs_revision" class="btn btn-warning rounded-pill px-4">
+                                    <i class="fas fa-undo me-1" aria-hidden="true"></i> Return to student
+                                </button>
+                                <button type="submit" name="decision" value="rejected" class="btn btn-outline-danger rounded-pill px-4">
+                                    <i class="fas fa-times-circle me-1" aria-hidden="true"></i> Reject
                                 </button>
                             </div>
                         </form>

@@ -3,6 +3,8 @@
 namespace App\Notifications;
 
 use App\Models\ProjectSubmission;
+use App\Support\PrmsNotificationChannels;
+use App\Support\PrmsSms;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -11,29 +13,16 @@ class NewSubmissionNotification extends Notification
 {
     use Queueable;
 
-    public function __construct(private readonly ProjectSubmission $submission)
-    {
-    }
+    public function __construct(private readonly ProjectSubmission $submission) {}
 
     /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
+     * @return list<string|class-string>
      */
     public function via(object $notifiable): array
     {
-        $channels = ['database'];
-
-        if ($notifiable->notify_email_new_submission) {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
+        return PrmsNotificationChannels::submissionAlert($notifiable);
     }
 
-    /**
-     * Get the mail representation of the notification.
-     */
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
@@ -43,9 +32,16 @@ class NewSubmissionNotification extends Notification
             ->action('Open Supervisor Workspace', route('supervisor.index'));
     }
 
+    public function toSms(object $notifiable): string
+    {
+        return PrmsSms::formatBody(
+            'New submission',
+            "A {$this->submission->stage} submission \"{$this->submission->title}\" is ready for review.",
+            'Log in to PRMS.'
+        );
+    }
+
     /**
-     * Get the array representation of the notification.
-     *
      * @return array<string, mixed>
      */
     public function toArray(object $notifiable): array

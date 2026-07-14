@@ -144,8 +144,21 @@ final class PrmsPlatformMonitor
             ['label' => 'Cache driver', 'value' => (string) config('cache.default')],
             ['label' => 'Queue driver', 'value' => (string) config('queue.default')],
             ['label' => 'Session driver', 'value' => (string) config('session.driver')],
+            ['label' => 'Mail from', 'value' => (string) config('mail.from.address')],
+            ['label' => 'SMS gateway', 'value' => self::smsEnvironmentLabel()],
             ['label' => 'Log file size', 'value' => number_format($logSizeKb, 1).' KB'],
         ];
+    }
+
+    private static function smsEnvironmentLabel(): string
+    {
+        $status = PrmsSmsStatus::summary();
+
+        if (! $status['enabled']) {
+            return 'Disabled';
+        }
+
+        return ucfirst($status['driver']).' · '.$status['detail'];
     }
 
     /**

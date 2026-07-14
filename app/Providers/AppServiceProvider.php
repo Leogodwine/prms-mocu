@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Contracts\SmsGateway;
+use App\Services\Sms\MessagingServiceSmsGateway;
+use App\Services\Sms\NextSmsGateway;
+use App\Services\Sms\LogSmsGateway;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
@@ -15,7 +19,20 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(SmsGateway::class, function ($app) {
+            $driver = (string) config('prms.sms.driver', 'log');
+
+            if ($driver !== 'http') {
+                return $app->make(LogSmsGateway::class);
+            }
+
+            $provider = (string) config('prms.sms.provider', 'nextsms');
+
+            return match ($provider) {
+                'messaging_service' => $app->make(MessagingServiceSmsGateway::class),
+                default => $app->make(NextSmsGateway::class),
+            };
+        });
     }
 
     /**

@@ -77,6 +77,10 @@
                             <h4 class="h6 fw-bold text-strong mb-1">{{ $consent->title ?: 'Consent form' }}</h4>
                             <div class="small text-muted">
                                 <i class="far fa-calendar me-1" aria-hidden="true"></i>{{ $submittedOn }}
+                                @if ($consent->presentation_date)
+                                    <span class="mx-1">·</span>
+                                    Presentation: {{ $consent->presentation_date->format('d M Y') }}
+                                @endif
                                 <span class="mx-1">·</span>
                                 Final Presentation Consent Letter
                                 <span class="mx-1">·</span>
@@ -107,17 +111,21 @@
                                         <i class="fas fa-download me-1" aria-hidden="true"></i>Download
                                     </a>
                                 @endif
+                                @if ($consent->supervisor_consent_signed_at)
+                                    <a href="{{ route(empty($showReview) ? 'student.presentation-consent.pdf' : 'supervisor.presentation-consent.pdf', $consent) }}"
+                                       class="btn btn-link btn-sm text-primary text-decoration-none px-1 py-0"
+                                       target="_blank" rel="noopener noreferrer">
+                                        <i class="fas fa-file-pdf me-1" aria-hidden="true"></i>
+                                        {{ $consent->coordinator_approved_at ? 'Final PDF' : 'Supervisor signed PDF' }}
+                                    </a>
+                                @endif
                                 @if (! empty($showReview))
                                     <span class="text-muted" aria-hidden="true">·</span>
                                     @if (\App\Support\StudentStageProgress::isConsentLetterStage((string) $consent->stage)
                                         && $consent->status === 'approved'
                                         && $consent->supervisor_consent_signed_at)
-                                        <a href="{{ route('supervisor.presentation-consent.pdf', $consent) }}"
-                                           class="btn btn-link btn-sm text-primary text-decoration-none px-1 py-0"
-                                           target="_blank" rel="noopener noreferrer">
-                                            <i class="fas fa-file-pdf me-1" aria-hidden="true"></i>Signed PDF
-                                        </a>
-                                    @else
+                                        {{-- signed link shown above --}}
+                                    @elseif ($consent->status === 'pending' || $consent->status === 'needs_revision')
                                         <a href="{{ route('supervisor.presentation-consent.sign', $consent) }}"
                                            class="btn btn-link btn-sm text-primary text-decoration-none px-1 py-0">
                                             <i class="fas fa-file-signature me-1" aria-hidden="true"></i>Sign

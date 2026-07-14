@@ -24,12 +24,12 @@ class ProjectStageSeeder extends Seeder
             ['stage_name' => 'Complete System', 'stage_order' => 9, 'days_allowed' => 30],
             ['stage_name' => 'Complete Proposal Document', 'stage_order' => 10, 'days_allowed' => 14],
             ['stage_name' => 'Complete Research Document', 'stage_order' => 11, 'days_allowed' => 14],
-            ['stage_name' => 'Complete Project Document', 'stage_order' => 12, 'days_allowed' => 14],
-            ['stage_name' => 'Progress Presentation 1', 'stage_order' => 13, 'days_allowed' => 7],
-            ['stage_name' => 'Progress Presentation 2', 'stage_order' => 14, 'days_allowed' => 7],
-            ['stage_name' => 'Progress Presentation 3', 'stage_order' => 15, 'days_allowed' => 7],
+            ['stage_name' => 'Progress Presentation 1', 'stage_order' => 12, 'days_allowed' => 7],
+            ['stage_name' => 'Progress Presentation 2', 'stage_order' => 13, 'days_allowed' => 7],
+            ['stage_name' => 'Progress Presentation 3', 'stage_order' => 14, 'days_allowed' => 7],
+            ['stage_name' => 'Final Presentation Consent Letter', 'stage_order' => 15, 'days_allowed' => 7],
             ['stage_name' => 'Final Presentation', 'stage_order' => 16, 'days_allowed' => 7],
-            ['stage_name' => 'Final Presentation Consent Letter', 'stage_order' => 17, 'days_allowed' => 7],
+            ['stage_name' => 'Complete Project Document', 'stage_order' => 17, 'days_allowed' => 14],
         ];
 
         foreach ($stages as $stage) {

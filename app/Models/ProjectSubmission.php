@@ -45,12 +45,17 @@ class ProjectSubmission extends Model
         'supervisor_signature_path',
         'supervisor_consent_pdf_path',
         'submitted_at',
+        'presentation_date',
+        'consent_project_title',
+        'consent_group_number',
     ];
 
     protected function casts(): array
     {
         return [
             'submitted_at' => 'datetime',
+            'presentation_date' => 'date',
+            'submitted_to_coordinator' => 'boolean',
             'coordinator_approved_at' => 'datetime',
             'repository_published_at' => 'datetime',
             'supervisor_consent_signed_at' => 'datetime',

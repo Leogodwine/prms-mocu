@@ -11,7 +11,7 @@ use App\Notifications\WorkflowNotification;
 use Illuminate\Support\Collection;
 
 /**
- * Delivers in-app (and optional email) notifications for PRMS workflow events.
+ * Delivers in-app, email, and SMS notifications for PRMS workflow events.
  */
 final class PrmsEventNotifier
 {
@@ -19,6 +19,15 @@ final class PrmsEventNotifier
     {
         try {
             $user->notify(new ProjectNotification($title, $message, $actionUrl, $actionText));
+        } catch (\Throwable $e) {
+            SafeReport::call($e);
+        }
+    }
+
+    public static function safeNotify(User $user, \Illuminate\Notifications\Notification $notification): void
+    {
+        try {
+            $user->notify($notification);
         } catch (\Throwable $e) {
             SafeReport::call($e);
         }
@@ -241,13 +250,43 @@ final class PrmsEventNotifier
             'Review submissions'
         );
 
-        self::notifyMany(
+        self::notifyWorkflowMany(
             self::submissionStudents($submission),
-            'Submission approved and forwarded',
-            'Your supervisor approved "'.$submission->title.'" and forwarded it to the coordinator for final review.',
+            'Supervisor signed your consent request',
+            $supervisor->name.' signed your presentation consent for "'.$submission->title.'". You can view the signed PDF in your student workspace. It has also been forwarded to the coordinator for final approval.',
             route('student.index'),
-            'Open student workspace'
+            'Open student workspace',
+            'success'
         );
+    }
+
+    public static function notifyConsentReturnedByCoordinator(
+        ProjectSubmission $submission,
+        User $coordinator,
+        string $decision
+    ): void {
+        $action = $decision === 'rejected' ? 'rejected' : 'returned for revision';
+        $message = $coordinator->name.' '.$action.' the presentation consent for "'.$submission->title.'". Open your student workspace to review the feedback and resubmit if needed.';
+
+        self::notifyWorkflowMany(
+            self::submissionStudents($submission),
+            'Consent '.$action,
+            $message,
+            route('student.index'),
+            'Open student workspace',
+            $decision === 'rejected' ? 'danger' : 'warning'
+        );
+
+        $supervisor = self::submissionSupervisor($submission);
+        if ($supervisor) {
+            self::notify(
+                $supervisor,
+                'Consent '.$action,
+                $message,
+                route('supervisor.index'),
+                'Open supervisor workspace'
+            );
+        }
     }
 
     public static function notifyCoordinatorConsentApproved(ProjectSubmission $submission, User $coordinator, int $publishedCount = 0): void
@@ -256,12 +295,13 @@ final class PrmsEventNotifier
             ? ' '.$publishedCount.' related complete document(s) were published to the repository.'
             : '';
 
-        self::notifyMany(
+        self::notifyWorkflowMany(
             self::submissionStudents($submission),
             'Presentation consent finalized',
             $coordinator->name.' finalized the presentation consent for "'.$submission->title.'".'.$publishedNote,
             route('student.index'),
-            'Open student workspace'
+            'Open student workspace',
+            'success'
         );
 
         $supervisor = self::submissionSupervisor($submission);
@@ -288,12 +328,13 @@ final class PrmsEventNotifier
 
         $message = '"'.$submission->title.'" ('.$submission->stage.') was finalized by the coordinator.'.$repositoryNote.$consentNote;
 
-        self::notifyMany(
+        self::notifyWorkflowMany(
             self::submissionStudents($submission),
             'Submission finalized',
             $message,
             route('student.index'),
-            'Open student workspace'
+            'Open student workspace',
+            'success'
         );
 
         $supervisor = self::submissionSupervisor($submission);
@@ -312,23 +353,25 @@ final class PrmsEventNotifier
     {
         $prefix = $gradeLabel ? $gradeLabel.': ' : '';
 
-        self::notifyMany(
+        self::notifyWorkflowMany(
             self::submissionStudents($submission),
             'Evaluation finalized',
             $prefix.'Your submission "'.$submission->title.'" was evaluated with a score of '.$totalScore.'/100.',
             route('student.index'),
-            'Open student workspace'
+            'Open student workspace',
+            'success'
         );
     }
 
     public static function notifyStudentEvaluationScore(User $student, ProjectSubmission $submission, int $totalScore, string $gradeLabel): void
     {
-        self::notify(
+        self::notifyWorkflow(
             $student,
             'Evaluation finalized',
             $gradeLabel.': Your submission "'.$submission->title.'" was scored '.$totalScore.'/100.',
             route('student.index'),
-            'Open student workspace'
+            'Open student workspace',
+            'success'
         );
     }
 
@@ -345,11 +388,11 @@ final class PrmsEventNotifier
             $group = $deadline->projectGroup;
             $message = 'The deadline for '.$stageLabel.' in '.$group->name.' was '.$verb.'. Submit before '.$endLabel.'.';
 
-            self::notifyGroupMembers($group, $title, $message, route('student.index'), 'Open student workspace');
+            self::notifyWorkflowMany($group->members, $title, $message, route('student.index'), 'Open student workspace', 'info');
 
             $supervisor = $group->supervisorAssignment?->supervisor;
             if ($supervisor) {
-                self::notify($supervisor, $title, $message, route('supervisor.index'), 'Open supervisor workspace');
+                self::notifyWorkflow($supervisor, $title, $message, route('supervisor.index'), 'Open supervisor workspace', 'info');
             }
 
             return;
@@ -366,12 +409,13 @@ final class PrmsEventNotifier
             ->whereIn('role', ['project_student', 'research_student'])
             ->where('account_status', 'active')
             ->orderBy('id')
-            ->each(fn (User $student) => self::notify(
+            ->each(fn (User $student) => self::notifyWorkflow(
                 $student,
                 $title,
                 'The deadline for '.$stageLabel.' was '.$verb.'. Submit before '.$endLabel.'.',
                 route('student.index'),
-                'Open student workspace'
+                'Open student workspace',
+                'info'
             ));
     }
 

@@ -31,8 +31,8 @@
         <i class="fas fa-user-plus me-2" aria-hidden="true"></i>
         Create account
     </button>
-    <button type="button" class="btn btn-light border rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#bulkImportModal">
-        <i class="fas fa-file-csv me-1" aria-hidden="true"></i>
+    <button type="button" class="btn btn-light border rounded-pill px-3 d-inline-flex align-items-center" data-bs-toggle="modal" data-bs-target="#bulkImportModal">
+        <span class="material-symbols-outlined me-1 prms-md-icon-inline" aria-hidden="true">upload_file</span>
         Bulk import
     </button>
 </x-prms-greeting-banner>
@@ -100,7 +100,7 @@
            class="prms-stat-card prms-stat-card--clickable text-reset text-decoration-none d-block h-100 @if ($isCohortPending) prms-stat-card--selected @endif"
            style="--prms-primary: var(--prms-color-info-500); --prms-stat-ring: var(--prms-color-info-500);"
            @if ($isCohortPending) aria-current="page" @endif>
-            <div class="stat-label">Awaiting password reset</div>
+            <div class="stat-label">Waiting reset password</div>
             <div class="d-flex align-items-center justify-content-between">
                 <div class="stat-value">{{ number_format($stats['pending_reset']) }}</div>
                 <div class="bg-info-soft rounded-3 d-inline-flex align-items-center justify-content-center"
@@ -122,7 +122,7 @@
         <form method="GET"
               action="{{ route('admin.users.index') }}"
               id="prmsUserFilterForm"
-              class="d-flex flex-nowrap align-items-center gap-2 overflow-auto">
+              class="prms-filter-toolbar">
             <div class="position-relative flex-grow-1" style="min-width: 220px;">
                 <i class="fas fa-search position-absolute text-muted" aria-hidden="true"
                    style="left: 0.85rem; top: 50%; transform: translateY(-50%); pointer-events: none;"></i>
@@ -133,7 +133,7 @@
                        autocomplete="off">
             </div>
             <select name="role"
-                    class="form-select form-select-sm prms-user-filter-auto flex-shrink-0"
+                    class="form-select form-select-sm prms-user-filter-auto prms-filter-toolbar__field flex-shrink-0"
                     style="width: 160px;"
                     aria-label="Filter by role">
                 <option value="">All roles</option>
@@ -144,7 +144,7 @@
                 @endforeach
             </select>
             <select name="status"
-                    class="form-select form-select-sm prms-user-filter-auto flex-shrink-0"
+                    class="form-select form-select-sm prms-user-filter-auto prms-filter-toolbar__field flex-shrink-0"
                     style="width: 180px;"
                     aria-label="Filter by status">
                 <option value="">All statuses</option>
@@ -158,7 +158,7 @@
             @if (! empty($filters['must_change_password']))
                 <input type="hidden" name="must_change_password" value="1">
             @endif
-            <div class="d-flex flex-nowrap gap-2 ms-auto flex-shrink-0">
+            <div class="d-flex flex-nowrap gap-2 ms-auto flex-shrink-0 prms-filter-toolbar__actions">
                 <button type="submit" class="btn btn-sm btn-primary text-nowrap">
                     <i class="fas fa-filter me-1" aria-hidden="true"></i>
                     Apply
@@ -185,7 +185,7 @@
                     </span>
                 @endif
                 @if (! empty($filters['must_change_password']))
-                    <span class="badge bg-light text-dark border">Awaiting password reset</span>
+                    <span class="badge bg-light text-dark border">Waiting reset password</span>
                 @endif
             </div>
         @endif
@@ -336,6 +336,7 @@
 @push('modals')
 @php
     use App\Http\Requests\StoreAdminUserRequest;
+    use App\Support\PrmsSms;
 
     $errors = $errors ?? new Illuminate\Support\ViewErrorBag();
 
@@ -397,6 +398,20 @@
                             @endif
                         </div>
 
+                        <div class="col-md-6" data-prms-phone-group>
+                            <label for="create_phone" class="form-label">Phone number <span class="text-danger">*</span></label>
+                            <input id="create_phone" type="tel" name="phone_number" inputmode="numeric"
+                                   value="{{ $createFormFailed ? old('phone_number') : '' }}"
+                                   class="form-control prms-phone-field {{ $createFormFailed && $errors->has('phone_number') ? 'is-invalid' : '' }}"
+                                   maxlength="16" placeholder="{{ \App\Support\PrmsSms::E164_EXAMPLE }}"
+                                   required autocomplete="tel">
+                            <div class="invalid-feedback prms-phone-feedback {{ $createFormFailed && $errors->has('phone_number') ? 'd-block' : '' }}" @if($createFormFailed && $errors->has('phone_number')) data-server-error @endif>
+                                @if ($createFormFailed && $errors->has('phone_number'))
+                                    {{ $errors->first('phone_number') }}
+                                @endif
+                            </div>
+                        </div>
+
                         <div class="col-md-6">
                             <label for="create_role" class="form-label">System role <span class="text-danger">*</span></label>
                             <select id="create_role" name="role"
@@ -415,20 +430,21 @@
 
                         <div class="col-12 prms-user-fields-student" @if(! $createRoleIsStudent) hidden @endif>
                             <div class="row g-3">
-                                <div class="col-md-6">
+                                <div class="col-md-6" data-prms-identifier-group>
                                     <label for="create_registration_number" class="form-label">Registration number <span class="text-danger">*</span></label>
                                     <input id="create_registration_number" type="text"
                                            @if ($createRoleIsStudent) name="login_id" @endif
                                            value="{{ $createFormFailed && $createRoleIsStudent ? old('login_id') : '' }}"
-                                           class="form-control prms-student-login-id {{ $createFormFailed && $errors->has('login_id') ? 'is-invalid' : '' }}"
+                                           class="form-control prms-account-identifier-field prms-student-login-id {{ $createFormFailed && $errors->has('login_id') ? 'is-invalid' : '' }}"
                                            placeholder="{{ PrmsAccountIdentifierFormat::STUDENT_EXAMPLE }}"
-                                           maxlength="80"
-                                           pattern="MoCU/[A-Z0-9]+(?:-[A-Z0-9]+)*/[0-9]+/[0-9]{2}"
+                                           maxlength="80" autocomplete="off"
+                                           @if($createRoleIsStudent) required @endif
                                            @if(! $createRoleIsStudent) disabled @endif>
-                                    <div class="form-text">{{ PrmsAccountIdentifierFormat::STUDENT_HELP }}</div>
-                                    @if ($createFormFailed && $errors->has('login_id'))
-                                        <div class="invalid-feedback d-block">{{ $errors->first('login_id') }}</div>
-                                    @endif
+                                    <div class="invalid-feedback prms-identifier-feedback {{ $createFormFailed && $errors->has('login_id') ? 'd-block' : '' }}" @if($createFormFailed && $errors->has('login_id')) data-server-error @endif>
+                                        @if ($createFormFailed && $errors->has('login_id'))
+                                            {{ $errors->first('login_id') }}
+                                        @endif
+                                    </div>
                                 </div>
 
                                 <div class="col-md-6">
@@ -516,20 +532,22 @@
 
                         <div class="col-12 prms-user-fields-staff" @if(! $createRoleIsStaff) hidden @endif>
                             <div class="row g-3">
-                                <div class="col-md-6">
+                                <div class="col-md-6" data-prms-identifier-group>
                                     <label for="create_staff_id" class="form-label">Staff ID <span class="text-danger">*</span></label>
                                     <input id="create_staff_id" type="text"
                                            @if ($createRoleIsStaff) name="login_id" @endif
                                            value="{{ $createFormFailed && $createRoleIsStaff ? old('login_id') : '' }}"
-                                           class="form-control prms-staff-login-id {{ $createFormFailed && $errors->has('login_id') ? 'is-invalid' : '' }}"
+                                           class="form-control prms-account-identifier-field prms-staff-login-id {{ $createFormFailed && $errors->has('login_id') ? 'is-invalid' : '' }}"
                                            placeholder="{{ PrmsAccountIdentifierFormat::STAFF_EXAMPLE }}"
-                                           maxlength="80"
-                                           pattern="MoCU/[A-Z0-9]+(?:-[A-Z0-9]+)*/[0-9]+/[0-9]{2}"
+                                           maxlength="80" autocomplete="off"
+                                           data-prms-allow-admin-legacy="{{ $createFormRole === 'admin' ? '1' : '0' }}"
+                                           @if($createRoleIsStaff) required @endif
                                            @if(! $createRoleIsStaff) disabled @endif>
-                                    <div class="form-text">{{ PrmsAccountIdentifierFormat::STAFF_HELP }}</div>
-                                    @if ($createFormFailed && $errors->has('login_id'))
-                                        <div class="invalid-feedback d-block">{{ $errors->first('login_id') }}</div>
-                                    @endif
+                                    <div class="invalid-feedback prms-identifier-feedback {{ $createFormFailed && $errors->has('login_id') ? 'd-block' : '' }}" @if($createFormFailed && $errors->has('login_id')) data-server-error @endif>
+                                        @if ($createFormFailed && $errors->has('login_id'))
+                                            {{ $errors->first('login_id') }}
+                                        @endif
+                                    </div>
                                 </div>
 
                                 <div class="col-md-6 prms-staff-department-field" @if($createFormRole === 'admin') hidden @endif>
@@ -642,15 +660,18 @@
                                     <div class="invalid-feedback d-block">{{ $errors->first('email') }}</div>
                                 @endif
                             </div>
-                            <div class="col-md-6">
-                                <label for="edit_phone_{{ $user->id }}" class="form-label">Phone number</label>
-                                <input type="text" id="edit_phone_{{ $user->id }}" name="phone_number"
+                            <div class="col-md-6" data-prms-phone-group>
+                                <label for="edit_phone_{{ $user->id }}" class="form-label">Phone number <span class="text-danger">*</span></label>
+                                <input type="tel" id="edit_phone_{{ $user->id }}" name="phone_number" inputmode="numeric"
                                        value="{{ $editPhone }}"
-                                       class="form-control {{ $editFormFailed && $errors->has('phone_number') ? 'is-invalid' : '' }}"
-                                       maxlength="30" placeholder="Optional">
-                                @if ($editFormFailed && $errors->has('phone_number'))
-                                    <div class="invalid-feedback d-block">{{ $errors->first('phone_number') }}</div>
-                                @endif
+                                       class="form-control prms-phone-field {{ $editFormFailed && $errors->has('phone_number') ? 'is-invalid' : '' }}"
+                                       maxlength="16" placeholder="{{ \App\Support\PrmsSms::E164_EXAMPLE }}"
+                                       required autocomplete="tel">
+                                <div class="invalid-feedback prms-phone-feedback {{ $editFormFailed && $errors->has('phone_number') ? 'd-block' : '' }}" @if($editFormFailed && $errors->has('phone_number')) data-server-error @endif>
+                                    @if ($editFormFailed && $errors->has('phone_number'))
+                                        {{ $errors->first('phone_number') }}
+                                    @endif
+                                </div>
                             </div>
                             <div class="col-md-6">
                                 <label for="edit_role_{{ $user->id }}" class="form-label">System role <span class="text-danger">*</span></label>
@@ -674,19 +695,21 @@
                         <div class="prms-user-fields-student mb-4" @if(! $editRoleIsStudent) hidden @endif>
                             <p class="fw-semibold small text-uppercase text-muted mb-3">Student record</p>
                             <div class="row g-3">
-                                <div class="col-md-6">
+                                <div class="col-md-6" data-prms-identifier-group>
                                     <label for="edit_registration_number_{{ $user->id }}" class="form-label">Registration number <span class="text-danger">*</span></label>
                                     <input type="text" id="edit_registration_number_{{ $user->id }}"
                                            @if ($editRoleIsStudent) name="login_id" @endif
                                            value="{{ $editLoginId }}"
-                                           class="form-control prms-student-login-id {{ $editFormFailed && $errors->has('login_id') ? 'is-invalid' : '' }}"
+                                           class="form-control prms-account-identifier-field prms-student-login-id {{ $editFormFailed && $errors->has('login_id') ? 'is-invalid' : '' }}"
                                            maxlength="80" placeholder="{{ PrmsAccountIdentifierFormat::STUDENT_EXAMPLE }}"
-                                           pattern="MoCU/[A-Z0-9]+(?:-[A-Z0-9]+)*/[0-9]+/[0-9]{2}"
+                                           autocomplete="off"
+                                           @if($editRoleIsStudent) required @endif
                                            @if(! $editRoleIsStudent) disabled @endif>
-                                    <div class="form-text">{{ PrmsAccountIdentifierFormat::STUDENT_HELP }}</div>
-                                    @if ($editFormFailed && $errors->has('login_id'))
-                                        <div class="invalid-feedback d-block">{{ $errors->first('login_id') }}</div>
-                                    @endif
+                                    <div class="invalid-feedback prms-identifier-feedback {{ $editFormFailed && $errors->has('login_id') ? 'd-block' : '' }}" @if($editFormFailed && $errors->has('login_id')) data-server-error @endif>
+                                        @if ($editFormFailed && $errors->has('login_id'))
+                                            {{ $errors->first('login_id') }}
+                                        @endif
+                                    </div>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="edit_department_{{ $user->id }}" class="form-label">Department <span class="text-danger">*</span></label>
@@ -733,19 +756,22 @@
                         <div class="prms-user-fields-staff mb-4" @if(! $editRoleIsStaff) hidden @endif>
                             <p class="fw-semibold small text-uppercase text-muted mb-3">Staff record</p>
                             <div class="row g-3">
-                                <div class="col-md-6">
+                                <div class="col-md-6" data-prms-identifier-group>
                                     <label for="edit_staff_id_{{ $user->id }}" class="form-label">Staff ID <span class="text-danger">*</span></label>
                                     <input type="text" id="edit_staff_id_{{ $user->id }}"
                                            @if ($editRoleIsStaff) name="login_id" @endif
                                            value="{{ $editLoginId }}"
-                                           class="form-control prms-staff-login-id {{ $editFormFailed && $errors->has('login_id') ? 'is-invalid' : '' }}"
+                                           class="form-control prms-account-identifier-field prms-staff-login-id {{ $editFormFailed && $errors->has('login_id') ? 'is-invalid' : '' }}"
                                            maxlength="80" placeholder="{{ PrmsAccountIdentifierFormat::STAFF_EXAMPLE }}"
-                                           pattern="MoCU/[A-Z0-9]+(?:-[A-Z0-9]+)*/[0-9]+/[0-9]{2}"
+                                           autocomplete="off"
+                                           data-prms-allow-admin-legacy="{{ $editFormRole === 'admin' ? '1' : '0' }}"
+                                           @if($editRoleIsStaff) required @endif
                                            @if(! $editRoleIsStaff) disabled @endif>
-                                    <div class="form-text">{{ PrmsAccountIdentifierFormat::STAFF_HELP }}</div>
-                                    @if ($editFormFailed && $errors->has('login_id'))
-                                        <div class="invalid-feedback d-block">{{ $errors->first('login_id') }}</div>
-                                    @endif
+                                    <div class="invalid-feedback prms-identifier-feedback {{ $editFormFailed && $errors->has('login_id') ? 'd-block' : '' }}" @if($editFormFailed && $errors->has('login_id')) data-server-error @endif>
+                                        @if ($editFormFailed && $errors->has('login_id'))
+                                            {{ $errors->first('login_id') }}
+                                        @endif
+                                    </div>
                                 </div>
                                 <div class="col-md-6 prms-staff-department-field" @if($editFormRole === 'admin') hidden @endif>
                                     <label for="edit_staff_department_{{ $user->id }}" class="form-label">Department <span class="text-danger">*</span></label>
@@ -877,43 +903,101 @@
      BULK IMPORT MODAL
    ════════════════════════════════════════════════════════════════ --}}
 <div class="modal fade" id="bulkImportModal" tabindex="-1" aria-labelledby="bulkImportModalTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0">
-            <div class="modal-header bg-surface-soft">
-                <h2 class="modal-title h5 fw-bold text-strong" id="bulkImportModalTitle">
-                    <i class="fas fa-file-import text-primary me-2" aria-hidden="true"></i>
-                    Bulk user import
-                </h2>
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 prms-bulk-import-modal">
+            <div class="modal-header bg-surface-soft border-0 pb-0">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="prms-md-icon-badge prms-md-icon-badge--primary" aria-hidden="true">
+                        <span class="material-symbols-outlined">group_add</span>
+                    </div>
+                    <div>
+                        <h2 class="modal-title h5 fw-bold text-strong mb-1" id="bulkImportModalTitle">Bulk user import</h2>
+                        <p class="text-muted small mb-0">Create many student or staff accounts from one file.</p>
+                    </div>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ route('admin.users.bulk-import') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('admin.users.bulk-import') }}" method="POST" enctype="multipart/form-data" id="prmsBulkImportForm">
                 @csrf
-                <div class="modal-body p-4">
-                    <div class="alert alert-info d-flex gap-2 align-items-start mb-0">
-                        <i class="fas fa-info-circle mt-1" aria-hidden="true"></i>
-                        <div class="small">
-                            <p class="mb-1 fw-semibold">Student</p>
-                            <code class="d-block mb-1">name, email, reg_no, role, department, programme, year_of_study, gender</code>
-                            <p class="small text-muted mb-3">Reg. no: {{ PrmsAccountIdentifierFormat::STUDENT_HELP }}. Gender: <code>male</code> or <code>female</code>.</p>
-
-                            <p class="mb-1 fw-semibold">Staff</p>
-                            <code class="d-block mb-1">name, email, staff_email, role, department, gender</code>
-                            <p class="small text-muted mb-0">Staff email: university email address used for sign-in (same value as the <code>email</code> column, or omit <code>staff_email</code> to use <code>email</code> automatically).</p>
+                <div class="modal-body p-4 pt-3">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <article class="prms-md-surface-card h-100">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <div class="prms-md-icon-badge prms-md-icon-badge--student" aria-hidden="true">
+                                        <span class="material-symbols-outlined">school</span>
+                                    </div>
+                                    <h3 class="h6 fw-bold mb-0">Student rows</h3>
+                                </div>
+                                <p class="small text-muted mb-2">Required columns</p>
+                                <code class="d-block small mb-3 prms-md-code-block">name, email, reg_no, phone_number, role, department, programme, year_of_study, gender</code>
+                                <div class="d-flex flex-wrap gap-2 align-items-center">
+                                    <span class="prms-md-chip">
+                                        <span class="material-symbols-outlined" aria-hidden="true">tag</span>
+                                        {{ PrmsAccountIdentifierFormat::STUDENT_EXAMPLE }}
+                                    </span>
+                                    <span class="prms-md-chip">
+                                        <span class="material-symbols-outlined" aria-hidden="true">phone_iphone</span>
+                                        {{ PrmsSms::E164_EXAMPLE }}
+                                    </span>
+                                    <span class="prms-md-chip prms-md-chip--muted">
+                                        <span class="material-symbols-outlined" aria-hidden="true">wc</span>
+                                        male / female
+                                    </span>
+                                </div>
+                            </article>
+                        </div>
+                        <div class="col-md-6">
+                            <article class="prms-md-surface-card h-100">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <div class="prms-md-icon-badge prms-md-icon-badge--staff" aria-hidden="true">
+                                        <span class="material-symbols-outlined">badge</span>
+                                    </div>
+                                    <h3 class="h6 fw-bold mb-0">Staff rows</h3>
+                                </div>
+                                <p class="small text-muted mb-2">Required columns</p>
+                                <code class="d-block small mb-3 prms-md-code-block">name, email, staff_email, phone_number, role, department, gender</code>
+                                <div class="d-flex flex-wrap gap-2 align-items-center">
+                                    <span class="prms-md-chip">
+                                        <span class="material-symbols-outlined" aria-hidden="true">mail</span>
+                                        University sign-in email
+                                    </span>
+                                    <span class="prms-md-chip">
+                                        <span class="material-symbols-outlined" aria-hidden="true">phone_iphone</span>
+                                        {{ PrmsSms::E164_EXAMPLE }}
+                                    </span>
+                                    <span class="prms-md-chip prms-md-chip--muted">
+                                        <span class="material-symbols-outlined" aria-hidden="true">info</span>
+                                        Omit staff_email to reuse email
+                                    </span>
+                                </div>
+                            </article>
                         </div>
                     </div>
 
-                    <div class="mb-3 mt-3">
-                        <label for="import_file" class="form-label">Import file</label>
-                        <input id="import_file" type="file" name="import_file"
-                               class="form-control @error('import_file') is-invalid @enderror"
+                    <div class="mb-2">
+                        <span class="form-label fw-semibold d-block mb-2">Import file <span class="text-danger">*</span></span>
+                        <label for="import_file" class="prms-md-upload-zone @error('import_file') is-invalid @enderror" id="prmsBulkImportDropzone" tabindex="0" role="button" aria-describedby="prmsBulkImportFileHint">
+                            <span class="material-symbols-outlined prms-md-upload-zone__icon" aria-hidden="true">cloud_upload</span>
+                            <span class="prms-md-upload-zone__title">Tap to choose a file</span>
+                            <span class="prms-md-upload-zone__hint" id="prmsBulkImportFileHint">CSV, TXT, XML, or PDF</span>
+                            <span class="prms-md-upload-zone__name" id="prmsBulkImportFileName">No file selected</span>
+                        </label>
+                        <input id="import_file" type="file" name="import_file" class="visually-hidden"
                                accept=".csv,.txt,.xml,.pdf,text/csv,text/plain,application/xml,application/pdf" required>
-                        @error('import_file') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        @error('import_file')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-upload me-1" aria-hidden="true"></i> Start import
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light border d-inline-flex align-items-center" data-bs-dismiss="modal">
+                        <span class="material-symbols-outlined me-1 prms-md-icon-inline" aria-hidden="true">close</span>
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary d-inline-flex align-items-center">
+                        <span class="material-symbols-outlined me-1 prms-md-icon-inline" aria-hidden="true">upload</span>
+                        Start import
                     </button>
                 </div>
             </form>
@@ -976,12 +1060,172 @@
         outline: 2px solid var(--prms-stat-ring, var(--prms-color-primary-500));
         outline-offset: 2px;
     }
+
+    .prms-md-icon-inline {
+        font-size: 1.125rem;
+        line-height: 1;
+        vertical-align: middle;
+        font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+    }
+
+    .prms-bulk-import-modal {
+        border-radius: 1.25rem;
+        overflow: hidden;
+        box-shadow: 0 1rem 2.5rem rgba(15, 23, 42, 0.14);
+    }
+
+    .prms-md-icon-badge {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .prms-md-icon-badge .material-symbols-outlined {
+        font-size: 1.35rem;
+        font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+    }
+
+    .prms-md-icon-badge--primary {
+        background: color-mix(in srgb, var(--prms-color-primary-500) 14%, white);
+        color: var(--prms-color-primary-500);
+    }
+
+    .prms-md-icon-badge--student {
+        background: color-mix(in srgb, var(--prms-color-warning-500) 16%, white);
+        color: var(--prms-color-warning-500);
+    }
+
+    .prms-md-icon-badge--staff {
+        background: color-mix(in srgb, var(--prms-color-success-500) 14%, white);
+        color: var(--prms-color-success-500);
+    }
+
+    .prms-md-surface-card {
+        background: var(--prms-surface-elevated, #fff);
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        border-radius: 1rem;
+        padding: 1rem 1.1rem;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 4px 16px rgba(15, 23, 42, 0.04);
+    }
+
+    .prms-md-code-block {
+        background: rgba(15, 23, 42, 0.04);
+        border-radius: 0.65rem;
+        padding: 0.55rem 0.65rem;
+        word-break: break-word;
+    }
+
+    .prms-md-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.3rem 0.65rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--prms-color-primary-600, #1266d4);
+        background: color-mix(in srgb, var(--prms-color-primary-500) 10%, white);
+        border: 1px solid color-mix(in srgb, var(--prms-color-primary-500) 18%, white);
+    }
+
+    .prms-md-chip--muted {
+        color: #475569;
+        background: rgba(15, 23, 42, 0.04);
+        border-color: rgba(15, 23, 42, 0.08);
+        font-weight: 500;
+    }
+
+    .prms-md-chip .material-symbols-outlined {
+        font-size: 0.95rem;
+        font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 20;
+    }
+
+    .prms-md-upload-zone {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        min-height: 9.5rem;
+        padding: 1.25rem;
+        border: 2px dashed color-mix(in srgb, var(--prms-color-primary-500) 35%, #cbd5e1);
+        border-radius: 1rem;
+        background: linear-gradient(180deg, rgba(21, 114, 232, 0.04) 0%, rgba(255, 255, 255, 0.9) 100%);
+        cursor: pointer;
+        text-align: center;
+        transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .prms-md-upload-zone:hover,
+    .prms-md-upload-zone:focus-within {
+        border-color: var(--prms-color-primary-500);
+        background: color-mix(in srgb, var(--prms-color-primary-500) 6%, white);
+        box-shadow: 0 8px 24px rgba(21, 114, 232, 0.08);
+    }
+
+    .prms-md-upload-zone.is-invalid {
+        border-color: var(--prms-color-danger-500);
+        background: color-mix(in srgb, var(--prms-color-danger-500) 6%, white);
+    }
+
+    .prms-md-upload-zone__icon {
+        font-size: 2.4rem;
+        color: var(--prms-color-primary-500);
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+    }
+
+    .prms-md-upload-zone__title {
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .prms-md-upload-zone__hint,
+    .prms-md-upload-zone__name {
+        font-size: 0.8125rem;
+        color: #64748b;
+    }
+
+    .prms-md-upload-zone__name {
+        margin-top: 0.15rem;
+        font-weight: 600;
+        color: var(--prms-color-primary-600, #1266d4);
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 </style>
 @endpush
 
 @push('scripts')
+<script src="{{ asset('js/prms-phone-field.js') }}?v=1" defer></script>
+<script src="{{ asset('js/prms-account-identifier-field.js') }}?v=1" defer></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        const bulkImportFile = document.getElementById('import_file');
+        const bulkImportFileName = document.getElementById('prmsBulkImportFileName');
+        const bulkImportDropzone = document.getElementById('prmsBulkImportDropzone');
+
+        if (bulkImportFile && bulkImportFileName) {
+            bulkImportFile.addEventListener('change', function () {
+                const file = bulkImportFile.files && bulkImportFile.files[0];
+                bulkImportFileName.textContent = file ? file.name : 'No file selected';
+            });
+        }
+
+        if (bulkImportDropzone && bulkImportFile) {
+            bulkImportDropzone.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    bulkImportFile.click();
+                }
+            });
+        }
+
         const filterForm = document.getElementById('prmsUserFilterForm');
         if (filterForm) {
             const searchInput = filterForm.querySelector('input[name="q"]');
@@ -1099,8 +1343,10 @@
             if (studentLogin) {
                 if (showStudent) {
                     studentLogin.setAttribute('name', 'login_id');
+                    studentLogin.required = true;
                 } else {
                     studentLogin.removeAttribute('name');
+                    studentLogin.required = false;
                 }
                 setFieldEnabled(studentLogin, showStudent);
             }
@@ -1108,9 +1354,12 @@
             if (staffLogin) {
                 if (showStaff) {
                     staffLogin.setAttribute('name', 'login_id');
+                    staffLogin.required = true;
                 } else {
                     staffLogin.removeAttribute('name');
+                    staffLogin.required = false;
                 }
+                staffLogin.dataset.prmsAllowAdminLegacy = role === 'admin' ? '1' : '0';
                 setFieldEnabled(staffLogin, showStaff);
             }
 
@@ -1171,6 +1420,10 @@
                 }
                 setFieldEnabled(field, showStaff);
             });
+
+            if (window.PrmsAccountIdentifierField) {
+                window.PrmsAccountIdentifierField.initAll(form);
+            }
         }
 
         const createForm = document.querySelector('#createUserModal form');

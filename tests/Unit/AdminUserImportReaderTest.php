@@ -10,8 +10,8 @@ class AdminUserImportReaderTest extends TestCase
 {
     public function test_reads_csv_rows_with_normalized_headers(): void
     {
-        $csv = "name,email,registration_number,role,department,programme,year_of_study,sex\n"
-            ."Jane Doe,jane@example.com,MoCU/BBICT/101/20,student,CICT,BBICT,2,female\n";
+        $csv = "name,email,registration_number,phone_number,role,department,programme,year_of_study,sex\n"
+            ."Jane Doe,jane@example.com,MoCU/BBICT/101/20,255738234345,student,CICT,BBICT,2,female\n";
 
         $file = UploadedFile::fake()->createWithContent('users.csv', $csv);
 
@@ -21,7 +21,20 @@ class AdminUserImportReaderTest extends TestCase
         $this->assertSame('Jane Doe', $rows[0]['name']);
         $this->assertSame('jane@example.com', $rows[0]['email']);
         $this->assertSame('MoCU/BBICT/101/20', $rows[0]['login_id']);
+        $this->assertSame('255738234345', $rows[0]['phone_number']);
         $this->assertSame('female', $rows[0]['gender']);
+    }
+
+    public function test_maps_phone_header_aliases_to_phone_number(): void
+    {
+        $csv = "name,email,reg_no,mobile,role,department,programme,year_of_study,gender\n"
+            ."Jane Doe,jane@example.com,MoCU/BBICT/101/20,255738234345,student,CICT,BBICT,2,female\n";
+
+        $file = UploadedFile::fake()->createWithContent('users.csv', $csv);
+
+        $rows = AdminUserImportReader::read($file);
+
+        $this->assertSame('255738234345', $rows[0]['phone_number']);
     }
 
     public function test_reads_xml_user_records(): void

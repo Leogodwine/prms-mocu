@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\User;
 use App\Support\PrmsAccountIdentifierFormat;
+use App\Support\PrmsSms;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
@@ -49,7 +50,7 @@ class UpdateAdminUserRequest extends FormRequest
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
             'login_id' => ['required', 'string', 'max:80', Rule::unique('users', 'login_id')->ignore($userId)],
-            'phone_number' => ['nullable', 'string', 'max:30'],
+            'phone_number' => ['required', 'string', 'max:30'],
             'role' => ['required', Rule::in(StoreAdminUserRequest::FORM_ROLES)],
             'account_status' => ['required', Rule::in(['active', 'inactive', 'suspended', 'locked'])],
         ];
@@ -98,6 +99,7 @@ class UpdateAdminUserRequest extends FormRequest
             'name.required' => 'Please enter the full name.',
             'email.required' => 'Email is required.',
             'email.unique' => 'This email is already in use.',
+            'phone_number.required' => PrmsSms::requiredPhoneMessage(),
             'login_id.required' => 'Registration number or staff ID is required.',
             'login_id.unique' => 'This registration number or staff ID is already taken.',
             'role.required' => 'Please select a system role.',
@@ -111,6 +113,8 @@ class UpdateAdminUserRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator): void {
+            PrmsSms::validatePhoneField($validator, $this);
+
             $role = (string) $this->input('role');
             $loginId = trim((string) $this->input('login_id'));
 
@@ -122,7 +126,7 @@ class UpdateAdminUserRequest extends FormRequest
                 if (! PrmsAccountIdentifierFormat::hasValidRegistrationNumberFormat($loginId)) {
                     $validator->errors()->add(
                         'login_id',
-                        'Registration number must follow '.PrmsAccountIdentifierFormat::STUDENT_HELP
+                        PrmsAccountIdentifierFormat::STUDENT_HELP
                     );
 
                     return;
@@ -156,7 +160,7 @@ class UpdateAdminUserRequest extends FormRequest
                 if (! PrmsAccountIdentifierFormat::isValidAdminIdentifier($loginId)) {
                     $validator->errors()->add(
                         'login_id',
-                        'Staff ID must follow '.PrmsAccountIdentifierFormat::STAFF_HELP.' or the legacy MoCU/ADMIN/NUMBER format.'
+                        PrmsAccountIdentifierFormat::STAFF_HELP.' Legacy MoCU/ADMIN/NUMBER identifiers are also accepted for administrators.'
                     );
                 }
 
@@ -166,7 +170,7 @@ class UpdateAdminUserRequest extends FormRequest
             if (! PrmsAccountIdentifierFormat::hasValidStaffIdFormat($loginId)) {
                 $validator->errors()->add(
                     'login_id',
-                    'Staff ID must follow '.PrmsAccountIdentifierFormat::STAFF_HELP
+                    PrmsAccountIdentifierFormat::STAFF_HELP
                 );
 
                 return;

@@ -54,6 +54,7 @@ class AdminProfileAndPasswordResetTest extends TestCase
         $response = $this->actingAs($admin)->from(route('profile.edit'))->put(route('profile.update'), [
             'name' => 'Changed Name',
             'email' => 'changed@mocu.ac.tz',
+            'phone_number' => '+255700000001',
         ]);
 
         $response->assertRedirect(route('profile.edit'));

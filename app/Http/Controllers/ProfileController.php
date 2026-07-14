@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Support\Audit;
+use App\Support\PrmsSms;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -48,7 +49,7 @@ class ProfileController extends Controller
         $rules = [
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'string', 'email', 'max:180', Rule::unique('users', 'email')->ignore($user->id)],
-            'phone_number' => ['nullable', 'string', 'max:32'],
+            'phone_number' => ['required', 'string', 'max:32'],
             'department' => ['nullable', 'string', 'max:120'],
             'programme' => ['nullable', 'string', 'max:120'],
             'current_password' => ['nullable', 'string', 'required_with:password'],
@@ -57,6 +58,12 @@ class ProfileController extends Controller
 
         $validated = $request->validate($rules);
 
+        if ($phoneError = $this->normalizeRequiredPhone($request, $validated)) {
+            return back()
+                ->withInput($request->except(['current_password', 'password', 'password_confirmation']))
+                ->withErrors(['phone_number' => $phoneError]);
+        }
+
         if ($user->isStudentUser()) {
             unset($validated['department'], $validated['programme']);
         }
@@ -64,7 +71,7 @@ class ProfileController extends Controller
         return $this->persistProfileChanges($request, $user, $validated, [
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'phone_number' => $validated['phone_number'] ?? null,
+            'phone_number' => $validated['phone_number'],
             ...(! $user->isStudentUser() ? [
                 'department' => $validated['department'] ?? null,
                 'programme' => $validated['programme'] ?? null,
@@ -75,10 +82,16 @@ class ProfileController extends Controller
     private function updateAdminSelfProfile(Request $request, User $user): RedirectResponse
     {
         $validated = $request->validate([
-            'phone_number' => ['nullable', 'string', 'max:32'],
+            'phone_number' => ['required', 'string', 'max:32'],
             'current_password' => ['nullable', 'string', 'required_with:password'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);
+
+        if ($phoneError = $this->normalizeRequiredPhone($request, $validated)) {
+            return back()
+                ->withInput($request->except(['current_password', 'password', 'password_confirmation']))
+                ->withErrors(['phone_number' => $phoneError]);
+        }
 
         foreach (['name', 'email', 'department', 'programme', 'gender'] as $lockedField) {
             if ($request->filled($lockedField)) {
@@ -89,7 +102,7 @@ class ProfileController extends Controller
         }
 
         return $this->persistProfileChanges($request, $user, $validated, [
-            'phone_number' => $validated['phone_number'] ?? null,
+            'phone_number' => $validated['phone_number'],
         ]);
     }
 
@@ -133,5 +146,28 @@ class ProfileController extends Controller
         return redirect()
             ->route('profile.show')
             ->with('status', 'Profile updated successfully.');
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    private function normalizeRequiredPhone(Request $request, array &$validated): ?string
+    {
+        $phone = $validated['phone_number'] ?? null;
+
+        if ($phone === null || trim((string) $phone) === '') {
+            return PrmsSms::requiredPhoneMessage();
+        }
+
+        $normalized = PrmsSms::normalizePhone($phone);
+
+        if ($normalized === null) {
+            return PrmsSms::invalidPhoneMessage();
+        }
+
+        $validated['phone_number'] = $normalized;
+        $request->merge(['phone_number' => $normalized]);
+
+        return null;
     }
 }

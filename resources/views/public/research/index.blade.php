@@ -47,7 +47,7 @@
             <div class="col-lg-7 col-md-6 public-research-hero__content">
                 <div class="public-research-hero__intro">
                     <h1 class="display-5 fw-bold public-research-hero__title mt-0 mb-3">
-                        Institutional repository
+                        Project and Research repository
                     </h1>
                     <p class="lead mb-0 public-research-hero__lead">
                         Discover approved proposals, research reports, and computer-based course projects authored by MoCU students. Every record is reviewed before publication.

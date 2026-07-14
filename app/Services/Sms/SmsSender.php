@@ -2,13 +2,28 @@
 
 namespace App\Services\Sms;
 
-use App\Support\SafeReport;
-use Illuminate\Support\Facades\Http;
+use App\Contracts\SmsGateway;
+use App\Jobs\SendSmsJob;
+use App\Models\SmsDeliveryLog;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 final class SmsSender
 {
-    public function send(string $to, string $message): bool
+    public function __construct(private readonly SmsGateway $gateway) {}
+
+    public function send(string $to, string $message, ?int $userId = null): bool
+    {
+        if ((string) config('queue.default') === 'sync') {
+            return $this->sendSync($to, $message, $userId);
+        }
+
+        SendSmsJob::dispatch($to, $message, $userId);
+
+        return true;
+    }
+
+    public function sendSync(string $to, string $message, ?int $userId = null): bool
     {
         $message = trim($message);
 
@@ -16,68 +31,38 @@ final class SmsSender
             return false;
         }
 
-        $driver = (string) config('prms.sms.driver', 'log');
-
         if (! config('prms.sms.enabled', false)) {
             Log::info('PRMS SMS skipped (disabled)', [
                 'to' => $to,
                 'message' => $message,
             ]);
 
+            $this->logDelivery($userId, $to, $message, 'skipped', 'disabled');
+
             return true;
         }
 
-        if ($driver === 'http') {
-            return $this->sendViaHttp($to, $message);
-        }
+        $result = $this->gateway->send($to, $message);
+        $status = $result['success'] ? 'sent' : 'failed';
 
-        Log::info('PRMS SMS', [
-            'to' => $to,
-            'message' => $message,
-        ]);
+        $this->logDelivery($userId, $to, $message, $status, $result['provider_response']);
 
-        return true;
+        return $result['success'];
     }
 
-    private function sendViaHttp(string $to, string $message): bool
+    private function logDelivery(?int $userId, string $phone, string $message, string $status, ?string $providerResponse): void
     {
-        $url = (string) config('prms.sms.http_url', '');
-
-        if ($url === '') {
-            Log::warning('PRMS SMS HTTP driver missing PRMS_SMS_HTTP_URL', ['to' => $to]);
-
-            return false;
+        if (! Schema::hasTable('sms_delivery_logs')) {
+            return;
         }
 
-        try {
-            $request = Http::timeout(15);
-
-            $token = (string) config('prms.sms.http_token', '');
-            if ($token !== '') {
-                $request = $request->withToken($token);
-            }
-
-            $response = $request->post($url, [
-                'to' => $to,
-                'message' => $message,
-                'sender' => (string) config('prms.sms.sender_id', 'MoCU-PRMS'),
-            ]);
-
-            if (! $response->successful()) {
-                Log::warning('PRMS SMS HTTP failed', [
-                    'to' => $to,
-                    'status' => $response->status(),
-                    'body' => $response->body(),
-                ]);
-
-                return false;
-            }
-
-            return true;
-        } catch (\Throwable $e) {
-            SafeReport::call($e);
-
-            return false;
-        }
+        SmsDeliveryLog::query()->create([
+            'user_id' => $userId,
+            'phone' => $phone,
+            'message' => mb_substr($message, 0, 500),
+            'status' => $status,
+            'provider_response' => $providerResponse,
+            'created_at' => now(),
+        ]);
     }
 }

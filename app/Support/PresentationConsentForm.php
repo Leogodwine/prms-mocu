@@ -104,8 +104,21 @@ final class PresentationConsentForm
                 ->first();
         }
 
-        $context = self::buildContext($student, $projectGroup, '', $viewer ?? $submission->student);
+        $context = self::buildContext(
+            $student,
+            $projectGroup,
+            self::formatPresentationDate($submission->presentation_date),
+            $viewer ?? $submission->student
+        );
         $context['submission'] = $submission;
+        $context['projectTitle'] = filled($submission->consent_project_title)
+            ? trim((string) $submission->consent_project_title)
+            : $context['projectTitle'];
+        $context['groupNumber'] = filled($submission->consent_group_number)
+            ? trim((string) $submission->consent_group_number)
+            : $context['groupNumber'];
+        $context['presentationDateRaw'] = self::formatPresentationDate($submission->presentation_date);
+        $context['presentationDate'] = self::formatPresentationDateLabel($context['presentationDateRaw']);
 
         if ($submission->supervisor_signature_path && Storage::disk('public')->exists($submission->supervisor_signature_path)) {
             $context['supervisorSignatureDataUri'] = self::imageToDataUri(
@@ -173,7 +186,8 @@ final class PresentationConsentForm
             'groupNumber' => self::consentGroupNumber($student, $projectGroup),
             'department' => $student?->department ?? data_get($profile?->sis_data, 'department') ?? '—',
             'academicYear' => $projectGroup?->academic_year ?? now()->format('Y'),
-            'presentationDate' => $presentationDate !== '' ? $presentationDate : '________________________',
+            'presentationDate' => self::formatPresentationDateLabel($presentationDate),
+            'presentationDateRaw' => $presentationDate,
             'generatedAt' => now(),
             'supervisorSignatureDataUri' => null,
             'signedAt' => null,
@@ -457,5 +471,89 @@ final class PresentationConsentForm
         $slug = Str::slug($label, '-');
 
         return 'final-presentation-consent-'.($slug !== '' ? $slug : 'form').'.pdf';
+    }
+
+    public static function formatPresentationDate(mixed $value): string
+    {
+        if ($value === null || $value === '') {
+            return '';
+        }
+
+        if ($value instanceof \DateTimeInterface) {
+            return $value->format('Y-m-d');
+        }
+
+        return trim((string) $value);
+    }
+
+    public static function formatPresentationDateLabel(string $value): string
+    {
+        $value = trim($value);
+
+        if ($value === '') {
+            return '________________________';
+        }
+
+        try {
+            return \Illuminate\Support\Carbon::parse($value)->format('d/m/Y');
+        } catch (\Throwable) {
+            return $value;
+        }
+    }
+
+    public static function clearSupervisorConsentSignature(ProjectSubmission $submission): void
+    {
+        if ($submission->supervisor_signature_path) {
+            Storage::disk('public')->delete($submission->supervisor_signature_path);
+        }
+
+        if ($submission->supervisor_consent_pdf_path) {
+            Storage::disk('public')->delete($submission->supervisor_consent_pdf_path);
+        }
+
+        $submission->forceFill([
+            'supervisor_signature_path' => null,
+            'supervisor_consent_pdf_path' => null,
+            'supervisor_consent_signed_at' => null,
+            'supervisor_consent_signed_by' => null,
+            'submitted_to_coordinator' => false,
+        ])->save();
+    }
+
+    public static function clearCoordinatorConsentSignature(ProjectSubmission $submission): void
+    {
+        if ($submission->coordinator_signature_path) {
+            Storage::disk('public')->delete($submission->coordinator_signature_path);
+        }
+
+        if ($submission->coordinator_consent_pdf_path) {
+            Storage::disk('public')->delete($submission->coordinator_consent_pdf_path);
+        }
+
+        $submission->forceFill([
+            'coordinator_signature_path' => null,
+            'coordinator_consent_pdf_path' => null,
+            'coordinator_approved_at' => null,
+            'coordinator_approved_by' => null,
+        ])->save();
+    }
+
+    public static function authorizeStudentForSubmission(User $student, ProjectSubmission $submission): void
+    {
+        if (! in_array($student->role, ['project_student', 'research_student', 'normal_student', 'student'], true)) {
+            abort(403);
+        }
+
+        if (! StudentStageProgress::isConsentLetterStage((string) $submission->stage)) {
+            abort(422, 'This submission is not a presentation consent letter.');
+        }
+
+        $projectGroup = $student->projectGroups()->first();
+        $owns = $submission->student_id === $student->id
+            || ($projectGroup && $submission->project_group_id === $projectGroup->id);
+
+        if (! $owns) {
+            abort(403, 'You do not have access to this consent submission.');
+        }
     }
 }

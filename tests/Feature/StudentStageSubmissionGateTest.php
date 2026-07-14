@@ -152,6 +152,122 @@ class StudentStageSubmissionGateTest extends TestCase
         $this->assertStringContainsString('Chapter 1', $reason);
     }
 
+    #[Test]
+    public function progress_presentation_one_is_blocked_until_complete_system_is_approved(): void
+    {
+        $this->approveProposalTrack();
+
+        $reason = StudentStageProgress::canUploadStage(
+            'Progress Presentation 1',
+            $this->student,
+            null,
+            StudentStageProgress::latestSubmissionByStage($this->student, null)
+        );
+
+        $this->assertNotNull($reason);
+        $this->assertStringContainsString('Complete System', $reason);
+    }
+
+    #[Test]
+    public function progress_presentation_one_is_allowed_after_complete_system_is_approved(): void
+    {
+        $this->approveProposalTrack();
+        $this->approveStage(StudentStageProgress::completeSystemStageName());
+
+        $reason = StudentStageProgress::canUploadStage(
+            'Progress Presentation 1',
+            $this->student,
+            null,
+            StudentStageProgress::latestSubmissionByStage($this->student, null)
+        );
+
+        $this->assertNull($reason);
+    }
+
+    #[Test]
+    public function consent_letter_is_blocked_until_progress_presentation_three_is_approved(): void
+    {
+        $this->approveThroughProgressPresentations(2);
+
+        $reason = StudentStageProgress::canUploadStage(
+            \App\Support\RepositoryPublication::consentStageName(),
+            $this->student,
+            null,
+            StudentStageProgress::latestSubmissionByStage($this->student, null)
+        );
+
+        $this->assertNotNull($reason);
+        $this->assertStringContainsString('Presentation 3', $reason);
+    }
+
+    #[Test]
+    public function final_presentation_is_blocked_until_consent_letter_is_approved(): void
+    {
+        $this->approveThroughProgressPresentations(3);
+
+        $reason = StudentStageProgress::canUploadStage(
+            'Final Presentation',
+            $this->student,
+            null,
+            StudentStageProgress::latestSubmissionByStage($this->student, null)
+        );
+
+        $this->assertNotNull($reason);
+        $this->assertStringContainsString('Consent Letter', $reason);
+    }
+
+    #[Test]
+    public function complete_project_document_is_blocked_until_final_presentation_is_approved(): void
+    {
+        $this->approveThroughProgressPresentations(3);
+        $this->approveStage(\App\Support\RepositoryPublication::consentStageName());
+
+        $reason = StudentStageProgress::canUploadStage(
+            'Complete Project Document',
+            $this->student,
+            null,
+            StudentStageProgress::latestSubmissionByStage($this->student, null)
+        );
+
+        $this->assertNotNull($reason);
+        $this->assertStringContainsString('Final Presentation', $reason);
+    }
+
+    #[Test]
+    public function complete_project_document_is_allowed_after_final_presentation_is_approved(): void
+    {
+        $this->approveThroughProgressPresentations(3);
+        $this->approveStage(\App\Support\RepositoryPublication::consentStageName());
+        $this->approveStage('Final Presentation');
+
+        $reason = StudentStageProgress::canUploadStage(
+            'Complete Project Document',
+            $this->student,
+            null,
+            StudentStageProgress::latestSubmissionByStage($this->student, null)
+        );
+
+        $this->assertNull($reason);
+    }
+
+    private function approveProposalTrack(): void
+    {
+        $this->approveStage('Proposal Chapter 1');
+        $this->approveStage('Proposal Chapter 2');
+        $this->approveStage('Proposal Chapter 3');
+        $this->approveStage('Complete Proposal Document');
+    }
+
+    private function approveThroughProgressPresentations(int $count): void
+    {
+        $this->approveProposalTrack();
+        $this->approveStage(StudentStageProgress::completeSystemStageName());
+
+        foreach (range(1, $count) as $index) {
+            $this->approveStage('Progress Presentation '.$index);
+        }
+    }
+
     private function createFinalYearStudent(): User
     {
         $department = Department::factory()->create([

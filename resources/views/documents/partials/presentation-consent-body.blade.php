@@ -147,6 +147,7 @@
     $groupNumber = trim((string) ($groupNumber ?? ($projectGroup?->name ?? '')));
     $programmeLabel = strtoupper(trim((string) ($programmeConsentLabel ?? $programme ?? 'PROJECT')));
     $titleText = trim((string) ($projectTitle ?? ''));
+    $presentationDateLabel = trim((string) ($presentationDate ?? ''));
     $consentDateValue = optional($coordinatorApprovedAt ?? null)?->format('d/m/Y');
     $isGroup = ($projectGroup && ($members?->count() ?? 0) > 1);
     $subjectPhrase = $isGroup ? 'this group' : 'this student';
@@ -196,7 +197,15 @@
             @endif
         </p>
 
-        <p class="consent-accept">Hereby accept {{ $subjectPhrase }} to present their project.</p>
+        <p class="consent-accept">
+            Hereby accept {{ $subjectPhrase }} to present their project
+            @if ($presentationDateLabel !== '' && ! str_contains($presentationDateLabel, '____'))
+                on <strong>{{ $presentationDateLabel }}</strong>
+            @else
+                on <span class="sig-blank" style="display:inline-block;min-width:8rem;border-bottom:1px solid #111;">&nbsp;</span>
+            @endif
+            .
+        </p>
     </div>
 
     <div class="sig-field">

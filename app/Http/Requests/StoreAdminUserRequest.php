@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Support\PrmsAccountIdentifierFormat;
+use App\Support\PrmsSms;
 use App\Support\StudentGenderNormalizer;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -74,6 +75,7 @@ class StoreAdminUserRequest extends FormRequest
             'form_context' => ['required', 'in:create'],
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'phone_number' => ['required', 'string', 'max:30'],
             'login_id' => ['required', 'string', 'max:80', 'unique:users,login_id'],
             'role' => ['required', Rule::in(self::FORM_ROLES)],
             'department' => [
@@ -108,6 +110,7 @@ class StoreAdminUserRequest extends FormRequest
             'name.required' => 'Please enter the full name.',
             'email.required' => 'Email is required.',
             'email.unique' => 'This email is already in use.',
+            'phone_number.required' => PrmsSms::requiredPhoneMessage(),
             'login_id.required' => 'Registration number or staff ID is required.',
             'login_id.unique' => 'This registration number or staff ID is already taken.',
             'role.required' => 'Please select a system role.',
@@ -122,6 +125,8 @@ class StoreAdminUserRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator): void {
+            PrmsSms::validatePhoneField($validator, $this);
+
             $role = (string) $this->input('role');
             $loginId = trim((string) $this->input('login_id'));
 
@@ -133,7 +138,7 @@ class StoreAdminUserRequest extends FormRequest
                 if (! PrmsAccountIdentifierFormat::hasValidRegistrationNumberFormat($loginId)) {
                     $validator->errors()->add(
                         'login_id',
-                        'Registration number must follow '.PrmsAccountIdentifierFormat::STUDENT_HELP
+                        PrmsAccountIdentifierFormat::STUDENT_HELP
                     );
 
                     return;
@@ -187,7 +192,7 @@ class StoreAdminUserRequest extends FormRequest
                 if (! PrmsAccountIdentifierFormat::isValidAdminIdentifier($loginId)) {
                     $validator->errors()->add(
                         'login_id',
-                        'Staff ID must follow '.PrmsAccountIdentifierFormat::STAFF_HELP.' or the legacy MoCU/ADMIN/NUMBER format.'
+                        PrmsAccountIdentifierFormat::STAFF_HELP.' Legacy MoCU/ADMIN/NUMBER identifiers are also accepted for administrators.'
                     );
                 }
 
@@ -197,7 +202,7 @@ class StoreAdminUserRequest extends FormRequest
             if (! PrmsAccountIdentifierFormat::hasValidStaffIdFormat($loginId)) {
                 $validator->errors()->add(
                     'login_id',
-                    'Staff ID must follow '.PrmsAccountIdentifierFormat::STAFF_HELP
+                    PrmsAccountIdentifierFormat::STAFF_HELP
                 );
 
                 return;

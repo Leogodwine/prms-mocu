@@ -57,6 +57,7 @@
                     <h2 class="h6 fw-bold mb-0">Environment</h2>
                 </div>
                 <div class="card-body p-0">
+                    <div class="table-responsive">
                     <table class="table table-sm mb-0">
                         <tbody>
                             @foreach ($m['environment'] as $row)
@@ -67,6 +68,7 @@
                             @endforeach
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -201,6 +203,72 @@
                     <p class="mb-0 small">Login failures: <strong>{{ $recentLoginFailures }}</strong></p>
                 </div>
             </div>
+
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-body">
+                    <h3 class="h6 fw-bold">SMS gateway</h3>
+                    <p class="mb-2 small">
+                        Status:
+                        <span class="badge {{ ($smsStatus['ok'] ?? false) ? 'bg-success' : 'bg-warning text-dark' }}">
+                            {{ ($smsStatus['enabled'] ?? false) ? 'Enabled' : 'Disabled' }}
+                        </span>
+                    </p>
+                    <p class="mb-1 small text-muted">{{ $smsStatus['detail'] ?? '—' }}</p>
+                    <p class="mb-1 small text-muted">
+                        Driver: {{ $smsStatus['driver'] ?? '—' }}
+                        · Provider: {{ $smsStatus['provider'] ?? 'nextsms' }}
+                        · Sender: {{ $smsStatus['sender_id'] ?? '—' }}
+                        @if ($smsStatus['test_mode'] ?? false)
+                            · <span class="text-warning-emphasis">Test mode</span>
+                        @endif
+                    </p>
+                    @if (! empty($smsStatus['url']))
+                        <p class="mb-3 small text-muted text-break">Endpoint: {{ $smsStatus['url'] }}</p>
+                    @else
+                        <p class="mb-3 small text-muted">Endpoint: —</p>
+                    @endif
+
+                    <form method="POST" action="{{ route('admin.system-health.sms-test') }}" class="mb-0">
+                        @csrf
+                        <label for="sms_test_phone" class="form-label small fw-semibold">Send test SMS</label>
+                        <div class="input-group input-group-sm">
+                            <input type="text" id="sms_test_phone" name="phone" class="form-control @error('phone') is-invalid @enderror"
+                                   placeholder="{{ \App\Support\PrmsSms::E164_EXAMPLE }}" value="{{ old('phone') }}" required>
+                            <button type="submit" class="btn btn-outline-primary">Send</button>
+                        </div>
+                        @error('phone')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
+                        <p class="small text-muted mt-2 mb-0">Uses the configured gateway when SMS is enabled; otherwise logs only.</p>
+                    </form>
+                </div>
+            </div>
+
+            @if (($recentSmsLogs ?? collect())->isNotEmpty())
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-body p-0">
+                        <div class="px-3 py-2 border-bottom">
+                            <h3 class="h6 fw-bold mb-0">Recent SMS deliveries</h3>
+                        </div>
+                        @foreach ($recentSmsLogs as $log)
+                            <div class="border-bottom px-3 py-2 small">
+                                <div class="d-flex justify-content-between gap-2">
+                                    <span class="fw-semibold">{{ $log->phone }}</span>
+                                    <span class="badge {{ $log->status === 'sent' ? 'bg-success' : ($log->status === 'skipped' ? 'bg-secondary' : 'bg-danger') }}">
+                                        {{ $log->status }}
+                                    </span>
+                                </div>
+                                <div class="text-muted">{{ Str::limit($log->message, 80) }}</div>
+                                @if ($log->status === 'failed' && filled($log->provider_response))
+                                    <div class="text-danger small text-break">{{ Str::limit($log->provider_response, 200) }}</div>
+                                @endif
+                                <div class="text-muted">{{ $log->created_at?->diffForHumans() }}</div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
             @if ($latestSisSync)
                 <div class="card border-0 shadow-sm">
                     <div class="card-body small">

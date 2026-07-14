@@ -12,6 +12,7 @@ use App\Support\AdminUserCreatedNotifier;
 use App\Support\AdminUserImportReader;
 use App\Support\Audit;
 use App\Support\PrmsAccountIdentifierFormat;
+use App\Support\PrmsSms;
 use App\Support\PrmsEventNotifier;
 use App\Support\PrmsTablePagination;
 use App\Support\SafeReport;
@@ -120,6 +121,13 @@ class AdminUserController extends Controller
                 continue;
             }
 
+            $phone = PrmsSms::normalizePhone(trim((string) ($row['phone_number'] ?? '')));
+            if ($phone === null) {
+                $skipped++;
+
+                continue;
+            }
+
             $tempPassword = Str::password(12);
 
             try {
@@ -128,6 +136,7 @@ class AdminUserController extends Controller
                     $name,
                     $email,
                     $loginId,
+                    $phone,
                     $role,
                     $isStudent,
                     $department,
@@ -141,6 +150,7 @@ class AdminUserController extends Controller
                         'name' => $name,
                         'email' => $email,
                         'login_id' => $loginId,
+                        'phone_number' => $phone,
                         'role' => $isStudent ? StoreAdminUserRequest::FORM_STUDENT_ROLE : $role,
                         'department' => $department,
                         'programme' => $isStudent ? $programme : null,
@@ -544,6 +554,7 @@ class AdminUserController extends Controller
             $user = User::query()->create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
+                'phone_number' => $validated['phone_number'] ?? null,
                 'login_id' => $validated['login_id'],
                 'role' => $isStudent ? StoreAdminUserRequest::FORM_STUDENT_ROLE : $formRole,
                 'department' => $validated['department'] ?? null,

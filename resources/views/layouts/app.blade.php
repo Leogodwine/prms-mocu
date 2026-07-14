@@ -13,8 +13,8 @@
     @include('layouts.partials.kaiadmin-styles')
     @php $kai = asset(config('prms.kaiadmin_assets', 'vendor/prms-mocu/assets')); @endphp
     <link rel="stylesheet" href="{{ $kai }}/css/demo.css">
-    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=43">
-    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=61">
+    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=44">
+    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=62">
 
     @stack('styles')
 </head>
@@ -183,7 +183,7 @@
     <script src="{{ asset('js/prms-quick-nav.js') }}?v=6" defer></script>
 @endif
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" crossorigin="anonymous" defer></script>
+@stack('scripts')
 
 <script>
     (function () {
@@ -210,8 +210,6 @@
         }, nextMidnight - now);
     })();
 </script>
-
-@stack('scripts')
 <script src="{{ asset('js/prms-modals.js') }}?v=1" defer></script>
 <script src="{{ asset('js/prms-auto-filter.js') }}?v=1" defer></script>
 <script src="{{ asset('js/prms-customizer.js') }}?v=3" defer></script>

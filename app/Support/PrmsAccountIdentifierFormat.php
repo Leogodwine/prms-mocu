@@ -24,6 +24,16 @@ final class PrmsAccountIdentifierFormat
 
     public const STUDENT_HELP = 'Format: MoCU/PROGRAMME-CODE/NUMBER/YY — exact casing required: MoCU/ prefix, uppercase code, two-digit year (e.g. '.self::STUDENT_EXAMPLE.')';
 
+    public static function requiredStudentRegistrationMessage(): string
+    {
+        return 'Registration number is required.';
+    }
+
+    public static function requiredStaffIdMessage(): string
+    {
+        return 'Staff ID is required.';
+    }
+
     /** @var string Standard four-part identifier (case-sensitive MoCU prefix and uppercase code). */
     private const STANDARD_PATTERN = '/^MoCU\/([A-Z0-9]+(?:-[A-Z0-9]+)*)\/(\d+)\/(\d{2})$/';
 

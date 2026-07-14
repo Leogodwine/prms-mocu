@@ -158,4 +158,43 @@
             </span>
         @endif
     </div>
+@elseif (($context ?? 'student') === 'student'
+        && \App\Support\StudentStageProgress::isConsentLetterStage((string) $submission->stage))
+    <div class="d-flex flex-wrap gap-1 justify-content-{{ $actionsAlign }} prms-submission-actions{{ $compactActions ? ' prms-submission-actions--compact' : '' }}">
+        @if ($submission->presentation_date)
+            <span class="badge bg-light text-dark border">
+                <i class="far fa-calendar me-1" aria-hidden="true"></i>
+                {{ $submission->presentation_date->format('d M Y') }}
+            </span>
+        @endif
+        @if ($submission->supervisor_consent_signed_at)
+            <a href="{{ route('student.presentation-consent.pdf', $submission) }}"
+               class="btn btn-primary btn-sm"
+               target="_blank" rel="noopener noreferrer">
+                <i class="fas fa-file-pdf me-1" aria-hidden="true"></i>
+                {{ $submission->coordinator_approved_at ? 'View finalized consent' : 'View supervisor-signed consent' }}
+            </a>
+        @endif
+        @if (($submission->status ?? '') === 'needs_revision' || ($submission->status ?? '') === 'rejected')
+            <span class="badge bg-warning text-dark">
+                <i class="fas fa-undo me-1" aria-hidden="true"></i>
+                {{ ($submission->status ?? '') === 'rejected' ? 'Rejected — resubmit required' : 'Returned for revision' }}
+            </span>
+        @elseif (($submission->status ?? '') === 'pending')
+            <span class="badge bg-warning text-dark">
+                <i class="far fa-clock me-1" aria-hidden="true"></i>
+                Awaiting supervisor review
+            </span>
+        @elseif (($submission->status ?? '') === 'approved' && $submission->submitted_to_coordinator && ! $submission->coordinator_approved_at)
+            <span class="badge bg-info">
+                <i class="fas fa-paper-plane me-1" aria-hidden="true"></i>
+                With coordinator for final sign-off
+            </span>
+        @elseif ($submission->coordinator_approved_at)
+            <span class="badge bg-success">
+                <i class="fas fa-check-circle me-1" aria-hidden="true"></i>
+                Consent finalized
+            </span>
+        @endif
+    </div>
 @endif

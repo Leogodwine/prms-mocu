@@ -108,6 +108,34 @@
                                 </button>
                             </div>
                         </form>
+
+                        <hr class="my-4">
+
+                        <form method="POST"
+                              action="{{ route('coordinator.submissions.consent.review', $submission) }}"
+                              class="mx-auto"
+                              style="max-width: 640px;"
+                              onsubmit="return confirm('Return or reject this consent request? The student and supervisor will be notified.');">
+                            @csrf
+                            <p class="fw-semibold text-center mb-3">Reject or return for revision</p>
+                            <div class="mb-3">
+                                <label for="coordinator-consent-reject-comments" class="form-label fw-semibold">Reason <span class="text-danger">*</span></label>
+                                <textarea id="coordinator-consent-reject-comments"
+                                          name="comments"
+                                          rows="3"
+                                          class="form-control"
+                                          required
+                                          placeholder="Explain what must be corrected before consent can be finalized…"></textarea>
+                            </div>
+                            <div class="d-flex flex-wrap justify-content-center gap-2">
+                                <button type="submit" name="decision" value="needs_revision" class="btn btn-warning rounded-pill px-4">
+                                    <i class="fas fa-undo me-1" aria-hidden="true"></i> Return to student
+                                </button>
+                                <button type="submit" name="decision" value="rejected" class="btn btn-outline-danger rounded-pill px-4">
+                                    <i class="fas fa-times-circle me-1" aria-hidden="true"></i> Reject
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             @endif

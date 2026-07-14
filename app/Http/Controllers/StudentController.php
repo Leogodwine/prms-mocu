@@ -146,6 +146,7 @@ class StudentController extends Controller
 
         $isCompleteSystem = StudentStageProgress::isCompleteSystemStage($stage->stage_name);
         $isPresentation = StudentStageProgress::isPresentationStage($stage->stage_name);
+        $isConsentLetter = StudentStageProgress::isConsentLetterStage($stage->stage_name);
 
         $projectGroup = $user->projectGroups()->first();
 
@@ -175,7 +176,19 @@ class StudentController extends Controller
         }
 
         $file = $request->file('document');
-        $path = $file->store('submissions', 'public');
+        $path = null;
+        $originalFilename = null;
+        $mimeType = null;
+        $fileSize = null;
+
+        if ($file) {
+            $path = $file->store('submissions', 'public');
+            $originalFilename = $file->getClientOriginalName();
+            $mimeType = $file->getClientMimeType();
+            $fileSize = $file->getSize();
+        } elseif (! $isConsentLetter) {
+            return back()->withErrors(['document' => 'Please attach the required document or archive.']);
+        }
 
         // Interface screenshots for Complete System (one or more).
         $screenshotPath = null;
@@ -241,19 +254,24 @@ class StudentController extends Controller
         $latestVersion = (int) $nextVersionQuery->max('version');
         $nextVersion = $latestVersion + 1;
 
+        $consentTitle = $isConsentLetter
+            ? ('Final presentation consent — '.($validated['presentation_date'] ?? now()->toDateString()))
+            : $validated['title'];
+
         $submission = ProjectSubmission::create([
             'project_group_id'                => $projectGroup?->id,
             'student_id'                      => $user->id,
             'stage'                           => $stage->stage_name,
-            'title'                           => $validated['title'],
+            'title'                           => $consentTitle,
             'description'                     => $validated['description'] ?? null,
             'demo_url'                        => $validated['demo_url']  ?? null,
             'video_url'                       => $validated['video_url'] ?? null,
             'version'                         => $nextVersion,
             'file_path'                       => $path,
-            'original_filename'               => $file->getClientOriginalName(),
-            'mime_type'                       => $file->getClientMimeType(),
-            'file_size'                       => $file->getSize(),
+            'original_filename'               => $originalFilename,
+            'mime_type'                       => $mimeType,
+            'file_size'                       => $fileSize,
+            'presentation_date'               => $isConsentLetter ? ($validated['presentation_date'] ?? null) : null,
             'screenshot_path'                 => $screenshotPath,
             'screenshot_original_filename'    => $screenshotName,
             'screenshot_mime_type'            => $screenshotMime,
@@ -292,7 +310,7 @@ class StudentController extends Controller
         }
 
         if ($supervisor) {
-            $supervisor->notify(new NewSubmissionNotification($submission));
+            PrmsEventNotifier::safeNotify($supervisor, new NewSubmissionNotification($submission));
         }
 
         if ($submission->isProjectShowcase()) {
@@ -306,7 +324,12 @@ class StudentController extends Controller
                 ->with('status', 'Submission uploaded. You can continue editing in the Word editor.');
         }
 
-        return redirect()->back()->with('status', 'Submission uploaded successfully.');
+        return redirect()->back()->with(
+            'status',
+            $isConsentLetter
+                ? 'Consent request sent to your supervisor with the proposed presentation date.'
+                : 'Submission uploaded successfully.'
+        );
     }
 
     public function submitToCoordinator(Request $request, ProjectSubmission $submission): RedirectResponse
@@ -393,7 +416,7 @@ class StudentController extends Controller
         }
 
         if ($supervisor) {
-            $supervisor->notify(new NewSubmissionNotification($submission->fresh()));
+            PrmsEventNotifier::safeNotify($supervisor, new NewSubmissionNotification($submission->fresh()));
         }
 
         return back()->with('status', 'Submission sent to your supervisor for review.');

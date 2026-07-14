@@ -28,6 +28,7 @@ use App\Http\Controllers\AdminAcademicConfigurationController;
 use App\Http\Controllers\AdminConfigurationController;
 use App\Http\Controllers\HodController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Mail;
 
 Route::get('/', function () {
     return view('welcome');
@@ -139,6 +140,7 @@ Route::middleware(['auth', 'password.changed', 'role:coordinator'])->prefix('coo
     Route::get('/submissions/consent/{submission}/sign', [CoordinatorController::class, 'consentSign'])->name('submissions.consent.sign');
     Route::post('/submissions/consent/{submission}/sign', [CoordinatorController::class, 'consentSignStore'])->name('submissions.consent.sign.store');
     Route::post('/submissions/consent/{submission}/approve', [CoordinatorController::class, 'approveConsentSubmission'])->name('submissions.consent.approve');
+    Route::post('/submissions/consent/{submission}/review', [CoordinatorController::class, 'consentReview'])->name('submissions.consent.review');
     Route::get('/submissions/consent/{submission}/pdf', [CoordinatorController::class, 'consentPdf'])->name('submissions.consent.pdf');
     Route::post('/submissions/{submission}/approve', [CoordinatorController::class, 'approveSubmission'])->name('submissions.approve');
 });
@@ -202,6 +204,7 @@ Route::post('/student/submissions/{submission}/onlyoffice-callback', [Submission
 
 Route::middleware(['auth', 'password.changed', 'role:project_student,research_student,normal_student'])->prefix('student')->name('student.')->group(function () {
     Route::post('/submissions', [StudentController::class, 'storeSubmission'])->name('submissions.store');
+    Route::get('/presentation-consent/{submission}/pdf', [PresentationConsentController::class, 'pdf'])->name('presentation-consent.pdf');
     Route::post('/submissions/create-blank', [SubmissionEditorController::class, 'createBlank'])->name('submissions.create-blank');
     Route::post('/submissions/{submission}/submit-to-supervisor', [StudentController::class, 'submitToSupervisor'])->name('submissions.submit-to-supervisor');
     Route::delete('/submissions/{submission}', [StudentController::class, 'destroySubmission'])->name('submissions.destroy');
@@ -251,6 +254,7 @@ Route::middleware(['auth', 'password.changed', 'role:admin'])->prefix('admin')->
     Route::post('/system-health/maintenance/enable', [AdminSystemHealthController::class, 'enableMaintenance'])->name('system-health.maintenance.enable');
     Route::post('/system-health/maintenance/disable', [AdminSystemHealthController::class, 'disableMaintenance'])->name('system-health.maintenance.disable');
     Route::post('/system-health/maintenance/task', [AdminSystemHealthController::class, 'runMaintenanceTask'])->name('system-health.maintenance.task');
+    Route::post('/system-health/sms-test', [AdminSystemHealthController::class, 'sendTestSms'])->name('system-health.sms-test');
     Route::post('/system-health/heartbeat', [AdminSystemHealthController::class, 'heartbeat'])->name('system-health.heartbeat');
     Route::post('/system-health/failed-jobs/clear', [AdminSystemHealthController::class, 'clearFailedJobs'])->name('system-health.failed-jobs.clear');
     Route::post('/system-health/failed-jobs/{id}/retry', [AdminSystemHealthController::class, 'retryFailedJob'])->name('system-health.failed-jobs.retry');

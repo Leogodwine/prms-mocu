@@ -145,6 +145,14 @@ final class StudentStageProgress
         }
 
         if (self::isCompleteDocumentStage($stageName)) {
+            if (trim($stageName) === 'Complete Project Document') {
+                if (($latestByStage->get('Final Presentation')?->status ?? '') !== 'approved') {
+                    return 'Complete and receive approval for Final Presentation before uploading the Complete Project Document.';
+                }
+
+                return null;
+            }
+
             $track = self::workTypeFromCompleteDocumentStage($stageName);
             $finalChapter = self::finalChapterStageForTrack($track);
             if ($finalChapter === null) {
@@ -160,8 +168,8 @@ final class StudentStageProgress
         }
 
         if ($stageName === 'Progress Presentation 1') {
-            if (($latestByStage->get('Complete Project Document')?->status ?? '') !== 'approved') {
-                return 'Your supervisor must approve the Complete Project Document before you can upload '.self::shortStageLabel($stageName).'.';
+            if (($latestByStage->get(self::completeSystemStageName())?->status ?? '') !== 'approved') {
+                return 'Your supervisor must approve '.self::completeSystemStageName().' before you can upload '.self::shortStageLabel($stageName).'.';
             }
 
             return null;
@@ -182,16 +190,17 @@ final class StudentStageProgress
         }
 
         if (self::isConsentLetterStage($stageName)) {
-            if (($latestByStage->get('Final Presentation')?->status ?? '') !== 'approved') {
-                return 'Complete and receive approval for Final Presentation before uploading the consent letter.';
+            if (($latestByStage->get('Progress Presentation 3')?->status ?? '') !== 'approved') {
+                return 'Complete and receive approval for '.self::shortStageLabel('Progress Presentation 3').' before uploading the consent letter.';
             }
 
             return null;
         }
 
         if (self::isFinalPresentationStage($stageName)) {
-            if (($latestByStage->get('Progress Presentation 3')?->status ?? '') !== 'approved') {
-                return 'Complete and receive approval for '.self::shortStageLabel('Progress Presentation 3').' before uploading the Final Presentation.';
+            $consentStage = RepositoryPublication::consentStageName();
+            if (($latestByStage->get($consentStage)?->status ?? '') !== 'approved') {
+                return 'Complete and receive approval for the Final Presentation Consent Letter before uploading the Final Presentation.';
             }
 
             return null;

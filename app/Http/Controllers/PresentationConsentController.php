@@ -54,11 +54,24 @@ class PresentationConsentController extends Controller
         $validated = $request->validate([
             'consent_agreed' => ['accepted'],
             'signature' => ['required', 'string'],
+            'presentation_date' => ['required', 'date'],
+            'consent_project_title' => ['required', 'string', 'max:500'],
+            'consent_group_number' => ['required', 'string', 'max:120'],
             'comments' => ['nullable', 'string', 'max:3000'],
         ], [
             'consent_agreed.accepted' => 'You must agree to the consent declaration before signing.',
             'signature.required' => 'Please draw your signature before submitting.',
+            'presentation_date.required' => 'Please confirm the proposed presentation date.',
+            'consent_project_title.required' => 'Please enter the project title on the consent form.',
+            'consent_group_number.required' => 'Please enter the group number on the consent form.',
         ]);
+
+        $submission->update([
+            'presentation_date' => $validated['presentation_date'],
+            'consent_project_title' => trim($validated['consent_project_title']),
+            'consent_group_number' => trim($validated['consent_group_number']),
+        ]);
+        $submission->refresh();
 
         $signaturePath = PresentationConsentForm::storeSignatureImage($validated['signature']);
         $signatureDataUri = PresentationConsentForm::signatureDataUriFromBase64($validated['signature']);
@@ -105,7 +118,7 @@ class PresentationConsentController extends Controller
 
         return redirect()
             ->route('supervisor.index')
-            ->with('status', 'Consent signed successfully. The submission has been forwarded to the coordinator.');
+            ->with('status', 'Consent signed successfully. The student has been notified and the request was forwarded to the coordinator.');
     }
 
     public function previewPdf(Request $request, ProjectSubmission $submission): Response|RedirectResponse
@@ -139,6 +152,12 @@ class PresentationConsentController extends Controller
 
         if ($user->role === 'supervisor') {
             PresentationConsentForm::authorizeSupervisorForSubmission($user, $submission);
+        } elseif (in_array($user->role, ['project_student', 'research_student', 'normal_student', 'student'], true)) {
+            PresentationConsentForm::authorizeStudentForSubmission($user, $submission);
+        } elseif (in_array($user->role, ['coordinator', 'hod', 'admin'], true)) {
+            PresentationConsentForm::authorizeCoordinatorForSubmission($user, $submission);
+        } else {
+            abort(403);
         }
 
         $storedPdf = PresentationConsentForm::consentPdfPath($submission);

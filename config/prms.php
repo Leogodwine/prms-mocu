@@ -59,15 +59,14 @@ return [
     | SMS gateway (group formation, supervisor assignment, workflow alerts)
     |--------------------------------------------------------------------------
     |
+    | Provider credentials live in config/services.php (sms.nextsms by default).
     | When disabled, SMS bodies are written to the application log only.
-    | Set driver to "http" and PRMS_SMS_HTTP_URL when a gateway is available.
+    | Set driver to "http" and configure PRMS_SMS_* env vars for live sending.
     |
     */
     'sms' => [
         'enabled' => env('PRMS_SMS_ENABLED', false),
         'driver' => env('PRMS_SMS_DRIVER', 'log'),
-        'http_url' => env('PRMS_SMS_HTTP_URL'),
-        'http_token' => env('PRMS_SMS_HTTP_TOKEN'),
-        'sender_id' => env('PRMS_SMS_SENDER_ID', 'MoCU-PRMS'),
+        'provider' => env('PRMS_SMS_PROVIDER', 'nextsms'),
     ],
 ];

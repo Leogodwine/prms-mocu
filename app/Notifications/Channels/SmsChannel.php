@@ -28,6 +28,8 @@ class SmsChannel
             return;
         }
 
-        $this->sender->send($phone, $message);
+        $userId = $notifiable instanceof \App\Models\User ? $notifiable->id : null;
+
+        $this->sender->send($phone, $message, $userId);
     }
 }

@@ -4,16 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
 use App\Models\LoginHistory;
+use App\Models\SmsDeliveryLog;
 use App\Models\StudentSisSyncLog;
 use App\Support\Audit;
 use App\Support\PrmsPlatformMonitor;
+use App\Support\PrmsSms;
+use App\Support\PrmsSmsStatus;
 use App\Support\PrmsTablePagination;
+use App\Services\Sms\SmsSender;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class AdminSystemHealthController extends Controller
@@ -41,6 +46,10 @@ class AdminSystemHealthController extends Controller
                 'log_lines' => PrmsPlatformMonitor::recentLogLines(150),
                 'storage_checks' => PrmsPlatformMonitor::storagePermissionChecks(),
             ],
+            'smsStatus' => PrmsSmsStatus::summary(),
+            'recentSmsLogs' => Schema::hasTable('sms_delivery_logs')
+                ? SmsDeliveryLog::query()->latest('created_at')->limit(10)->get()
+                : collect(),
             'queueFailed' => PrmsPlatformMonitor::queueFailedCount(),
             'failedJobs' => $failedJobs,
             'latestSisSync' => StudentSisSyncLog::query()->latest('sync_timestamp')->first(),
@@ -121,6 +130,54 @@ class AdminSystemHealthController extends Controller
         }
 
         return back()->with('info', 'All failed jobs were cleared.');
+    }
+
+    public function sendTestSms(Request $request, SmsSender $sender): RedirectResponse
+    {
+        $validated = $request->validate([
+            'phone' => ['required', 'string', 'max:30'],
+        ]);
+
+        $phone = PrmsSms::normalizePhone($validated['phone']);
+
+        if ($phone === null) {
+            return back()->withErrors(['phone' => PrmsSms::invalidPhoneMessage()]);
+        }
+
+        $message = PrmsSms::formatBody(
+            'PRMS test',
+            'This is a test message from '.config('app.name').'.',
+            now()->format('j M Y H:i')
+        );
+
+        if (! config('prms.sms.enabled', false)) {
+            $sender->sendSync($phone, $message, $request->user()->id);
+
+            return back()->with(
+                'info',
+                'SMS is disabled. The test was logged only (status: skipped). Set PRMS_SMS_ENABLED=true and run php artisan config:clear to send live SMS.'
+            );
+        }
+
+        $sent = $sender->sendSync($phone, $message, $request->user()->id);
+
+        Audit::log($request, 'admin.sms_test', 'System', null, null, ['phone' => $phone, 'sent' => $sent]);
+
+        if (! $sent) {
+            $detail = SmsDeliveryLog::query()
+                ->where('phone', $phone)
+                ->orderByDesc('id')
+                ->value('provider_response');
+
+            $message = 'Test SMS could not be delivered. Check gateway configuration and logs.';
+            if (filled($detail)) {
+                $message .= ' Provider response: '.Str::limit($detail, 200);
+            }
+
+            return back()->with('error', $message);
+        }
+
+        return back()->with('status', 'Test SMS sent to '.$phone.'.');
     }
 
     public function heartbeat(): RedirectResponse

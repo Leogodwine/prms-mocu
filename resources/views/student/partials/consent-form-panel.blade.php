@@ -21,15 +21,15 @@
                             Final presentation consent form
                         </h2>
                         <p class="text-muted small mb-0">
-                            Download the consent form, then submit the <strong>{{ $consentStageName }}</strong> stage below.
+                            Enter your proposed presentation date below, then send the request to your supervisor from the upload form on this page.
                         </p>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
                     <p class="text-muted small mb-3">
-                        Your supervisor signs and forwards it to the coordinator. Once the coordinator finalizes consent,
-                        all approved complete documents for your group or individual work are published to the repository.
+                        Your supervisor reviews the request, fills in the required details, signs in the system, and sends the signed copy back to you.
+                        The coordinator then signs to finalize consent before approved complete documents are published to the repository.
                     </p>
 
                     <form method="GET" action="{{ $consentFormUrl }}" class="row g-3 mb-3">
@@ -55,10 +55,10 @@
                     </form>
 
                     <ol class="small text-muted mb-0 ps-3">
-                        <li>Enter your proposed presentation date, then download the consent form.</li>
-                        <li>Submit the <strong>{{ $consentStageName }}</strong> stage using the upload form on this page.</li>
-                        <li>Your supervisor signs and forwards it to the coordinator for final approval.</li>
-                        <li>After coordinator approval, complete documents for your group or individual work are published to the repository.</li>
+                        <li>Enter your proposed presentation date and send the consent request to your supervisor.</li>
+                        <li>Your supervisor fills the form, signs digitally, and returns the signed consent to you.</li>
+                        <li>The coordinator reviews, signs, and finalizes the consent letter.</li>
+                        <li>After coordinator approval, upload your <strong>Final Presentation</strong> and <strong>Complete Project Document</strong>.</li>
                     </ol>
                 </div>
                 <div class="modal-footer border-top">

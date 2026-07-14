@@ -75,13 +75,16 @@
                             </div>
                         @endif
 
-                        <div class="col-md-{{ $isAdminAccount ? '12' : '6' }}">
-                            <label for="phone_number" class="form-label fw-semibold">Phone number</label>
-                            <input type="text" id="phone_number" name="phone_number"
+                        <div class="col-md-{{ $isAdminAccount ? '12' : '6' }}" data-prms-phone-group>
+                            <label for="phone_number" class="form-label fw-semibold">Phone number <span class="text-danger">*</span></label>
+                            <input type="tel" id="phone_number" name="phone_number" inputmode="numeric"
                                    value="{{ old('phone_number', $user->phone_number) }}"
-                                   class="form-control @error('phone_number') is-invalid @enderror"
-                                   maxlength="32" placeholder="e.g. +255 7XX XXX XXX">
-                            @error('phone_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                   class="form-control prms-phone-field @error('phone_number') is-invalid @enderror"
+                                   maxlength="16" placeholder="{{ \App\Support\PrmsSms::E164_EXAMPLE }}"
+                                   required autocomplete="tel">
+                            <div class="invalid-feedback prms-phone-feedback @error('phone_number') d-block @enderror" @error('phone_number') data-server-error @enderror>
+                                @error('phone_number'){{ $message }}@enderror
+                            </div>
                         </div>
 
                         @if (! $isAdminAccount)
@@ -176,3 +179,7 @@
     </div>
 </form>
 @endsection
+
+@push('scripts')
+<script src="{{ asset('js/prms-phone-field.js') }}?v=1" defer></script>
+@endpush

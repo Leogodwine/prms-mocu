@@ -220,6 +220,7 @@ final class AdminUserImportReader
             'staff_email', 'staffemail', 'staff_id', 'staff_number' => 'login_id',
             'sex' => 'gender',
             'year', 'study_year' => 'year_of_study',
+            'phone', 'mobile', 'mobile_number', 'cell', 'cellphone' => 'phone_number',
             default => $header,
         };
     }

@@ -16,9 +16,11 @@
         <a href="{{ route('supervisor.workload') }}" class="btn btn-light border rounded-pill px-3">
             <i class="fas fa-user-graduate me-1" aria-hidden="true"></i> Assigned students
         </a>
+        <!--
         <a href="{{ route('dashboard') }}" class="btn btn-light border rounded-pill px-3">
             <i class="fas fa-arrow-left me-1" aria-hidden="true"></i> Dashboard
         </a>
+-->
     </x-prms-greeting-banner>
 
     <div class="row g-4">

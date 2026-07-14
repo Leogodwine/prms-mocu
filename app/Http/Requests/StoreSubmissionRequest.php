@@ -21,17 +21,25 @@ class StoreSubmissionRequest extends FormRequest
         $stage = ProjectStage::find((int) $this->input('stage_id'));
         $isCompleteSystem = $stage && StudentStageProgress::isCompleteSystemStage($stage->stage_name);
         $isPresentation = $stage && StudentStageProgress::isPresentationStage($stage->stage_name);
+        $isConsentLetter = $stage && StudentStageProgress::isConsentLetterStage($stage->stage_name);
         $interfaceKeys = array_keys(StudentStageProgress::systemInterfaceOptions());
 
-        $documentRules = $isCompleteSystem
-            ? ['required', 'file', 'mimes:zip,rar,7z,tar,gz,tgz', 'max:204800']
-            : ($isPresentation
-                ? ['required', 'file', 'mimes:pdf,doc,docx,ppt,pptx', 'max:10240']
-                : ['required', 'file', 'mimes:pdf,doc,docx,zip', 'max:10240']);
+        $documentRules = $isConsentLetter
+            ? ['nullable', 'file', 'mimes:pdf,doc,docx,ppt,pptx', 'max:10240']
+            : ($isCompleteSystem
+                ? ['required', 'file', 'mimes:zip,rar,7z,tar,gz,tgz', 'max:204800']
+                : ($isPresentation
+                    ? ['required', 'file', 'mimes:pdf,doc,docx,ppt,pptx', 'max:10240']
+                    : ['required', 'file', 'mimes:pdf,doc,docx,zip', 'max:10240']));
 
         return [
             'stage_id' => ['required', 'exists:project_stages,id'],
-            'title' => ['required', 'string', 'max:180'],
+            'title' => $isConsentLetter
+                ? ['nullable', 'string', 'max:180']
+                : ['required', 'string', 'max:180'],
+            'presentation_date' => $isConsentLetter
+                ? ['required', 'date', 'after_or_equal:today']
+                : ['nullable', 'date'],
             'description' => $isCompleteSystem
                 ? ['required', 'string', 'min:30', 'max:2000']
                 : ['nullable', 'string', 'max:2000'],
@@ -59,6 +67,8 @@ class StoreSubmissionRequest extends FormRequest
             'description.required' => 'A short system description is required for Complete System submissions.',
             'description.min' => 'The system description should be at least 30 characters.',
             'document.required' => 'Please attach the required document or archive.',
+            'presentation_date.required' => 'Please enter your proposed final presentation date.',
+            'presentation_date.after_or_equal' => 'The proposed presentation date must be today or a future date.',
             'interface_screenshots.required' => 'Upload a home page interface screenshot.',
             'interface_screenshots.*.image.required' => 'Please choose a home page screenshot image.',
         ];

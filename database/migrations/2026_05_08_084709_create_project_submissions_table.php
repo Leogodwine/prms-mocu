@@ -18,8 +18,8 @@ return new class extends Migration
             $table->string('stage');
             $table->string('title')->nullable();
             $table->integer('version')->default(1);
-            $table->string('file_path');
-            $table->string('original_filename');
+            $table->string('file_path')->nullable();
+            $table->string('original_filename')->nullable();
             $table->string('mime_type')->nullable();
             $table->integer('file_size')->nullable();
             $table->string('status')->default('submitted');

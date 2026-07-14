@@ -155,7 +155,7 @@
             : match ($workspaceType) {
                 'proposal' => 'Submit and revise your research proposal chapters. Send each stage to your supervisor and act on their feedback.',
                 'research' => 'Draft and submit your research report chapters. Track approval status and revisions in one place.',
-                'project'  => 'Build your complete system, project document, progress and final presentations, and consent letter.',
+                'project'  => 'Build your complete system, progress and final presentations, consent letter, and complete project document.',
                 default    => 'Send each stage to your supervisor, read feedback, and resubmit revisions all from one place.',
             };
         $showStudentConsentForm = ! ($isOverview ?? false)
@@ -257,9 +257,11 @@
                         : ($isPresentationStageSelected
                             ? '.pdf,.ppt,.pptx,.doc,.docx,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation'
                             : '.pdf,.doc,.docx,.zip,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/zip');
-                    $headerLabel = $isCompleteSystemStage
-                        ? 'Submit your system & home page'
-                        : ($isPresentationStageSelected ? 'Submit presentation or consent letter' : 'Submit a new document');
+                    $headerLabel = $isConsentLetterStage
+                        ? 'Request final presentation consent'
+                        : ($isCompleteSystemStage
+                            ? 'Submit your system & home page'
+                            : ($isPresentationStageSelected ? 'Submit presentation or consent letter' : 'Submit a new document'));
                 @endphp
 
                 <div class="card mb-4" id="prms-submit-stage-card">
@@ -272,9 +274,9 @@
                             <div class="alert alert-info d-flex align-items-start gap-2" role="note">
                                 <i class="fas fa-info-circle mt-1" aria-hidden="true"></i>
                                 <div class="small mb-0">
-                                    After <strong>Complete System</strong> approval, upload the <strong>Complete Project Document</strong>,
-                                    then <strong>three progress presentations</strong>, <strong>Final Presentation</strong>, and the
-                                    <strong>Final Presentation Consent Letter</strong>. Your supervisor signs the consent
+                                    After <strong>Complete System</strong> approval, upload <strong>three progress presentations</strong>,
+                                    the <strong>Final Presentation Consent Letter</strong>, your <strong>Final Presentation</strong>,
+                                    and the <strong>Complete Project Document</strong>. Your supervisor signs the consent
                                     and forwards it to the coordinator; once the coordinator finalizes consent, approved
                                     work is published to the repository.
                                 </div>
@@ -283,9 +285,9 @@
                             <div class="alert alert-info d-flex align-items-start gap-2" role="note">
                                 <i class="fas fa-info-circle mt-1" aria-hidden="true"></i>
                                 <div class="small mb-0">
-                                    Submit the <strong>Final Presentation Consent Letter</strong> stage below. Your supervisor
-                                    signs and forwards it to the coordinator. After the coordinator finalizes consent,
-                                    your complete project document can be sent for final review and repository release.
+                                    Enter your proposed <strong>final presentation date</strong> and send the request to your supervisor.
+                                    Your supervisor will review the details, sign the consent form in the system, and send it back to you.
+                                    The coordinator then signs to finalize consent before repository release.
                                 </div>
                             </div>
                         @elseif ($isPresentationStageSelected && ! $isConsentLetterStage && ! $isFinalPresentationStage)
@@ -293,17 +295,18 @@
                                 <i class="fas fa-info-circle mt-1" aria-hidden="true"></i>
                                 <div class="small mb-0">
                                     Complete <strong>three progress presentations</strong>, then submit the
-                                    <strong>Final Presentation</strong> and <strong>Final Presentation Consent Letter</strong>.
-                                    Your supervisor signs and forwards consent to the coordinator before the complete
-                                    project document can be finalized.
+                                    <strong>Final Presentation Consent Letter</strong>, your <strong>Final Presentation</strong>,
+                                    and the <strong>Complete Project Document</strong>. Your supervisor signs and forwards
+                                    consent to the coordinator before the complete project document can be finalized.
                                 </div>
                             </div>
                         @elseif ($isFinalPresentationStage)
                             <div class="alert alert-info d-flex align-items-start gap-2" role="note">
                                 <i class="fas fa-info-circle mt-1" aria-hidden="true"></i>
                                 <div class="small mb-0">
-                                    Upload your <strong>Final Presentation</strong> slides or document after progress
-                                    presentation 3 is approved. Then submit the consent letter for supervisor signing.
+                                    Upload your <strong>Final Presentation</strong> slides or document after the consent
+                                    letter is approved. Then submit the <strong>Complete Project Document</strong> for
+                                    final review.
                                 </div>
                             </div>
                         @elseif ($isCompleteSystemStage)
@@ -348,11 +351,20 @@
                                     @error('stage_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label" for="submission_title">{{ $isCompleteSystemStage ? 'System name' : 'Submission title' }}</label>
-                                    <input id="submission_title" name="title" type="text" value="{{ old('title') }}"
-                                           placeholder="{{ $isCompleteSystemStage ? 'e.g. MoCU Library Management System' : 'e.g. Chapter 1 — first draft' }}"
-                                           class="form-control @error('title') is-invalid @enderror" required>
-                                    @error('title') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                    @if ($isConsentLetterStage)
+                                        <label class="form-label" for="presentation_date">Proposed presentation date <span class="text-danger">*</span></label>
+                                        <input id="presentation_date" name="presentation_date" type="date"
+                                               value="{{ old('presentation_date') }}"
+                                               min="{{ now()->toDateString() }}"
+                                               class="form-control @error('presentation_date') is-invalid @enderror" required>
+                                        @error('presentation_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                    @else
+                                        <label class="form-label" for="submission_title">{{ $isCompleteSystemStage ? 'System name' : 'Submission title' }}</label>
+                                        <input id="submission_title" name="title" type="text" value="{{ old('title') }}"
+                                               placeholder="{{ $isCompleteSystemStage ? 'e.g. MoCU Library Management System' : 'e.g. Chapter 1 — first draft' }}"
+                                               class="form-control @error('title') is-invalid @enderror" required>
+                                        @error('title') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                    @endif
                                 </div>
 
                                 @if ($isCompleteSystemStage)
@@ -446,6 +458,21 @@
                                             <span class="small text-muted" id="prms-document-status">No file chosen</span>
                                         </div>
                                         @error('document') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                    </div>
+                                @elseif ($isConsentLetterStage)
+                                    <div class="col-12">
+                                        <div class="border rounded-3 p-3 bg-light">
+                                            <p class="small text-muted mb-2">
+                                                <i class="fas fa-file-signature text-primary me-1" aria-hidden="true"></i>
+                                                No file upload is required. Your supervisor and coordinator will sign the consent form digitally in PRMS.
+                                            </p>
+                                            <button type="button"
+                                                    class="btn btn-outline-primary btn-sm"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#prmsConsentFormModal">
+                                                <i class="fas fa-eye me-1" aria-hidden="true"></i> Preview consent form
+                                            </button>
+                                        </div>
                                     </div>
                                 @else
                                     <div class="col-12">

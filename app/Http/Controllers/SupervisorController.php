@@ -17,6 +17,7 @@ use App\Support\EvaluationScoring;
 use App\Support\PrmsEventNotifier;
 use App\Support\PrmsListFilters;
 use App\Support\PrmsTablePagination;
+use App\Support\PresentationConsentForm;
 use App\Support\RepositoryPublication;
 use App\Support\StudentStageProgress;
 use App\Support\SupervisorAssignmentScope;
@@ -130,6 +131,12 @@ class SupervisorController extends Controller
                 $q->whereRaw('LOWER(COALESCE(status, "")) = ?', ['rejected']);
             });
 
+            /** if ($filters['type'] !== '') {
+            StudentStageProgress::scopeWorkType($query, $filters['type']);
+        }*/
+            if ($filters['type'] !== null && $filters['type'] !== '') {
+    $query->workType($filters['type']);
+}
         if ($filters['type'] !== '') {
             StudentStageProgress::scopeWorkType($query, $filters['type']);
         }
@@ -387,10 +394,16 @@ class SupervisorController extends Controller
 
         $validated = $request->validate([
             'comments' => ['nullable', 'string', 'max:3000'],
-            // FR-03: a supervisor can approve, send the work back for
-            // revision, or reject outright.
             'decision' => ['required', Rule::in(['approved', 'rejected', 'needs_revision'])],
         ]);
+
+        $isConsent = StudentStageProgress::isConsentLetterStage((string) $submission->stage);
+        if ($isConsent && in_array($validated['decision'], ['rejected', 'needs_revision'], true)
+            && ! filled(trim((string) ($validated['comments'] ?? '')))) {
+            return back()
+                ->withInput()
+                ->withErrors(['comments' => 'Please explain why you are rejecting or returning this consent request.']);
+        }
 
         if ($validated['decision'] === 'approved'
             && StudentStageProgress::isConsentLetterStage((string) $submission->stage)) {
@@ -408,6 +421,11 @@ class SupervisorController extends Controller
 
         $submission->status = $validated['decision'];
         $submission->save();
+
+        if ($isConsent && in_array($validated['decision'], ['rejected', 'needs_revision'], true)) {
+            PresentationConsentForm::clearSupervisorConsentSignature($submission);
+            PresentationConsentForm::clearCoordinatorConsentSignature($submission);
+        }
 
         Audit::log(
             $request,
@@ -427,13 +445,13 @@ class SupervisorController extends Controller
             $group = $submission->projectGroup()->with('members')->first();
             if ($group) {
                 foreach ($group->members as $member) {
-                    $member->notify(new SubmissionReviewedNotification($submission, $validated['decision']));
+                    PrmsEventNotifier::safeNotify($member, new SubmissionReviewedNotification($submission, $validated['decision']));
                 }
             }
         } elseif ($submission->student_id) {
             $student = $submission->student;
             if ($student) {
-                $student->notify(new SubmissionReviewedNotification($submission, $validated['decision']));
+                PrmsEventNotifier::safeNotify($student, new SubmissionReviewedNotification($submission, $validated['decision']));
             }
         }
 

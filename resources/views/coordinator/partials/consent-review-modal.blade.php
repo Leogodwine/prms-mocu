@@ -37,6 +37,12 @@
                         <p class="prms-eyebrow mb-3">Quick summary</p>
                         <ul class="list-unstyled small mb-4">
                             <li class="d-flex justify-content-between py-2 border-bottom gap-3">
+                                <span class="text-muted">Presentation date</span>
+                                <span class="fw-semibold text-strong text-end">
+                                    {{ optional($consent->presentation_date)?->format('d M Y') ?? '—' }}
+                                </span>
+                            </li>
+                            <li class="d-flex justify-content-between py-2 border-bottom gap-3">
                                 <span class="text-muted">Supervisor</span>
                                 <span class="fw-semibold text-strong text-end">{{ $supervisor?->name ?? '—' }}</span>
                             </li>
@@ -88,6 +94,13 @@
                         <i class="fas fa-file-signature me-1" aria-hidden="true"></i>
                         Sign &amp; finalize
                     </a>
+                    <button type="button"
+                            class="btn btn-outline-danger rounded-pill px-4"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#{{ $modalId }}-reject">
+                        <i class="fas fa-undo me-1" aria-hidden="true"></i>
+                        Reject / return
+                    </button>
                 @else
                     <span class="text-success small fw-semibold ms-sm-auto">
                         <i class="fas fa-check-circle me-1" aria-hidden="true"></i>
@@ -95,6 +108,30 @@
                     </span>
                 @endif
             </div>
+            @if (! $isFinalized)
+                <div class="collapse border-top" id="{{ $modalId }}-reject">
+                    <div class="p-4">
+                        <form method="POST" action="{{ route('coordinator.submissions.consent.review', $consent) }}">
+                            @csrf
+                            <label for="{{ $modalId }}-comments" class="form-label fw-semibold">Reason <span class="text-danger">*</span></label>
+                            <textarea id="{{ $modalId }}-comments"
+                                      name="comments"
+                                      rows="3"
+                                      class="form-control mb-3"
+                                      required
+                                      placeholder="Explain what must be corrected before consent can be finalized…"></textarea>
+                            <div class="d-flex flex-wrap gap-2 justify-content-end">
+                                <button type="submit" name="decision" value="needs_revision" class="btn btn-warning rounded-pill px-4">
+                                    Return to student
+                                </button>
+                                <button type="submit" name="decision" value="rejected" class="btn btn-outline-danger rounded-pill px-4">
+                                    Reject
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 </div>
