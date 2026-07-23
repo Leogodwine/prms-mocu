@@ -1,6 +1,6 @@
 {{-- FR-02: New project form (opened from projects index as a modal) --}}
 <div class="modal fade" id="createProjectModal" tabindex="-1" aria-labelledby="createProjectModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered prms-create-project-dialog">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down prms-create-project-dialog">
         <div class="modal-content border-0 shadow d-flex flex-column h-100 prms-create-project-content">
             <form method="POST" action="{{ route('projects.store') }}" enctype="multipart/form-data" novalidate
                   class="d-flex flex-column min-h-0 h-100 flex-grow-1">

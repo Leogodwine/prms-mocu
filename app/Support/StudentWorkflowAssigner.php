@@ -10,10 +10,13 @@ use App\Models\User;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Persists workflow role / track on student profiles and maps to users.role for routing.
+ * Persists workflow role / track on student profiles.
+ * Account role stays as "student"; privileges come from programme workflow eligibility.
  */
 final class StudentWorkflowAssigner
 {
+    public const CANONICAL_STUDENT_ROLE = 'student';
+
     public static function syncForUser(User $user, bool $persistUserRole = true): StudentWorkflowRole
     {
         if (! $user->isStudentUser() || ! Schema::hasTable('students')) {
@@ -103,22 +106,22 @@ final class StudentWorkflowAssigner
         }
     }
 
+    /**
+     * Keep every student account on the shared `student` role.
+     * Programme privileges remain on students.workflow_role / output_track.
+     */
     public static function syncUserRoleFromWorkflow(User $user, ?StudentWorkflowRole $workflowRole = null): void
     {
-        $workflowRole ??= FinalYearWorkflowEngine::determineWorkflowRole($user);
-
-        $mappedRole = match ($workflowRole) {
-            StudentWorkflowRole::ResearchCandidate => 'research_student',
-            StudentWorkflowRole::ProjectCandidate => 'project_student',
-            StudentWorkflowRole::FinalYearStudent => 'normal_student',
-            StudentWorkflowRole::ViewerOnly => 'normal_student',
-            StudentWorkflowRole::NoAccess => $user->role,
-        };
-
-        if ($user->role !== $mappedRole && in_array($mappedRole, ['research_student', 'project_student', 'normal_student'], true)) {
-            $user->role = $mappedRole;
-            $user->save();
+        if (! $user->isStudentUser()) {
+            return;
         }
+
+        if ($user->role === self::CANONICAL_STUDENT_ROLE) {
+            return;
+        }
+
+        $user->role = self::CANONICAL_STUDENT_ROLE;
+        $user->save();
     }
 
     public static function reevaluateAll(): int

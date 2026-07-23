@@ -79,7 +79,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
     Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
     Route::put('/notifications/preferences', [NotificationPreferenceController::class, 'update'])->name('notifications.preferences.update');
-    Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
+    Route::match(['get', 'post'], '/logout', [AuthController::class, 'destroy'])->name('logout');
 });
 
 Route::middleware(['auth', 'password.changed'])->group(function () {
@@ -87,27 +87,27 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
 
     // FR-02: Project & research proposal tracking workspace.
     Route::get('/projects', [ProjectController::class, 'index'])
-        ->middleware('role:project_student,research_student,normal_student,supervisor')
+        ->middleware('role:student,supervisor')
         ->name('projects.index');
     Route::get('/projects/create', [ProjectController::class, 'create'])
-        ->middleware('role:project_student,research_student,normal_student')
+        ->middleware('role:student')
         ->name('projects.create');
     Route::post('/projects', [ProjectController::class, 'store'])
-        ->middleware('role:project_student,research_student,normal_student')
+        ->middleware('role:student')
         ->name('projects.store');
     Route::post('/projects/problem-proposal', [ProjectController::class, 'storeProblemProposal'])
-        ->middleware('role:project_student,research_student,normal_student')
+        ->middleware('role:student')
         ->name('projects.problem-proposal.store');
     Route::get('/projects/{researchProject}', [ProjectController::class, 'show'])
         ->whereNumber('researchProject')
         ->name('projects.show');
     Route::post('/projects/{researchProject}/contributors', [ProjectContributorController::class, 'store'])
         ->whereNumber('researchProject')
-        ->middleware('role:project_student,normal_student')
+        ->middleware('role:student')
         ->name('projects.contributors.store');
     Route::delete('/projects/{researchProject}/contributors/{contributor}', [ProjectContributorController::class, 'destroy'])
         ->whereNumber(['researchProject', 'contributor'])
-        ->middleware('role:project_student,normal_student')
+        ->middleware('role:student')
         ->name('projects.contributors.destroy');
 
     // User profile (view, edit, update).
@@ -167,14 +167,14 @@ Route::middleware(['auth', 'password.changed', 'role:supervisor'])->prefix('supe
         ->name('presentation-consent.pdf');
 });
 
-Route::middleware(['auth', 'password.changed', 'role:project_student,research_student,normal_student,coordinator'])->prefix('student')->name('student.')->group(function () {
+Route::middleware(['auth', 'password.changed', 'role:student,coordinator'])->prefix('student')->name('student.')->group(function () {
     Route::get('/', [StudentController::class, 'index'])->name('index');
 });
 
-Route::middleware(['auth', 'password.changed', 'role:project_student,research_student,normal_student,coordinator,supervisor,hod,admin'])
+Route::middleware(['auth', 'password.changed', 'role:student,coordinator,supervisor,hod,admin'])
     ->get('/presentation-consent', [PresentationConsentController::class, 'show'])
     ->name('presentation-consent.show');
-Route::middleware(['auth', 'password.changed', 'role:project_student,research_student,normal_student,coordinator,supervisor,hod,admin'])
+Route::middleware(['auth', 'password.changed', 'role:student,coordinator,supervisor,hod,admin'])
     ->get('/presentation-consent/download', [PresentationConsentController::class, 'download'])
     ->name('presentation-consent.download');
 
@@ -182,7 +182,7 @@ Route::middleware(['auth', 'password.changed', 'role:project_student,research_st
 // enforced inside the controller so the route stays open to any
 // authenticated PRMS role; the controller only allows owners, the
 // assigned supervisor, and oversight roles to read the file.
-Route::middleware(['auth', 'password.changed', 'role:project_student,research_student,normal_student,coordinator,supervisor,hod,admin'])
+Route::middleware(['auth', 'password.changed', 'role:student,coordinator,supervisor,hod,admin'])
     ->prefix('student')->name('student.')->group(function () {
         Route::get('/submissions/{submission}/download', [StudentController::class, 'download'])->name('submissions.download');
         Route::get('/submissions/{submission}/preview', [StudentController::class, 'preview'])->name('submissions.preview');
@@ -202,7 +202,7 @@ Route::post('/student/submissions/{submission}/onlyoffice-callback', [Submission
     ->name('student.submissions.onlyoffice-callback')
     ->middleware('signed');
 
-Route::middleware(['auth', 'password.changed', 'role:project_student,research_student,normal_student'])->prefix('student')->name('student.')->group(function () {
+Route::middleware(['auth', 'password.changed', 'role:student'])->prefix('student')->name('student.')->group(function () {
     Route::post('/submissions', [StudentController::class, 'storeSubmission'])->name('submissions.store');
     Route::get('/presentation-consent/{submission}/pdf', [PresentationConsentController::class, 'pdf'])->name('presentation-consent.pdf');
     Route::post('/submissions/create-blank', [SubmissionEditorController::class, 'createBlank'])->name('submissions.create-blank');
@@ -211,7 +211,7 @@ Route::middleware(['auth', 'password.changed', 'role:project_student,research_st
     Route::post('/submissions/{submission}/submit-to-coordinator', [StudentController::class, 'submitToCoordinator'])->name('submissions.submit-to-coordinator');
 });
 
-Route::middleware(['auth', 'password.changed', 'role:project_student,research_student,normal_student,coordinator,supervisor,hod'])
+Route::middleware(['auth', 'password.changed', 'role:student,coordinator,supervisor,hod'])
     ->prefix('archive')
     ->name('archive.')
     ->group(function () {

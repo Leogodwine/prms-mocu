@@ -444,7 +444,7 @@ class CoordinatorController extends Controller
             ->whereNotNull('year_of_study')
             ->whereHas('programme')
             ->whereHas('user', fn ($q) => $q
-                ->whereIn('role', ['project_student', 'research_student', 'normal_student'])
+                ->whereIn('role', User::STUDENT_ROLES)
                 ->where('enrollment_status', 'active')
                 ->where('account_status', 'active'))
             ->when($deptId !== null, function ($q) use ($deptId) {

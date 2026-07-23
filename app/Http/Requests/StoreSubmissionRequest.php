@@ -13,7 +13,7 @@ class StoreSubmissionRequest extends FormRequest
     {
         $user = $this->user();
 
-        return $user && in_array($user->role, ['project_student', 'research_student', 'normal_student', 'student'], true);
+        return $user && $user->isStudentUser();
     }
 
     public function rules(): array

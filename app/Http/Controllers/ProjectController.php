@@ -40,7 +40,7 @@ use Illuminate\View\View;
  */
 class ProjectController extends Controller
 {
-    private const CREATOR_ROLES = ['project_student', 'research_student', 'normal_student'];
+    private const CREATOR_ROLES = User::STUDENT_ROLES;
 
     public function index(Request $request): View
     {
@@ -385,7 +385,7 @@ class ProjectController extends Controller
     public function storeProblemProposal(Request $request): RedirectResponse
     {
         $user = $request->user();
-        if (!in_array($user->role, ['project_student', 'research_student', 'normal_student'], true)) {
+        if (! $user->isStudentUser()) {
             abort(403, 'Only students can register a new proposal or project idea.');
         }
 

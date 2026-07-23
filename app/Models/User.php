@@ -126,17 +126,24 @@ class User extends Authenticatable
     }
 
     /**
+     * Canonical student account role. Programme privileges use workflow_role / tracks.
+     *
+     * @var list<string>
+     */
+    public const STUDENT_ROLES = [
+        'student',
+        'project_student',
+        'research_student',
+        'normal_student',
+    ];
+
+    /**
      * Roles that represent students in self-service profile rules
      * (department, programme, year of study are staff-managed).
      */
     public function isStudentUser(): bool
     {
-        return in_array((string) $this->role, [
-            'project_student',
-            'research_student',
-            'normal_student',
-            'student',
-        ], true);
+        return in_array((string) $this->role, self::STUDENT_ROLES, true);
     }
 
     public function isAdminUser(): bool

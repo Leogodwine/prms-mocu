@@ -121,7 +121,7 @@ body.prms-public-page {
   gap: 0.25rem;
 }
 
-@media screen and (max-width: 999.98px) {
+@media screen and (max-width: 991.98px) {
   .main-panel .page-header .page-title,
   .prms-public-page .page-header .page-title {
     font-size: 1.0625rem;
@@ -322,7 +322,7 @@ body.prms-kaiadmin-public .main-panel.prms-public-main > .container {
 }
 
 /* Top bar edge-to-edge */
-@media screen and (max-width: 999.98px) {
+@media screen and (max-width: 991.98px) {
   body.prms-kaiadmin-public {
     --prms-public-nav-height: 4.25rem;
   }
@@ -545,7 +545,7 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
 }
 
 /* Collapsed sidebar — product name in header, nav icons only in rail */
-@media screen and (min-width: 1000px) {
+@media screen and (min-width: 992px) {
   .sidebar_minimize .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-logo .logo-header,
   .sidebar_minimize .main-header .main-header-logo .logo-header:not(.prms-mobile-toolbar) {
     flex-direction: column;
@@ -934,7 +934,7 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
   display: none;
 }
 
-@media screen and (min-width: 1000px) {
+@media screen and (min-width: 992px) {
   .sidebar_minimize .wrapper > .sidebar:not(.prms-sidebar-sub) .nav.nav-primary > .nav-item:not(.submenu) > a.prms-nav-link--has-badge {
     position: relative;
   }
@@ -1221,7 +1221,7 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
   color: var(--prms-snav-muted, rgba(255, 255, 255, 0.55));
 }
 
-@media screen and (min-width: 1000px) {
+@media screen and (min-width: 992px) {
   .sidebar_minimize .wrapper > .sidebar:not(.prms-sidebar-sub) .prms-sidebar-contributors {
     display: none;
   }
@@ -1373,6 +1373,44 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
   border-color: var(--prms-border, #e7eaec);
 }
 
+/* Keep Cancel / Submit pinned when form wraps body+footer in scrollable/fullscreen modals */
+.modal-dialog-scrollable .modal-content > form {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+.modal-dialog-scrollable form.modal-content {
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+.modal-dialog-scrollable .modal-content > form > .modal-body,
+.modal-dialog-scrollable form.modal-content > .modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.modal-dialog-scrollable .modal-content > form > .modal-footer,
+.modal-dialog-scrollable form.modal-content > .modal-footer,
+.modal-dialog-scrollable .modal-content > form > .modal-header,
+.modal-dialog-scrollable form.modal-content > .modal-header {
+  flex-shrink: 0;
+}
+
+@media (max-width: 575.98px) {
+  .modal-fullscreen-sm-down.modal-dialog-scrollable .modal-content > form,
+  .modal-fullscreen-sm-down.modal-dialog-scrollable form.modal-content {
+    height: 100%;
+  }
+}
+
 .modal .modal-title {
   color: var(--prms-musaris-heading, #17082d);
 }
@@ -1475,12 +1513,12 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
 }
 
 /* ── Mobile shell: sidebar hidden by default; hamburger opens full overlay menu ── */
-@media screen and (max-width: 999.98px) {
-  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-logo {
+@media screen and (max-width: 991.98px) {
+  .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-logo {
     display: block !important;
   }
 
-  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) {
+  .wrapper > .sidebar:not(.prms-sidebar-sub) {
     position: fixed;
     left: 0 !important;
     top: 0;
@@ -1494,27 +1532,27 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     box-shadow: none;
   }
 
-  html.prms-mobile-shell.prms-mobile-sidebar-expanded .wrapper > .sidebar:not(.prms-sidebar-sub) {
+  html.prms-mobile-sidebar-expanded .wrapper > .sidebar:not(.prms-sidebar-sub) {
     transform: translate3d(0, 0, 0) !important;
     box-shadow: 0 0 24px rgba(0, 0, 0, 0.22);
   }
 
-  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper {
+  .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper {
     width: 100% !important;
   }
 
-  html.prms-mobile-shell .main-panel,
-  html.prms-mobile-shell .main-header {
+  .main-panel,
+  .main-header {
     width: 100% !important;
     transform: none !important;
     float: none;
   }
 
-  html.prms-mobile-shell.prms-mobile-sidebar-expanded {
+  html.prms-mobile-sidebar-expanded {
     overflow: hidden !important;
   }
 
-  html.prms-mobile-shell.prms-mobile-sidebar-expanded::before {
+  html.prms-mobile-sidebar-expanded::before {
     content: '';
     position: fixed;
     inset: 0;
@@ -1523,21 +1561,21 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     pointer-events: auto;
   }
 
-  html.prms-mobile-shell.nav_open {
+  html.nav_open {
     overflow: hidden !important;
   }
 
-  html.prms-mobile-shell.nav_open .wrapper {
+  html.nav_open .wrapper {
     overflow: hidden !important;
   }
 
-  html.prms-mobile-shell.nav_open .wrapper > .sidebar:not(.prms-sidebar-sub),
-  html.prms-mobile-shell.nav_open .main-panel,
-  html.prms-mobile-shell.nav_open .main-header {
+  html.nav_open .wrapper > .sidebar:not(.prms-sidebar-sub),
+  html.nav_open .main-panel,
+  html.nav_open .main-header {
     transform: none !important;
   }
 
-  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-logo .logo-header {
+  .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-logo .logo-header {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
@@ -1550,7 +1588,7 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     box-sizing: border-box;
   }
 
-  html.prms-mobile-shell .sidebar .sidebar-logo .logo-header .logo {
+  .sidebar .sidebar-logo .logo-header .logo {
     position: static !important;
     transform: none !important;
     opacity: 1 !important;
@@ -1561,16 +1599,16 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     gap: 0.625rem;
   }
 
-  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-logo .logo-header .logo img,
-  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-logo .logo-header .logo .prms-brand-logo {
+  .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-logo .logo-header .logo img,
+  .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-logo .logo-header .logo .prms-brand-logo {
     display: none !important;
   }
 
-  html.prms-mobile-shell .sidebar .sidebar-logo .logo-header .nav-toggle {
+  .sidebar .sidebar-logo .logo-header .nav-toggle {
     display: none !important;
   }
 
-  html.prms-mobile-shell .sidebar .sidebar-logo .prms-sidebar-brand-name {
+  .sidebar .sidebar-logo .prms-sidebar-brand-name {
     display: block !important;
     text-align: left;
     font-size: 0.8125rem;
@@ -1582,44 +1620,44 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     text-overflow: ellipsis;
   }
 
-  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a {
+  .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a {
     justify-content: flex-start;
     padding: 0.55rem 1rem !important;
   }
 
-  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a i {
+  .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a i {
     display: inline-block !important;
     float: left !important;
     margin-right: 0.65rem !important;
     font-size: 1.05rem;
   }
 
-  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a p,
-  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a .prms-sidebar-caret,
-  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a .badge {
+  .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a p,
+  .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a .prms-sidebar-caret,
+  .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a .badge {
     display: inline-flex !important;
   }
 
-  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a .prms-nav-icon-badge {
+  .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item > a .prms-nav-icon-badge {
     display: none !important;
   }
 
-  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item.submenu > .collapse:not(.show) {
+  .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item.submenu > .collapse:not(.show) {
     display: none !important;
   }
 
-  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item.submenu > .collapse.show,
-  html.prms-mobile-shell .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item.submenu > .collapse.collapsing {
+  .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item.submenu > .collapse.show,
+  .wrapper > .sidebar:not(.prms-sidebar-sub) .sidebar-wrapper .nav.nav-primary > .nav-item.submenu > .collapse.collapsing {
     display: block !important;
   }
 
   /* Top bar: hamburger + MoCU-PRMS + right icons */
-  html.prms-mobile-shell .main-header .main-header-logo .logo-header .logo img,
-  html.prms-mobile-shell .main-header .main-header-logo .logo-header .logo .prms-brand-logo {
+  .main-header .main-header-logo .logo-header .logo img,
+  .main-header .main-header-logo .logo-header .logo .prms-brand-logo {
     display: none !important;
   }
 
-  html.prms-mobile-shell .main-header .main-header-logo .logo-header .logo {
+  .main-header .main-header-logo .logo-header .logo {
     display: flex !important;
     position: static !important;
     transform: none !important;
@@ -1638,8 +1676,8 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     text-decoration: none;
   }
 
-  html.prms-mobile-shell .main-header .main-header-logo .logo-header .logo .prms-sidebar-brand-name,
-  html.prms-mobile-shell .main-header .main-header-logo .logo-header .prms-mobile-toolbar-brand {
+  .main-header .main-header-logo .logo-header .logo .prms-sidebar-brand-name,
+  .main-header .main-header-logo .logo-header .prms-mobile-toolbar-brand {
     display: block !important;
     flex: 1 1 auto;
     min-width: 0;
@@ -1653,26 +1691,26 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     line-height: 1.2;
   }
 
-  html.prms-mobile-shell .main-header .main-header-logo .logo-header .topbar-toggler.more,
-  html.prms-mobile-shell .logo-header .topbar-toggler.more {
+  .main-header .main-header-logo .logo-header .topbar-toggler.more,
+  .logo-header .topbar-toggler.more {
     display: none !important;
   }
 
-  html.prms-mobile-shell .main-header .main-header-logo .logo-header .nav-toggle {
+  .main-header .main-header-logo .logo-header .nav-toggle {
     order: 1;
   }
 
-  html.prms-mobile-shell .main-header .main-header-logo .logo-header .nav-toggle .sidenav-toggler {
+  .main-header .main-header-logo .logo-header .nav-toggle .sidenav-toggler {
     display: none !important;
   }
 
-  html.prms-mobile-shell .main-header .main-header-logo .logo-header .nav-toggle .btn-toggle,
-  html.prms-mobile-shell .main-header .main-header-logo .logo-header .nav-toggle .btn-toggle i {
+  .main-header .main-header-logo .logo-header .nav-toggle .btn-toggle,
+  .main-header .main-header-logo .logo-header .nav-toggle .btn-toggle i {
     opacity: 1 !important;
     visibility: visible !important;
   }
 
-  html.prms-mobile-shell .main-header {
+  .main-header {
     position: fixed !important;
     top: 0;
     left: 0;
@@ -1683,15 +1721,15 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     z-index: 1030;
   }
 
-  html.prms-mobile-shell .main-header .main-header-logo {
+  .main-header .main-header-logo {
     display: block !important;
     width: 100% !important;
     max-width: none;
     min-width: 0;
   }
 
-  html.prms-mobile-shell .main-header .main-header-logo .logo-header.prms-mobile-toolbar,
-  html.prms-mobile-shell .main-header .main-header-logo .logo-header {
+  .main-header .main-header-logo .logo-header.prms-mobile-toolbar,
+  .main-header .main-header-logo .logo-header {
     display: -webkit-box !important;
     display: flex !important;
     -webkit-box-align: center;
@@ -1704,14 +1742,14 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     min-height: 3.25rem;
     height: 3.25rem;
     padding: 0 0.75rem;
-    padding-right: max(5rem, calc(5rem + env(safe-area-inset-right, 0px)));
+    padding-right: max(9.5rem, calc(9.5rem + env(safe-area-inset-right, 0px)));
     box-sizing: border-box;
     overflow: hidden;
     position: relative;
     text-align: left;
   }
 
-  html.prms-mobile-shell .main-header .main-header-logo .logo-header .prms-mobile-back {
+  .main-header .main-header-logo .logo-header .prms-mobile-back {
     order: 0;
     flex-shrink: 0;
     color: #fff;
@@ -1720,7 +1758,7 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     line-height: 1;
   }
 
-  html.prms-mobile-shell .main-header .main-header-logo .logo-header .nav-toggle {
+  .main-header .main-header-logo .logo-header .nav-toggle {
     position: static !important;
     left: auto !important;
     right: auto !important;
@@ -1737,12 +1775,12 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     width: auto;
   }
 
-  html.prms-mobile-shell .main-header .main-header-logo .logo-header .prms-mobile-toolbar-brand,
-  html.prms-mobile-shell .main-header .main-header-logo .logo-header .logo .prms-sidebar-brand-name {
+  .main-header .main-header-logo .logo-header .prms-mobile-toolbar-brand,
+  .main-header .main-header-logo .logo-header .logo .prms-sidebar-brand-name {
     order: 2;
   }
 
-  html.prms-mobile-shell .main-header .main-header-logo .logo-header .nav-toggle .toggle-sidebar {
+  .main-header .main-header-logo .logo-header .nav-toggle .toggle-sidebar {
     display: inline-flex !important;
     align-items: center;
     justify-content: center;
@@ -1751,41 +1789,42 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     padding: 0.35rem;
   }
 
-  html.prms-mobile-shell .main-header .navbar-header {
+  .main-header .navbar-header {
     position: absolute !important;
     top: 0;
     right: 0;
     left: auto;
-    display: block !important;
+    display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
-    width: auto !important;
-    max-width: 46%;
+    width: max-content !important;
+    max-width: none !important;
     min-height: 3.25rem;
     height: 3.25rem;
     -webkit-transform: none !important;
     transform: none !important;
     border: none !important;
     background: transparent !important;
-    z-index: 3;
+    overflow: visible !important;
+    z-index: 5;
     pointer-events: none;
     padding-right: max(0.25rem, env(safe-area-inset-right, 0px));
   }
 
-  html.prms-mobile-shell .main-header .navbar-header .container-fluid,
-  html.prms-mobile-shell .main-header .navbar-header .navbar-nav,
-  html.prms-mobile-shell .main-header .navbar-header .nav-link,
-  html.prms-mobile-shell .main-header .navbar-header .dropdown-toggle {
+  .main-header .navbar-header .container-fluid,
+  .main-header .navbar-header .navbar-nav,
+  .main-header .navbar-header .nav-link,
+  .main-header .navbar-header .dropdown-toggle {
     pointer-events: auto;
   }
 
-  html.prms-mobile-shell .main-header .navbar-header .container-fluid {
+  .main-header .navbar-header .container-fluid {
     padding-left: 0;
     padding-right: 0.25rem;
     height: 100%;
   }
 
-  html.prms-mobile-shell .main-header .navbar-header .navbar-nav {
+  .main-header .navbar-header .navbar-nav {
     justify-content: flex-end !important;
     width: 100%;
     margin-left: 0 !important;
@@ -1797,38 +1836,38 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     align-items: center;
   }
 
-  html.prms-mobile-shell .main-header .navbar-header .topbar-icon .nav-link,
-  html.prms-mobile-shell .main-header .navbar-header .topbar-user .profile-pic {
+  .main-header .navbar-header .topbar-icon .nav-link,
+  .main-header .navbar-header .topbar-user .profile-pic {
     padding: 0.35rem 0.4rem;
     min-width: 2.5rem;
     min-height: 2.5rem;
     -webkit-tap-highlight-color: transparent;
   }
 
-  html.prms-mobile-shell .main-panel > .container,
-  html.prms-mobile-shell .main-panel > .container-full,
-  html.prms-mobile-shell.topbar_open .main-panel > .container,
-  html.prms-mobile-shell.topbar_open .main-panel > .container-full {
+  .main-panel > .container,
+  .main-panel > .container-full,
+  html.topbar_open .main-panel > .container,
+  html.topbar_open .main-panel > .container-full {
     margin-top: 3.25rem !important;
   }
 
   @media screen and (max-width: 400px) {
-    html.prms-mobile-shell .main-header .main-header-logo .logo-header .logo .prms-sidebar-brand-name,
-    html.prms-mobile-shell .main-header .main-header-logo .logo-header .prms-mobile-toolbar-brand {
+    .main-header .main-header-logo .logo-header .logo .prms-sidebar-brand-name,
+    .main-header .main-header-logo .logo-header .prms-mobile-toolbar-brand {
       font-size: 0.75rem;
     }
 
-    html.prms-mobile-shell .main-header .main-header-logo .logo-header.prms-mobile-toolbar,
-    html.prms-mobile-shell .main-header .main-header-logo .logo-header {
-      padding-right: max(4.75rem, calc(4.75rem + env(safe-area-inset-right, 0px)));
+    .main-header .main-header-logo .logo-header.prms-mobile-toolbar,
+    .main-header .main-header-logo .logo-header {
+      padding-right: max(9rem, calc(9rem + env(safe-area-inset-right, 0px)));
       gap: 0.15rem;
     }
   }
 }
 
 /* Mobile top bar — always visible (Kaiadmin hides .navbar-header off-screen until .topbar_open) */
-@media screen and (max-width: 999.98px) {
-  /* Kaiadmin desktop (>=992px) hides the mobile logo strip — restore it below 1000px */
+@media screen and (max-width: 991.98px) {
+  /* Kaiadmin desktop (>=992px) hides the mobile logo strip — restore it below lg */
   .main-header .main-header-logo {
     display: block !important;
   }
@@ -1859,23 +1898,25 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
   }
 
   html.topbar_open .main-panel > .main-header .navbar-header,
-  .main-panel > .main-header .navbar-header {
+  .main-panel > .main-header .navbar-header,
+  .topbar_open .main-panel > .main-header .navbar-header {
     position: absolute !important;
     top: 0 !important;
     right: 0 !important;
     left: auto !important;
-    width: auto !important;
-    max-width: 50%;
+    width: max-content !important;
+    max-width: none !important;
     height: 3.25rem !important;
     min-height: 3.25rem !important;
     -webkit-transform: none !important;
     transform: none !important;
-    display: block !important;
+    display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
     border-top: none !important;
     background: transparent !important;
-    z-index: 4;
+    overflow: visible !important;
+    z-index: 5;
     pointer-events: none;
   }
 
@@ -1910,7 +1951,7 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     min-height: 3.25rem;
     height: 3.25rem;
     padding: 0 0.75rem;
-    padding-right: max(5rem, calc(5rem + env(safe-area-inset-right, 0px)));
+    padding-right: max(9.5rem, calc(9.5rem + env(safe-area-inset-right, 0px)));
     box-sizing: border-box;
     overflow: hidden;
   }
@@ -1996,7 +2037,7 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
 
 /* Public repository / welcome: Kaiadmin mobile shell styles .navbar-header as a
    slim right icon strip (50% width). The public site uses it as the full top nav. */
-@media screen and (max-width: 999.98px) {
+@media screen and (max-width: 991.98px) {
   body.prms-kaiadmin-public .main-panel.prms-public-main > .main-header.prms-public-site-header,
   body.prms-landing .main-header.prms-landing-header {
     position: sticky !important;
@@ -2091,7 +2132,7 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
 }
 
 /* App shell mobile top bar — final override layer (Kaiadmin translateY / toggle rules) */
-@media screen and (max-width: 999.98px) {
+@media screen and (max-width: 991.98px) {
   body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header {
     position: fixed !important;
     top: 0 !important;
@@ -2194,13 +2235,14 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
 
   body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .navbar-header,
   body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .prms-app-topnav,
-  html.topbar_open body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .navbar-header {
+  html.topbar_open body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .navbar-header,
+  .topbar_open body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .navbar-header {
     position: absolute !important;
     top: 0 !important;
     right: 0 !important;
     left: auto !important;
-    width: auto !important;
-    max-width: 52% !important;
+    width: max-content !important;
+    max-width: none !important;
     height: 3.25rem !important;
     min-height: 3.25rem !important;
     transform: none !important;
@@ -2211,6 +2253,7 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     border: none !important;
     border-top: none !important;
     background: transparent !important;
+    overflow: visible !important;
     z-index: 5 !important;
     pointer-events: none;
     padding-right: max(0.25rem, env(safe-area-inset-right, 0px));
@@ -2235,11 +2278,15 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     flex-wrap: nowrap !important;
     align-items: center !important;
     justify-content: flex-end !important;
-    width: 100%;
+    width: max-content !important;
     margin-left: 0 !important;
     min-height: 3.25rem;
     height: 100%;
-    gap: 0;
+    gap: 0.05rem;
+  }
+
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .navbar-header .nav-item {
+    flex-shrink: 0;
   }
 
   body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .navbar-header .nav-link,
@@ -2252,6 +2299,14 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
     background: rgba(255, 255, 255, 0.12) !important;
     border-color: rgba(255, 255, 255, 0.2) !important;
     color: #fff !important;
+    padding: 0.35rem 0.55rem !important;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+  }
+
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .navbar-header .topbar-icon.nav-item,
+  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .navbar-header .nav-item.topbar-icon {
+    margin-right: 0 !important;
   }
 
   body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .navbar-header .topbar-icon .nav-link,
@@ -2269,8 +2324,3 @@ body.prms-kaiadmin-public .footer.prms-public-footer {
   }
 }
 
-@media screen and (min-width: 992px) and (max-width: 999.98px) {
-  body:not(.prms-kaiadmin-public):not(.prms-landing) .wrapper .main-panel > .main-header .main-header-logo {
-    display: block !important;
-  }
-}

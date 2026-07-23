@@ -1,11 +1,17 @@
 /**
  * Mobile / small screens: sidebar hidden by default; hamburger opens full menu.
- * Desktop (1000px+): Kaiadmin sidebar_minimize icon-rail collapse.
+ * Desktop (992px+): Kaiadmin sidebar_minimize icon-rail collapse.
+ *
+ * Viewport updates are debounced and only applied when mobile/desktop mode flips,
+ * so docking DevTools (Inspect) does not thrash or freeze the page.
  */
 (function () {
     'use strict';
 
-    var MOBILE_QUERY = window.matchMedia('(max-width: 999.98px)');
+    var MOBILE_QUERY = window.matchMedia('(max-width: 991.98px)');
+    var VIEWPORT_DEBOUNCE_MS = 300;
+    var lastMobile = null;
+    var viewportTimer = null;
 
     function isMobile() {
         return MOBILE_QUERY.matches;
@@ -114,18 +120,36 @@
         document.addEventListener('click', onMobileNavClick);
     }
 
-    function onViewportChange() {
-        if (isMobile()) {
+    function applyViewportMode(force) {
+        var mobile = isMobile();
+
+        if (!force && lastMobile === mobile) {
+            return;
+        }
+
+        lastMobile = mobile;
+
+        if (mobile) {
             initMobileShell();
         } else {
             teardownMobileShell();
         }
     }
 
-    function boot() {
-        if (isMobile()) {
-            initMobileShell();
+    function onViewportChange() {
+        if (viewportTimer) {
+            clearTimeout(viewportTimer);
         }
+
+        viewportTimer = setTimeout(function () {
+            viewportTimer = null;
+            applyViewportMode(false);
+        }, VIEWPORT_DEBOUNCE_MS);
+    }
+
+    function boot() {
+        lastMobile = null;
+        applyViewportMode(true);
         bindMobileToggles();
     }
 
@@ -134,6 +158,8 @@
     } else {
         boot();
     }
+
+    window.addEventListener('resize', onViewportChange);
 
     if (typeof MOBILE_QUERY.addEventListener === 'function') {
         MOBILE_QUERY.addEventListener('change', onViewportChange);

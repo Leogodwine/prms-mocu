@@ -59,7 +59,7 @@
         const role = document.body.dataset.prmsRole || '';
         const targets = [];
 
-        if (['coordinator', 'supervisor', 'hod', 'project_student', 'research_student', 'normal_student'].includes(role)) {
+        if (['coordinator', 'supervisor', 'hod', 'student', 'project_student', 'research_student', 'normal_student'].includes(role)) {
             targets.push({
                 label: 'Search approved library for “' + q + '”',
                 url: searchUrl('archive', q),

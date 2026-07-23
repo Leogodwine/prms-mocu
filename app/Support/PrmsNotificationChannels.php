@@ -47,7 +47,7 @@ final class PrmsNotificationChannels
      */
     public static function projectAlert(User $user): array
     {
-        if (in_array($user->role ?? '', ['project_student', 'research_student', 'normal_student', 'student'], true)) {
+        if ($user->isStudentUser()) {
             return ['database'];
         }
 

@@ -152,7 +152,7 @@ class PresentationConsentController extends Controller
 
         if ($user->role === 'supervisor') {
             PresentationConsentForm::authorizeSupervisorForSubmission($user, $submission);
-        } elseif (in_array($user->role, ['project_student', 'research_student', 'normal_student', 'student'], true)) {
+        } elseif ($user->isStudentUser()) {
             PresentationConsentForm::authorizeStudentForSubmission($user, $submission);
         } elseif (in_array($user->role, ['coordinator', 'hod', 'admin'], true)) {
             PresentationConsentForm::authorizeCoordinatorForSubmission($user, $submission);

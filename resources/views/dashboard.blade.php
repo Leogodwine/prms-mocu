@@ -5,7 +5,7 @@
 @section('content')
 
 @php
-    $isStudentWorkspace = in_array($user->role ?? '', ['project_student', 'research_student', 'normal_student'], true);
+    $isStudentWorkspace = $user->isStudentUser();
 @endphp
 
 <x-prms-greeting-banner :subtitle="\App\Support\PrmsGreeting::subtitleForRole($user->role ?? null)">
@@ -48,7 +48,7 @@
 @if ($isStudentWorkspace && ($canCreateProjects ?? false))
     {{-- Initial problem / title submission for supervisor review --}}
     <div class="modal fade" id="prmsNewProposalModal" tabindex="-1" aria-labelledby="prmsNewProposalModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable modal-fullscreen-sm-down">
             <div class="modal-content">
                 <form action="{{ route('projects.problem-proposal.store') }}" method="POST">
                     @csrf

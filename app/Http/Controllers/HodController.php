@@ -27,15 +27,22 @@ class HodController extends Controller
             ->with(['user', 'supervisorAssignments'])
             ->whereHas('user', fn ($q) => $q->where('role', 'supervisor'))
             ->when($deptId, fn ($q) => $q->where('department_id', $deptId))
-            ->get();
+            ->orderBy('full_name')
+            ->paginate(PrmsTablePagination::perPage($request), ['*'], 'supervisors_page')
+            ->withQueryString();
 
-        $groups = ProjectGroup::query()
+        $groupsQuery = ProjectGroup::query()
             ->with(['members', 'supervisorAssignment.supervisor'])
             ->when($deptId, function ($q) use ($deptId) {
                 $q->whereHas('members.studentProfile.programme', fn ($pq) => $pq->where('department_id', $deptId));
             })
-            ->latest()
-            ->get();
+            ->latest();
+
+        $groupsTotal = (clone $groupsQuery)->count();
+
+        $recentGroups = (clone $groupsQuery)
+            ->paginate(PrmsTablePagination::perPage($request), ['*'], 'groups_page')
+            ->withQueryString();
 
         $submissionStats = \App\Models\ProjectSubmission::query()
             ->when($deptId, function ($q) use ($deptId) {
@@ -47,7 +54,8 @@ class HodController extends Controller
 
         return view('hod.index', [
             'supervisors' => $supervisors,
-            'groups' => $groups,
+            'recentGroups' => $recentGroups,
+            'groupsTotal' => $groupsTotal,
             'submissionStats' => $submissionStats,
             'deptName' => $hodProfile?->department?->department_name ?? 'Department',
         ]);

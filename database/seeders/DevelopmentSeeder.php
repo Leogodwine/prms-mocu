@@ -10,7 +10,8 @@ use RuntimeException;
  *
  *   php artisan db:seed --class=DevelopmentSeeder
  *
- * Add demo seeders here (faculty, programmes, test users) as needed for QA.
+ * Loads MoCU academic structure plus deterministic QA accounts, groups,
+ * deadlines, submissions, rubrics, and calendar data for end-to-end testing.
  * Keep DatabaseSeeder limited to mandatory bootstrap data only.
  */
 class DevelopmentSeeder extends Seeder
@@ -21,7 +22,10 @@ class DevelopmentSeeder extends Seeder
             throw new RuntimeException('DevelopmentSeeder must not run in production.');
         }
 
-        $this->command?->warn('DevelopmentSeeder: loading academic structure for local QA.');
-        $this->call(AcademicStructureSeeder::class);
+        $this->command?->warn('DevelopmentSeeder: loading academic structure + demo test data for local QA.');
+        $this->call([
+            AcademicStructureSeeder::class,
+            DemoTestDataSeeder::class,
+        ]);
     }
 }

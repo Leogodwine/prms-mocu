@@ -21,7 +21,7 @@ final class StudentSisRecordSync
         }
 
         $yearOfStudy = (int) ($row['year_of_study'] ?? 0);
-        $role = 'normal_student';
+        $role = 'student';
         $enrollment = strtolower(trim((string) ($row['enrollment_status'] ?? 'inactive')));
         $accountStatus = $enrollment === 'active' ? 'active' : 'inactive';
 

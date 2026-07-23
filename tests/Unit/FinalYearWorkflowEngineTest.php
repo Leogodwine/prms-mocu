@@ -34,7 +34,7 @@ class FinalYearWorkflowEngineTest extends TestCase
         ]);
 
         $user = User::factory()->create([
-            'role' => 'normal_student',
+            'role' => 'student',
             'programme' => 'BBICT',
             'year_of_study' => 3,
             'enrollment_status' => 'active',
@@ -66,7 +66,7 @@ class FinalYearWorkflowEngineTest extends TestCase
         ]);
 
         $user = User::factory()->create([
-            'role' => 'normal_student',
+            'role' => 'student',
             'programme' => 'BED',
             'year_of_study' => 3,
             'account_status' => 'active',
@@ -91,7 +91,7 @@ class FinalYearWorkflowEngineTest extends TestCase
         ]);
 
         $user = User::factory()->create([
-            'role' => 'normal_student',
+            'role' => 'student',
             'year_of_study' => 2,
             'account_status' => 'active',
         ]);
@@ -113,7 +113,7 @@ class FinalYearWorkflowEngineTest extends TestCase
         $programme = Program::factory()->create(['final_year' => 3]);
 
         $user = User::factory()->create([
-            'role' => 'normal_student',
+            'role' => 'student',
             'year_of_study' => 3,
             'account_status' => 'active',
         ]);
@@ -143,7 +143,7 @@ class FinalYearWorkflowEngineTest extends TestCase
         ]);
 
         $user = User::factory()->create([
-            'role' => 'normal_student',
+            'role' => 'student',
             'programme' => 'DBICT',
             'year_of_study' => 2,
             'account_status' => 'active',
@@ -175,7 +175,7 @@ class FinalYearWorkflowEngineTest extends TestCase
         ]);
 
         $user = User::factory()->create([
-            'role' => 'normal_student',
+            'role' => 'student',
             'programme' => 'DHRM',
             'year_of_study' => 2,
             'account_status' => 'active',
@@ -208,7 +208,7 @@ class FinalYearWorkflowEngineTest extends TestCase
         ]);
 
         $user = User::factory()->create([
-            'role' => 'normal_student',
+            'role' => 'student',
             'programme' => 'CL',
             'year_of_study' => 1,
             'account_status' => 'active',

@@ -10,8 +10,8 @@
     <title>@yield('title', 'Repository') | {{ config('app.name', 'MoCU-PRMS') }}</title>
 
     @include('layouts.partials.kaiadmin-styles')
-    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=42">
-    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=45">
+    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=48">
+    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=64">
 
     @stack('styles')
 </head>

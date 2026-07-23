@@ -1,0 +1,550 @@
+📘 MoCU Document and Queries AI Assistant
+
+(Organized System Requirements & Design)
+
+1. ADMIN FUNCTIONALITIES (KEY ROLES)
+1.1 User Management
+
+The admin manages all system users.
+
+This includes:
+
+Creating accounts for staff, students, and department officers
+Assigning roles and permissions
+Activating or deactivating accounts
+Resetting passwords
+Controlling who can upload, edit, approve, or view documents
+
+Example:
+The admin can allow finance officers to handle fee-related queries, while students can only view and ask about their own information.
+
+1.2 Document Management
+
+The admin controls the documents that the AI assistant uses.
+
+This includes:
+
+Uploading university documents into the system
+Organizing documents by category
+Updating old documents
+Deleting irrelevant or expired documents
+Approving official documents before the AI uses them
+Setting document visibility rules
+
+Examples of documents:
+
+Academic regulations
+Examination rules
+Fee structure
+Registration guidelines
+Timetables
+Senate policies
+Hostel rules
+Staff circulars
+
+Note:
+This matters because the AI will only give good answers if the documents inside the system are correct and well managed.
+
+1.3 Query Monitoring and Management
+
+The admin supervises the questions asked by users and the responses given by the AI.
+
+This includes:
+
+Viewing user queries
+Monitoring unanswered or poorly answered questions
+Reviewing AI response accuracy
+Flagging wrong or misleading answers
+Escalating difficult queries to human staff
+Managing query history
+
+Example:
+If a student asks about a missing grade and the AI cannot solve it fully, the admin can route that query to the examinations office.
+
+1.4 AI Knowledge Base Management
+
+The admin manages the information source behind the assistant.
+
+This includes:
+
+Feeding the AI with updated university policies and documents
+Removing outdated information
+Training or fine-tuning response rules
+Defining what type of questions the AI should answer
+Setting response boundaries for sensitive queries
+
+Example:
+The admin may decide that the AI can answer general registration questions but cannot directly change student records.
+
+1.5 Approval and Verification Role
+
+The admin ensures that official answers and records are verified.
+
+This includes:
+
+Verifying uploaded documents before publishing
+Approving changes in important system content
+Confirming official announcements
+Checking whether AI answers align with university policy
+
+Note:
+This is important because in a university environment, wrong information can cause serious confusion.
+
+1.6 Security and Access Control
+
+The admin protects the system and university data.
+
+This includes:
+
+Managing login security
+Setting permissions for different user groups
+Monitoring suspicious activity
+Preventing unauthorized access
+Protecting confidential documents
+Ensuring data privacy for students and staff
+
+Example:
+Student financial records, staff files, and exam records should not be accessible to everyone.
+
+1.7 Handling Escalations and Special Cases
+
+Some queries cannot be solved automatically by AI alone.
+
+The admin should:
+
+Identify sensitive or complex cases
+Forward them to the correct department
+Track their resolution
+Update the user on progress where necessary
+
+Examples:
+
+Missing exam results
+Incorrect student balance
+Graduation clearance issues
+Transcript problems
+Staff salary or HR issues
+1.8 Report Generation and Analytics
+
+The admin uses the system to monitor performance and decision-making.
+
+This includes:
+
+Viewing the number of queries asked
+Seeing the most common student and staff questions
+Identifying frequently accessed documents
+Tracking AI accuracy and response time
+Generating reports for management
+
+Example:
+If many students ask about registration deadlines, the admin may recommend publishing clearer notices.
+
+1.9 System Configuration
+
+The admin sets how the whole assistant works.
+
+This includes:
+
+Configuring departments
+Setting document categories
+Updating system settings
+Managing chatbot rules
+Controlling notification settings
+Setting language options if needed
+
+Example:
+The admin can configure categories like academics, finance, exams, library, hostel, and admissions.
+
+1.10 Backup and Maintenance
+
+The admin ensures the system continues to work properly.
+
+This includes:
+
+Backing up documents and query history
+Restoring lost data if needed
+Checking system health
+Coordinating software updates
+Maintaining database integrity
+1.11 Feedback and Quality Improvement
+
+The admin improves the assistant over time.
+
+This includes:
+
+Collecting user feedback
+Identifying weak areas in AI responses
+Improving document organization
+Updating FAQs
+Working with developers to improve the system
+1.12 Summary of Admin Roles
+
+In simple words, the admin of the MoCU Document and Queries AI Assistant is responsible for:
+
+managing users
+managing documents
+monitoring queries and AI answers
+ensuring accuracy
+protecting data
+handling escalated cases
+generating reports
+configuring the system
+maintaining the platform
+improving service quality
+2. ACCOUNT CREATION AND MANAGEMENT FUNCTIONAL REQUIREMENTS
+2.1 Account Creation (Registration)
+2.1.1 Student Account Creation
+
+The system shall allow students to create accounts using:
+
+Registration number / student ID
+Email address
+Password
+
+The system shall:
+
+Validate student details against the university database (if integrated)
+Prevent duplicate accounts
+Send account confirmation (email or SMS verification)
+
+Alternative (recommended for university):
+
+The system shall allow admin to pre-create student accounts
+Students activate accounts on first login
+2.1.2 Staff Account Creation
+
+The system shall:
+
+Allow admin to create staff accounts
+Assign staff roles (e.g., finance, academic, registry)
+Generate login credentials
+Allow secure account activation
+2.2 User Authentication (Login & Logout)
+
+The system shall:
+
+Allow login using username/email and password
+Verify credentials before access
+Restrict access after multiple failed attempts
+Allow secure logout
+Automatically log out inactive users
+2.3 Account Management (User Side)
+2.3.1 Profile Management
+
+The system shall allow users to:
+
+View account details
+Update email, phone number, password
+
+The system shall restrict unauthorized changes.
+
+2.3.2 Password Management
+
+The system shall:
+
+Allow password change
+Allow password reset
+Send reset links or OTP
+Enforce strong password rules
+2.3.3 Account Status
+
+The system shall:
+
+Show account status (active/inactive)
+Notify users if deactivated
+2.4 Account Management (Admin Side)
+2.4.1 User Control
+
+The system shall allow admin to:
+
+Create accounts
+Edit user details
+Activate/deactivate accounts
+Delete accounts
+2.4.2 Role and Permission Management
+
+The system shall allow admin to assign roles:
+
+Student
+Staff
+Admin
+
+The system shall control access based on roles.
+
+Example:
+
+Students → ask queries
+Staff → respond to queries
+Admin → full system control
+2.4.3 Monitoring Accounts
+
+The system shall allow admin to:
+
+View all users
+Track login activity
+Detect suspicious access
+2.5 Security Requirements for Accounts
+
+The system shall:
+
+Encrypt user passwords
+Prevent unauthorized access
+Log account activities
+Protect personal data
+Implement authentication measures (OTP if needed)
+3. FUNCTIONAL REQUIREMENTS
+3.1 Functional Requirements for Students
+Login/logout
+Ask questions in natural language
+Receive AI-generated answers
+Ask follow-up questions
+Access documents
+Search and download documents
+Ask personalized queries
+View query history
+Receive notifications
+Submit escalated queries
+Track query status
+Provide feedback
+Manage profile
+3.2 Functional Requirements for Staff Users
+Secure login
+Role-based access
+View escalated queries
+Respond to queries
+Update query status
+Upload/update documents
+Suggest document changes
+Search and access documents
+Monitor department queries
+Provide verified responses
+Receive notifications
+View reports
+Collaborate with admin
+3.3 Shared Functional Requirements
+AI interaction
+Natural language support
+Accurate response display
+Session security
+Activity logging
+4. NON-FUNCTIONAL REQUIREMENTS
+4.1. Performance
+
+The system should respond quickly and efficiently.
+
+Requirements:
+
+The system should return answers to user queries within a few seconds
+Document search and retrieval should be fast
+The system should support many users at the same time without slowing down
+Admin dashboard pages should load quickly
+
+Example:
+When a student asks about registration, the AI should provide a response almost immediately.
+
+4.2. Availability
+
+The system should be accessible whenever users need it.
+
+Requirements:
+
+The system should be available 24/7
+Downtime should be minimal
+Users should be able to access the system during registration, exams, and other busy periods
+
+Example:
+Students should still use the assistant even late at night or during peak registration periods.
+
+4.3. Reliability
+
+The system should work correctly and consistently.
+
+Requirements:
+
+The system should provide stable service without frequent crashes
+Uploaded documents should remain accessible and not get lost
+Query records should be stored correctly
+The AI should consistently retrieve information from the correct knowledge base
+
+Example:
+A document uploaded by admin today should still be available tomorrow without corruption.
+
+4.4. Security
+
+The system should protect university information and user data.
+
+Requirements:
+
+Only authorized users should access restricted documents
+Student and staff data should be protected
+The system should require secure login authentication
+Passwords should be stored securely
+Admin activities should be controlled and monitored
+Sensitive queries should not be exposed to unauthorized people
+
+Example:
+A student should not be able to view another student’s financial details.
+
+4.5. Usability
+
+The system should be easy to use for all users.
+
+Requirements:
+
+The interface should be simple and user-friendly
+Users should ask questions without needing technical knowledge
+Navigation should be clear for admin, staff, and students
+The system should provide understandable responses
+It should work well on both web and mobile devices
+
+Example:
+A first-year student should easily use the system without special training.
+
+4.6. Scalability
+
+The system should handle growth in users and data.
+
+Requirements:
+
+The system should support increasing numbers of students, staff, and documents
+It should allow future expansion to more departments or campuses
+The database should handle large volumes of queries and documents
+
+Example:
+As MoCU grows, the assistant should still perform well.
+
+4.7. Maintainability
+
+The system should be easy to update and improve.
+
+Requirements:
+
+New documents should be added easily
+System errors should be easy to detect and fix
+Developers should update features without affecting the whole system
+The AI knowledge base should be easy to manage
+
+Example:
+If university rules change, admin should update the documents without difficulty.
+
+4.8. Accuracy
+
+The system should provide correct and relevant information.
+
+Requirements:
+
+The AI should retrieve answers from valid and approved university documents
+The system should minimize wrong or misleading responses
+Responses should be relevant to the user’s query
+Outdated documents should not be used in answering questions
+
+Example:
+If a student asks about exam regulations, the answer should match the latest approved MoCU policy.
+
+4.9. Compatibility
+
+The system should work across different devices and platforms.
+
+Requirements:
+
+The web system should work on major browsers
+The mobile app should function properly on common smartphones
+The system should integrate well with existing university databases if needed
+
+Example:
+A student should use it on phone, while admin uses it on web browser.
+
+4.10. Data integrity
+
+The system should keep data accurate and consistent.
+
+Requirements:
+
+Documents should not be altered without authorization
+Query logs should remain complete and correct
+User records should be stored consistently
+System updates should not damage existing data
+4.11. Backup and recovery
+
+The system should recover from failures.
+
+Requirements:
+
+Documents and query history should be backed up regularly
+The system should restore data after failure or loss
+Recovery procedures should be available for emergencies
+
+Example:
+If the server fails, university documents should not disappear permanently.
+
+4.12. Auditability
+
+The system should track important actions.
+
+Requirements:
+
+Admin actions should be logged
+Document uploads, edits, and deletions should be traceable
+Query handling and escalations should be recorded
+Login attempts should be monitored
+
+Example:
+The university should know who uploaded, changed, or removed a document.
+
+4.13. Flexibility
+
+The system should adapt to changes in university operations.
+
+Requirements:
+
+New document categories should be added easily
+New departments and services should be included without rebuilding the system
+Query rules should be adjustable as needs change
+4.14. Accessibility
+
+The system should be usable by different types of users.
+
+Requirements:
+
+Text should be readable and clear
+The interface should support users with basic digital skills
+Buttons, menus, and forms should be easy to understand
+
+5. TECHNOLOGY STACK
+5.1 Web Application
+Backend: PHP (Laravel)
+Frontend: HTML, CSS, Bootstrap, JavaScript
+Database: MySQL
+5.2 Mobile Application
+Backend: Java (Kotlin optional)
+Frontend: XML
+Database: MySQL, Firebase, Firestore, SQLite
+5.3 AI Model
+Ollama
+Mistral 7B
+RAG
+5.4 APIs
+(To be defined)
+6. UI/UX CONSIDERATIONS
+Use logo from public/images/
+Modern and professional design
+Accurate admin dashboard
+Proper font family and size
+Consistent color scheme based on logo
+Use Material Design
+Hamburger menu navigation
+Mobile responsiveness
+6.1 Data Visualization
+Line graph
+Pie chart
+Histogram
+Gantt chart
+Export formats:
+Excel
+PDF
+6.2 System Features UI
+CRUD operations (Add, Edit, Delete, View)
+Profile picture update
+Login credential management
+System settings
+Proper layout and alignment

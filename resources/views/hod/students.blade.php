@@ -75,7 +75,7 @@
 
 @foreach ($students as $student)
     <div class="modal fade" id="hodEditStudent-{{ $student->id }}" tabindex="-1" aria-labelledby="hodEditStudentTitle-{{ $student->id }}" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable modal-fullscreen-sm-down">
             <div class="modal-content border-0">
                 <div class="modal-header bg-surface-soft">
                     <h2 class="modal-title h5 fw-bold text-strong" id="hodEditStudentTitle-{{ $student->id }}">

@@ -540,7 +540,7 @@ final class PresentationConsentForm
 
     public static function authorizeStudentForSubmission(User $student, ProjectSubmission $submission): void
     {
-        if (! in_array($student->role, ['project_student', 'research_student', 'normal_student', 'student'], true)) {
+        if (! $student->isStudentUser()) {
             abort(403);
         }
 

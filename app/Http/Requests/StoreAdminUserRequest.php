@@ -13,7 +13,7 @@ class StoreAdminUserRequest extends FormRequest
     public const FORM_STUDENT_ROLE = 'student';
 
     /** @var list<string> */
-    public const STUDENT_ROLES = ['project_student', 'research_student', 'normal_student', 'student'];
+    public const STUDENT_ROLES = \App\Models\User::STUDENT_ROLES;
 
     /** @var list<string> */
     public const STAFF_FORM_ROLES = ['admin', 'hod', 'coordinator', 'supervisor'];
@@ -117,7 +117,7 @@ class StoreAdminUserRequest extends FormRequest
             'department.required' => 'Department is required for this role.',
             'programme.required' => 'Programme is required for student accounts.',
             'year_of_study.required' => 'Year of study is required for student accounts.',
-            'gender.required' => 'Gender is required for student and staff accounts.',
+            'gender.required' => 'Gender is required after the phone number for student and staff accounts. Use male or female.',
             'gender.in' => 'Gender must be male or female.',
         ];
     }

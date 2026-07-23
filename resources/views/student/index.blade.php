@@ -18,7 +18,7 @@
     }
     .prms-step {
         flex: 1 1 0;
-        min-width: 160px;
+        min-width: min(160px, 100%);
         position: relative;
         display: flex;
         align-items: center;
@@ -122,9 +122,8 @@
     .prms-step.is-draft .prms-step-status { color: #475569; }
     .prms-step.is-locked .prms-step-status { color: #94a3b8; }
 
-    /* On narrow screens, stack vertically with vertical connectors so the
-       order remains readable. */
-    @media (max-width: 575.98px) {
+    /* On tablets and phones, stack vertically with vertical connectors. */
+    @media (max-width: 767.98px) {
         .prms-stepper { flex-direction: column; }
         .prms-step { min-width: 0; }
         .prms-step:not(.is-last)::after {
@@ -229,7 +228,7 @@
 
     <div class="row g-4">
         <div class="col-12">
-            @if (!($isOverview ?? false) && in_array($user->role, ['project_student', 'research_student', 'normal_student', 'student', 'coordinator'], true))
+            @if (!($isOverview ?? false) && ($user->isStudentUser() || $user->role === 'coordinator'))
                 @php
                     $isProjectWorkspace = strtolower((string) $workspaceType) === 'project';
                     $activeStage = $currentStage ?? $stages->firstWhere('id', (int) old('stage_id'));

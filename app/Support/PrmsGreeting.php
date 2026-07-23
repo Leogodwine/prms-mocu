@@ -29,14 +29,15 @@ final class PrmsGreeting
     public static function subtitleForRole(?string $role): string
     {
         return match ($role) {
-            'project_student'  => 'Create your project or proposal, submit chapter drafts, build your system, and complete your research report.',
-            'research_student' => 'Create your research proposal, draft each chapter, and finalise your research report, thesis, or dissertation.',
-            'normal_student'   => 'Submit your proposal, project work, and research report through every supervised stage.',
-            'supervisor'       => 'Review proposals, supervise research and computer-based projects, and apply formal grading schemes.',
-            'coordinator'      => 'Form groups, assign supervisors, set deadlines, and approve final submissions.',
-            'hod'              => 'Oversee supervisors, students, projects, and research output across your department.',
-            'admin'            => 'Configure the system, manage users, and monitor health and audit activity.',
-            default            => 'Track submissions, review supervision activity, and access reporting tools from one place.',
+            'student',
+            'project_student',
+            'research_student',
+            'normal_student' => 'Submit your proposal, project work, and research report through every supervised stage.',
+            'supervisor' => 'Review proposals, supervise research and computer-based projects, and apply formal grading schemes.',
+            'coordinator' => 'Form groups, assign supervisors, set deadlines, and approve final submissions.',
+            'hod' => 'Oversee supervisors, students, projects, and research output across your department.',
+            'admin' => 'Configure the system, manage users, and monitor health and audit activity.',
+            default => 'Track submissions, review supervision activity, and access reporting tools from one place.',
         };
     }
 }

@@ -55,7 +55,7 @@ class SubmissionFileAccess
 
     public static function isStudentOwner(User $user, ProjectSubmission $submission): bool
     {
-        if (in_array($user->role, ['project_student', 'research_student', 'normal_student', 'student'], true)) {
+        if ($user->isStudentUser()) {
             $inSubmissionGroup = $submission->project_group_id
                 && $user->projectGroups()->where('project_groups.id', $submission->project_group_id)->exists();
 

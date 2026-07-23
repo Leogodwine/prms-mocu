@@ -30,7 +30,7 @@ class UserFactory extends Factory
             'login_id' => "MoCU/BBICT/{$num}/{$year}",
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
-            'role' => 'normal_student',
+            'role' => 'student',
             'registration_number' => null,
             'staff_id' => null,
             'account_status' => 'active',
@@ -123,18 +123,15 @@ class UserFactory extends Factory
         });
     }
 
-    public function student(string $subtype = 'normal_student'): static
+    public function student(string $subtype = 'student'): static
     {
-        $valid = ['project_student', 'research_student', 'normal_student'];
-
-        return $this->state(function () use ($subtype, $valid): array {
-            $role = in_array($subtype, $valid, true) ? $subtype : 'normal_student';
+        return $this->state(function (): array {
             $year = fake()->numerify('##');
             $num = fake()->unique()->numerify('###');
             $reg = "MoCU/BBICT/{$num}/{$year}";
 
             return [
-                'role' => $role,
+                'role' => 'student',
                 'login_id' => $reg,
                 'registration_number' => $reg,
                 'staff_id' => null,

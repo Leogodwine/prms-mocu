@@ -9,12 +9,21 @@
     <title>@yield('title', 'Sign in') | {{ config('app.name', 'MoCU-PRMS') }}</title>
 
     @include('layouts.partials.kaiadmin-styles')
-    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=42">
-    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=14">
+    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=57">
+    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=65">
+    <link rel="stylesheet" href="{{ asset('css/prms-welcome.css') }}?v=39">
 </head>
-<body class="prms-guest-page">
+<body class="prms-guest-page prms-landing">
 
     <a href="#prms-auth-main" class="prms-skip-link">{{ __('Skip to main content') }}</a>
+
+    <header class="main-header prms-landing-header position-fixed top-0 start-0 end-0 w-100" style="z-index: 1030;">
+        @include('layouts.partials.prms-site-topnav', [
+            'navId' => 'guestNav',
+            'innerClass' => 'prms-landing-nav-inner',
+            'alwaysExpanded' => true,
+        ])
+    </header>
 
     <div class="prms-auth-page-shell">
         <div class="prms-auth-page-main">
@@ -27,8 +36,10 @@
             </div>
         </div>
 
-        <footer class="prms-auth-site-footer text-center py-3">
-            @include('layouts.partials.prms-copyright')
+        <footer class="text-center">
+            <div class="container">
+                @include('layouts.partials.prms-copyright', ['muted' => false, 'class' => 'opacity-75'])
+            </div>
         </footer>
     </div>
 

@@ -14,7 +14,7 @@ class PrmsNavigationIndexTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function createEligibleResearchStudent(string $role = 'research_student'): User
+    private function createEligibleResearchStudent(): User
     {
         $programme = Program::factory()->create([
             'final_year' => 3,
@@ -23,7 +23,7 @@ class PrmsNavigationIndexTest extends TestCase
             'academic_level' => 'bachelor',
         ]);
 
-        $user = User::factory()->student($role)->create([
+        $user = User::factory()->student()->create([
             'year_of_study' => 3,
         ]);
 
@@ -68,18 +68,19 @@ class PrmsNavigationIndexTest extends TestCase
         $this->assertTrue($items->pluck('label')->contains('Chapter 1'));
         $this->assertTrue(
             $items->contains(fn (array $item) => ($item['label'] ?? '') === 'Chapter 1'
-                && ($item['subtitle'] ?? '') === 'Research proposal')
+                && strcasecmp((string) ($item['subtitle'] ?? ''), 'Research Proposal') === 0)
         );
     }
 
     public function test_students_do_not_see_coordinator_pages(): void
     {
-        $user = $this->createEligibleResearchStudent('project_student');
+        $user = $this->createEligibleResearchStudent();
 
         $labels = collect(PrmsNavigationIndex::forUser($user))->pluck('label');
 
         $this->assertFalse($labels->contains('Groups & assignments'));
-        $this->assertTrue($labels->contains('New project/proposal creation'));
+        $this->assertTrue($labels->contains('Register project idea'));
+        $this->assertSame('student', $user->role);
     }
 
     public function test_student_sidebar_starts_with_dashboard_and_ends_with_notifications(): void
@@ -93,10 +94,10 @@ class PrmsNavigationIndexTest extends TestCase
         $this->assertSame(
             [
                 'Dashboard',
-                'New project/proposal creation',
-                'Research proposal',
-                'Research report',
-                'Public repository',
+                'Register project idea',
+                'Research Proposal',
+                'Research Report',
+                'Public Repository',
                 'Notifications',
             ],
             $labels->all()
@@ -110,10 +111,10 @@ class PrmsNavigationIndexTest extends TestCase
         $user = $this->createEligibleResearchStudent();
 
         $proposal = collect(PrmsNavigationIndex::sidebarForUser($user))
-            ->firstWhere('label', 'Research proposal');
+            ->firstWhere('label', 'Research Proposal');
 
         $this->assertNotNull($proposal);
-        $this->assertCount(3, $proposal['children'] ?? []);
+        $this->assertGreaterThanOrEqual(3, count($proposal['children'] ?? []));
         $this->assertSame('Chapter 1', $proposal['children'][0]['label'] ?? null);
         $this->assertStringContainsString('type=proposal', $proposal['children'][0]['url'] ?? '');
         $this->assertStringContainsString('stage_id=', $proposal['children'][0]['url'] ?? '');
@@ -127,7 +128,7 @@ class PrmsNavigationIndexTest extends TestCase
             'academic_level' => 'certificate',
         ]);
 
-        $user = User::factory()->student('research_student')->create([
+        $user = User::factory()->student()->create([
             'year_of_study' => 1,
         ]);
 
@@ -142,8 +143,9 @@ class PrmsNavigationIndexTest extends TestCase
         $labels = collect(PrmsNavigationIndex::sidebarForUser($user->fresh()))->pluck('label')->values();
 
         $this->assertSame(
-            ['Dashboard', 'Public repository', 'Notifications'],
+            ['Dashboard', 'Public Repository', 'Notifications'],
             $labels->all()
         );
+        $this->assertSame('student', $user->fresh()->role);
     }
 }

@@ -234,7 +234,7 @@
      CREATE DEADLINE MODAL
    ════════════════════════════════════════════════════════════════ --}}
 <div class="modal fade" id="createDeadlineModal" tabindex="-1" aria-labelledby="createDeadlineModalTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable modal-fullscreen-sm-down">
         <div class="modal-content border-0">
             <div class="modal-header bg-surface-soft">
                 <h2 class="modal-title h5 fw-bold text-strong" id="createDeadlineModalTitle">
@@ -331,7 +331,7 @@
     {{-- Edit modal --}}
     <div class="modal fade" id="editDeadlineModal-{{ $deadline->id }}" tabindex="-1"
          aria-labelledby="editDeadlineModalTitle-{{ $deadline->id }}" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable modal-fullscreen-sm-down">
             <div class="modal-content border-0">
                 <div class="modal-header bg-surface-soft">
                     <h2 class="modal-title h5 fw-bold text-strong" id="editDeadlineModalTitle-{{ $deadline->id }}">

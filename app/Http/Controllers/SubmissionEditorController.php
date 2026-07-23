@@ -64,7 +64,7 @@ class SubmissionEditorController extends Controller
     public function createBlank(Request $request): RedirectResponse
     {
         $user = $request->user();
-        abort_if(! in_array($user->role, ['project_student', 'research_student', 'normal_student'], true), 403);
+        abort_if(! $user->isStudentUser(), 403);
 
         $validated = $request->validate([
             'stage_id' => ['required', 'exists:project_stages,id'],

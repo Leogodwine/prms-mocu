@@ -50,7 +50,7 @@ final class PrmsNavigationIndex
             fn (array $item) => ! empty($item['sidebar'])
         ));
 
-        if ($user !== null && in_array((string) $user->role, ['project_student', 'research_student', 'normal_student'], true)) {
+        if ($user !== null && $user->isStudentUser()) {
             $items = self::attachStudentWorkspaceChildren($user, $items);
         }
 
@@ -97,7 +97,7 @@ final class PrmsNavigationIndex
             $seenUrls[$url] = true;
         }
 
-        if (in_array((string) $user->role, ['project_student', 'research_student', 'normal_student'], true)) {
+        if ($user->isStudentUser()) {
             foreach (self::sidebarForUser($user) as $parent) {
                 foreach ($parent['children'] ?? [] as $child) {
                     $url = (string) ($child['url'] ?? '');
@@ -246,9 +246,11 @@ final class PrmsNavigationIndex
      */
     private static function studentItems(string $role): array
     {
-        if (! in_array($role, ['project_student', 'research_student', 'normal_student'], true)) {
+        if (! in_array($role, \App\Models\User::STUDENT_ROLES, true)) {
             return [];
         }
+
+        $studentRoles = \App\Models\User::STUDENT_ROLES;
 
         $items = [
             [
@@ -257,7 +259,7 @@ final class PrmsNavigationIndex
                 'icon' => 'fas fa-plus-circle',
                 'group' => 'Student workspace',
                 'keywords' => 'new create project proposal problem statement title register idea',
-                'roles' => ['project_student', 'research_student', 'normal_student'],
+                'roles' => $studentRoles,
                 'nav_capability' => 'create_project',
                 'sidebar' => true,
                 'sidebar_order' => 15,
@@ -269,7 +271,7 @@ final class PrmsNavigationIndex
                 'icon' => 'far fa-file-alt',
                 'group' => 'Student workspace',
                 'keywords' => 'proposal chapter upload submit research proposal',
-                'roles' => ['project_student', 'research_student', 'normal_student'],
+                'roles' => $studentRoles,
                 'sidebar' => true,
                 'sidebar_order' => 20,
                 'route_is' => 'student.index',
@@ -282,7 +284,7 @@ final class PrmsNavigationIndex
                 'icon' => 'fas fa-book-open',
                 'group' => 'Student workspace',
                 'keywords' => 'research thesis dissertation chapter report',
-                'roles' => ['project_student', 'research_student', 'normal_student'],
+                'roles' => $studentRoles,
                 'sidebar' => true,
                 'sidebar_order' => 30,
                 'route_is' => 'student.index',
@@ -297,7 +299,7 @@ final class PrmsNavigationIndex
             'icon' => 'fas fa-laptop-code',
             'group' => 'Student workspace',
             'keywords' => 'source code showcase demo presentation consent',
-            'roles' => ['project_student', 'research_student', 'normal_student'],
+            'roles' => $studentRoles,
             'sidebar' => true,
             'sidebar_order' => 40,
             'route_is' => 'student.index',
@@ -669,14 +671,14 @@ final class PrmsNavigationIndex
     {
         $items = [];
 
-        if (in_array($role, ['project_student', 'research_student', 'normal_student'], true)) {
+        if (in_array($role, User::STUDENT_ROLES, true)) {
             $items[] = [
                 'label' => 'Public Repository',
                 'url' => route('public.research.index'),
                 'icon' => 'fas fa-globe',
                 'group' => 'Library',
                 'keywords' => 'public research browse search citation',
-                'roles' => ['project_student', 'research_student', 'normal_student'],
+                'roles' => User::STUDENT_ROLES,
                 'sidebar' => true,
                 'sidebar_order' => 90,
                 'route_is' => 'public.research.*',

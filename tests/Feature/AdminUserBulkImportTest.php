@@ -43,8 +43,8 @@ class AdminUserBulkImportTest extends TestCase
             'must_change_password' => false,
         ]);
 
-        $csv = "name,email,reg_no,phone_number,role,department,programme,year_of_study,gender\n"
-            ."Import Student,import.student@example.com,MoCU/BBICT/501/20,255738234345,student,CICT,BBICT,2,female\n";
+        $csv = "name,email,reg_no,phone_number,gender,role,department,programme,year_of_study\n"
+            ."Import Student,import.student@example.com,MoCU/BBICT/501/20,255738234345,female,student,CICT,BBICT,2\n";
 
         $file = UploadedFile::fake()->createWithContent('students.csv', $csv, 'text/csv');
 
@@ -85,8 +85,8 @@ class AdminUserBulkImportTest extends TestCase
             'must_change_password' => false,
         ]);
 
-        $csv = "name,email,reg_no,phone_number,role,department,programme,year_of_study,gender\n"
-            ."No Gender Student,nogender@example.com,MoCU/BBICT/502/20,255738234345,student,CICT,BBICT,2,\n";
+        $csv = "name,email,reg_no,phone_number,gender,role,department,programme,year_of_study\n"
+            ."No Gender Student,nogender@example.com,MoCU/BBICT/502/20,255738234345,,student,CICT,BBICT,2\n";
 
         $file = UploadedFile::fake()->createWithContent('students.csv', $csv, 'text/csv');
 
@@ -119,8 +119,8 @@ class AdminUserBulkImportTest extends TestCase
             'must_change_password' => false,
         ]);
 
-        $csv = "name,email,reg_no,phone_number,role,department,programme,year_of_study,gender\n"
-            ."No Phone Student,nophone@example.com,MoCU/BBICT/504/20,,student,CICT,BBICT,2,female\n";
+        $csv = "name,email,reg_no,phone_number,gender,role,department,programme,year_of_study\n"
+            ."No Phone Student,nophone@example.com,MoCU/BBICT/504/20,,female,student,CICT,BBICT,2\n";
 
         $file = UploadedFile::fake()->createWithContent('students.csv', $csv, 'text/csv');
 

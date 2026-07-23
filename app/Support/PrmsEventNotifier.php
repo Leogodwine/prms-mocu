@@ -406,7 +406,7 @@ final class PrmsEventNotifier
         );
 
         User::query()
-            ->whereIn('role', ['project_student', 'research_student'])
+            ->whereIn('role', User::STUDENT_ROLES)
             ->where('account_status', 'active')
             ->orderBy('id')
             ->each(fn (User $student) => self::notifyWorkflow(

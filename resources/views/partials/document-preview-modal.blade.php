@@ -1,5 +1,5 @@
 <div class="modal fade" id="prmsPreviewModal" tabindex="-1" aria-labelledby="prmsPreviewModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
         <div class="modal-content" style="height: 85vh;">
             <div class="modal-header">
                 <h5 class="modal-title d-flex align-items-center" id="prmsPreviewModalLabel">

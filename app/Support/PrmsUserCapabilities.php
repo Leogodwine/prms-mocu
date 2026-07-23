@@ -26,11 +26,7 @@ final class PrmsUserCapabilities
             return false;
         }
 
-        if (! in_array($user->role, ['project_student', 'normal_student'], true)) {
-            return false;
-        }
-
-        if (! self::canAccessWorkspaceTrack($user, 'project')) {
+        if (! $user->isStudentUser() || ! self::canAccessWorkspaceTrack($user, 'project')) {
             return false;
         }
 
@@ -51,7 +47,7 @@ final class PrmsUserCapabilities
      */
     public static function isNavItemVisible(User $user, array $item): bool
     {
-        if (! in_array((string) $user->role, ['project_student', 'research_student', 'normal_student'], true)) {
+        if (! $user->isStudentUser()) {
             return true;
         }
 

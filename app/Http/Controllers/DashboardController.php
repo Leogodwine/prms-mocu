@@ -23,7 +23,7 @@ class DashboardController extends Controller
 
         if ($projectGroup) {
             $supervisorAssignment = $projectGroup->supervisorAssignment()->with('supervisor')->first();
-        } elseif (in_array($user->role, ['project_student', 'research_student'], true)) {
+        } elseif ($user->isStudentUser()) {
             $supervisorAssignment = SupervisorAssignment::query()
                 ->with('supervisor')
                 ->where('student_id', $user->id)
@@ -71,7 +71,7 @@ class DashboardController extends Controller
             'proposalTotal' => $proposalSummary['total'],
             'researchTotal' => $researchSummary['total'],
             'projectTotal' => $projectSummary['total'],
-            'academicCalendar' => in_array($user->role, ['project_student', 'research_student', 'normal_student'], true)
+            'academicCalendar' => $user->isStudentUser()
                 ? PrmsAcademicCalendar::forUser($user, $projectGroup)
                 : null,
         ]);

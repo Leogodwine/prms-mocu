@@ -13,8 +13,8 @@
     @include('layouts.partials.kaiadmin-styles')
     @php $kai = asset(config('prms.kaiadmin_assets', 'vendor/prms-mocu/assets')); @endphp
     <link rel="stylesheet" href="{{ $kai }}/css/demo.css">
-    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=44">
-    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=62">
+    <link rel="stylesheet" href="{{ asset('css/prms-theme.css') }}?v=50">
+    <link rel="stylesheet" href="{{ asset('css/prms-kaiadmin-bridge.css') }}?v=66">
 
     @stack('styles')
 </head>
@@ -45,7 +45,6 @@
                 <ul class="nav nav-primary">
                     @include('layouts.partials.prms-sidebar-nav')
                 </ul>
-                @include('layouts.partials.prms-sidebar-contributors')
             </div>
         </div>
     </div>
@@ -175,8 +174,8 @@
 
 @include('layouts.partials.kaiadmin-scripts', ['full' => true])
 <x-prms-toast-host />
-<script src="{{ asset('js/prms-header.js') }}?v=7"></script>
-<script src="{{ asset('js/prms-sidebar.js') }}?v=5"></script>
+<script src="{{ asset('js/prms-header.js') }}?v=11"></script>
+<script src="{{ asset('js/prms-sidebar.js') }}?v=7"></script>
 <script src="{{ asset('js/prms-sidebar-submenu.js') }}?v=1"></script>
 
 @if (auth()->check())

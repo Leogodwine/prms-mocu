@@ -244,7 +244,7 @@ class AdminUserController extends Controller
             $message .= " {$userNotifyFailed} user(s) could not be notified — check mail configuration or share credentials manually.";
         }
         if ($skipped > 0) {
-            $message .= " {$skipped} row(s) skipped (duplicate account, invalid role, invalid ID format, missing gender, or missing required fields).";
+            $message .= " {$skipped} row(s) skipped (duplicate account, invalid role, invalid ID format, missing phone number or gender, or missing required fields). Use male/female for gender immediately after phone_number.";
         }
 
         return back()->with('status', $message);

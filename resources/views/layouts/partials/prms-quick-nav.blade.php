@@ -1,5 +1,5 @@
 @if (auth()->check())
-    <li class="nav-item topbar-icon d-flex align-items-center me-2">
+    <li class="nav-item topbar-icon d-flex align-items-center me-1 me-md-2">
         <button type="button"
                 class="btn btn-light border rounded-pill px-2 px-md-3 py-1 d-inline-flex align-items-center gap-2 prms-quick-nav-trigger"
                 id="prmsQuickNavOpen"

@@ -447,7 +447,7 @@ final class StudentStageProgress
     {
         $tracks = ['proposal', 'research'];
 
-        if (in_array($role, ['project_student', 'normal_student'], true)) {
+        if (in_array($role, ['project_student', 'normal_student', 'student'], true)) {
             $tracks[] = 'project';
         }
 

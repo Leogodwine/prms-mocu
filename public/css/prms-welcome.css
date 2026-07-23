@@ -89,7 +89,7 @@ body.prms-landing .navbar.prms-public-topnav .prms-landing-nav-inner {
 }
 .prms-landing .navbar.prms-public-nav {
   transition: padding 0.3s ease, box-shadow 0.3s ease;
-  padding-block: 0.75rem;
+  padding-block: 0.35rem;
   padding-inline: 0;
   backdrop-filter: none;
   background-color: var(--prms-sidebar-bg, #202940) !important;
@@ -98,16 +98,16 @@ body.prms-landing .navbar.prms-public-topnav .prms-landing-nav-inner {
 }
 @media (min-width: 768px) {
   .prms-landing .navbar.prms-public-nav {
-    padding-block: 1rem;
+    padding-block: 0.45rem;
   }
 }
 @media (min-width: 992px) {
   .prms-landing .navbar.prms-public-nav {
-    padding-block: 1.25rem;
+    padding-block: 0.55rem;
   }
 }
 .prms-landing .navbar.prms-public-nav.scrolled {
-  padding: 0.9rem 0;
+  padding: 0.4rem 0;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
 }
 .prms-landing .navbar.prms-public-nav .prms-site-nav-brand {
